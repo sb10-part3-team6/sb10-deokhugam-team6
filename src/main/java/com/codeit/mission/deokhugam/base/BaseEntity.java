@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.entity.base;
+package com.codeit.mission.deokhugam.base;
 
 import jakarta.persistence.*;
 import lombok.Getter;
