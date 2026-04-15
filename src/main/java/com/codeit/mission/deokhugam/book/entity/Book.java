@@ -16,7 +16,6 @@ import java.time.LocalDate;
 @Table(name = "books")
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-@Builder
 public class Book extends BaseEntity {
     @Column(nullable = false)
     @Setter
@@ -49,5 +48,22 @@ public class Book extends BaseEntity {
 
     @Column(nullable = false)
     private BigDecimal rating;
+
+    @Builder
+    public Book(String title, String author, String description,
+                String publisher, LocalDate publishedDate,
+                String isbn, String thumbnailUrl,
+                int reviewCount, BigDecimal rating) {
+        super();
+        this.title = title;
+        this.author = author;
+        this.description = description;
+        this.publisher = publisher;
+        this.publishedDate = publishedDate;
+        this.isbn = isbn;
+        this.thumbnailUrl = thumbnailUrl;
+        this.reviewCount = reviewCount;
+        this.rating = rating;
+    }
 
 }
