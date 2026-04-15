@@ -41,7 +41,7 @@ public class Review extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private UUID userId;                                        // 리뷰 작성자
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false)
     private String content;                                     // 리뷰 내용 (최댓값: 500)
 
     @Column(nullable = false)
@@ -82,19 +82,12 @@ public class Review extends BaseEntity {
         }
     }
 
-    // 유효성 검증 (내용): 내용이 비어있거나 범위를 넘어가는 값을 입력할 경우 예외 발생
+    // 유효성 검증 (내용): 내용이 비어있을 경우 경우 예외 발생
     private void validateContent(String content) {
         if (content == null || content.isBlank()) {
             throw new ReviewContentBlankException(
                     ErrorCode.REVIEW_CONTENT_BLANK,
                     Map.of("content", content == null ? "null" : content)
-            );
-        }
-
-        else if (content.length() > 500) {
-            throw new ReviewContentTooLongException(
-                ErrorCode.REVIEW_CONTENT_TOO_LONG,
-                Map.of("contentLength", content.length())
             );
         }
     }
