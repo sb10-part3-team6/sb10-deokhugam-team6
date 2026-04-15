@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /*
@@ -34,23 +34,23 @@ public class Review extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private UUID userId;                                        // 리뷰 작성자
 
-    @Column(nullable = false)
-    private Integer rating;                                     // 리뷰 평점
-
     @Column(nullable = false, length = 500)
     private String content;                                     // 리뷰 내용 (최댓값: 500)
 
     @Column(nullable = false)
-    private Integer likesCount = 0;                             // 리뷰의 좋아요 수 (기본값: 0)
+    private int rating;                                         // 리뷰 평점
 
     @Column(nullable = false)
-    private Integer commentsCount = 0;                          // 리뷰의 댓글 수 (기본값: 0)
+    private Long likesCount = 0L;                               // 리뷰의 좋아요 수 (기본값: 0)
+
+    @Column(nullable = false)
+    private Long commentsCount = 0L;                            // 리뷰의 댓글 수 (기본값: 0)
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReviewStatus status = ReviewStatus.ACTIVE;          // 리뷰 상태 (기본값: 활성)
 
-    private Instant deletedAt;                                  // 리뷰 논리 삭제 시점
+    private LocalDateTime deletedAt;                                  // 리뷰 논리 삭제 시점
 
     // 생성자
     @Builder
@@ -64,30 +64,30 @@ public class Review extends BaseEntity {
     // 리뷰 논리 삭제
     public void delete(){
         this.status = ReviewStatus.DELETED;
-        this.deletedAt = Instant.now();
+        this.deletedAt = LocalDateTime.now();
     }
 
     // 좋아요 수 증가
     public void incrementLikesCount() {
-        this.likesCount += 1;
+        this.likesCount += 1L;
     }
 
     // 좋아요 수 감소
     public void decrementLikesCount() {
         if (this.likesCount > 0) {
-            this.likesCount -= 1;
+            this.likesCount -= 1L;
         }
     }
 
     // 댓글 수 증가
     public void incrementCommentsCount() {
-        this.commentsCount += 1;
+        this.commentsCount += 1L;
     }
 
     // 댓글 수 감소
     public  void decrementCommentsCount() {
         if (this.commentsCount > 0) {
-            this.commentsCount -= 1;
+            this.commentsCount -= 1L;
         }
     }
 }
