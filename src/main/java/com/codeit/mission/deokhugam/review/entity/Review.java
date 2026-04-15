@@ -45,7 +45,7 @@ public class Review extends BaseEntity {
     private String content;                                     // 리뷰 내용 (최댓값: 500)
 
     @Column(nullable = false)
-    @Min(0) @Max(5)
+    @Min(1) @Max(5)
     private int rating;                                         // 리뷰 평점
 
     @Column(nullable = false)
