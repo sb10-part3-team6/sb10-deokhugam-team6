@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.error;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -35,11 +36,20 @@ public class GlobalExceptionHandler {
                 .status(errorCode.getHttpStatus().value())                  // 발생한 에러의 HTTP Status
                 .build();
 
-        log.error("[CUSTOM_EXCEPTION] ERROR CODE={}, Message={}, details={}",
-                error.code(),
-                error.message(),
-                error.details()
-        );
+        // 발생한 에러의 우선 순위 별로 로그 기록
+        if (error.status() >= 500){                                                     // 실제 서버 에러 (error)
+            log.error("[CUSTOM_EXCEPTION] ERROR_CODE={}, Message={}, details={}",
+                    error.code(),
+                    error.message(),
+                    error.details()
+            );
+        }
+        else {                                                                          // 사용자 실수로 인한 에러 (warn)
+            log.warn("[CUSTOM_EXCEPTION] ERROR_CODE={}, Message={}, details={}",
+                    error.code(),
+                    error.message(),
+                    error.details());
+        }
         return ResponseEntity.status(error.status()).body(error);
     }
 
@@ -47,7 +57,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         // 첫번째 에러의 메시지를 전체 응답의 대표 메시지로 설정
-        String firstErrorMessage = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        String firstErrorMessage = e.getBindingResult().getAllErrors().stream()
+                .findFirst()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .orElse(ErrorCode.INVALID_INPUT_VALUE.getMessage());
 
         // 핃르 에러(Filed Error)와 관련된 추가 정보 목록
         Map<String, Object> details = new HashMap<>();
@@ -125,7 +138,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(Instant.now())
                 .code(errorCode.name())
-                .message(e.getMessage())
+                .message(errorCode.getMessage())
                 .exceptionType(e.getClass().getSimpleName())
                 .status(errorCode.getHttpStatus().value())
                 .build();
@@ -145,7 +158,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(Instant.now())
                 .code(errorCode.name())
-                .message(e.getMessage())
+                .message(errorCode.getMessage())
                 .exceptionType(e.getClass().getSimpleName())
                 .status(errorCode.getHttpStatus().value())
                 .build();

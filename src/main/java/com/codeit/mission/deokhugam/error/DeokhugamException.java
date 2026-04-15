@@ -4,7 +4,9 @@ import lombok.Getter;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /*
     커스텀 예외를 위한 최상위 전역 클래스
@@ -22,9 +24,14 @@ public class DeokhugamException extends RuntimeException {
 
     // 생성자(에러 코드, 에러와 관련된 정보)
     public DeokhugamException(ErrorCode errorCode, Map<String, Object> details) {
-        super(errorCode.getMessage());
+        super(Objects.requireNonNull(errorCode, "errorCode must not be null").getMessage());        // 에러 코드 널 (Null) 방지
+
         this.timestamp = Instant.now();
         this.errorCode = errorCode;
-        this.details = Collections.unmodifiableMap(details);
+
+        Map<String, Object> safeDetails = (details == null)                                                 // 에러 관련 정보 널 (Null) 방지
+                ? Collections.emptyMap()
+                : new LinkedHashMap<>(details);
+        this.details = Collections.unmodifiableMap(safeDetails);
     }
 }
