@@ -36,7 +36,7 @@ import java.util.UUID;
 )
 public class Review extends BaseEntity {
     @Column(name = "book_id", nullable = false)
-    private UUID bookId;                                        // 리븊 대상 도서
+    private UUID bookId;                                        // 리뷰 대상 도서
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;                                        // 리뷰 작성자
@@ -101,6 +101,11 @@ public class Review extends BaseEntity {
 
     // 리뷰 논리 삭제: 리뷰 상태 변경 및 삭제 시간 기록
     public void delete(){
+        // 최초 삭제 시점 보존을 위한 중복 삭제 방지
+        if (this.status == ReviewStatus.DELETED) {
+            return;
+        }
+
         this.status = ReviewStatus.DELETED;
         this.deletedAt = LocalDateTime.now();
     }
