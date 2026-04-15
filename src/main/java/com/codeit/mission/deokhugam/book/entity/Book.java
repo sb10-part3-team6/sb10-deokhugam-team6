@@ -4,6 +4,8 @@ import com.codeit.mission.deokhugam.base.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,11 +46,14 @@ public class Book extends BaseEntity {
     private String thumbnailUrl;
 
     @Column(nullable = false)
+    @Min(0)
     private int reviewCount;
 
     @Column(nullable = false)
+    @Min(1) @Max(5)
     private double rating;
 
+    //빌더 패턴 적용
     @Builder
     public Book(String title, String author, String description,
                 String publisher, LocalDate publishedDate,
@@ -66,4 +71,15 @@ public class Book extends BaseEntity {
         this.rating = rating;
     }
 
+    //리뷰 추가
+    public void addReview(int review) {
+        this.rating = (this.rating * this.reviewCount + review) / (this.reviewCount + 1);
+        this.reviewCount++;
+    }
+
+    //리뷰 삭제 (물리 삭제 시 활용)
+    public void removeReview(int review) {
+        this.rating = (this.rating * this.reviewCount - review) / (this.reviewCount - 1);
+        this.reviewCount--;
+    }
 }
