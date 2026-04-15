@@ -3,41 +3,47 @@ package com.codeit.mission.deokhugam.book.entity;
 import com.codeit.mission.deokhugam.base.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Setter
+@Table(name = "books")
 @Getter
+@Setter
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@Builder
 public class Book extends BaseEntity {
     @Column(nullable = false)
-    String title;
+    private String title;
 
     @Column(nullable = false)
-    String author;
+    private String author;
 
     @Column(nullable = false)
-    String description;
+    private String description;
 
     @Column(nullable = false)
-    String publisher;
+    private String publisher;
 
     @Column(nullable = false)
-    LocalDate publishedDate;
+    private LocalDate publishedDate;
 
     @Column
-    String isbn;
+    private String isbn;
 
     @Column
-    String thumbnailUrl;
+    private String thumbnailUrl;
 
     @Column(nullable = false)
-    long reviewCount;
+    private long reviewCount;
 
     @Column(nullable = false)
-    BigDecimal rating;
+    private BigDecimal rating;
 
 }
