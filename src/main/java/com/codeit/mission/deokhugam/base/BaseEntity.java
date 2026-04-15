@@ -1,4 +1,3 @@
-
 package com.codeit.mission.deokhugam.base;
 
 import jakarta.persistence.*;
