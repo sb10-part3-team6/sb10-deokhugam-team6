@@ -28,10 +28,10 @@ public class Book extends BaseEntity {
     @Column(nullable = false)
     LocalDate publishedDate;
 
-    @Column(nullable = false)
+    @Column
     String isbn;
 
-    @Column(nullable = false)
+    @Column
     String thumbnailUrl;
 
     @Column(nullable = false)
