@@ -47,13 +47,13 @@ public class Book extends BaseEntity {
     private int reviewCount;
 
     @Column(nullable = false)
-    private BigDecimal rating;
+    private double rating;
 
     @Builder
     public Book(String title, String author, String description,
                 String publisher, LocalDate publishedDate,
                 String isbn, String thumbnailUrl,
-                int reviewCount, BigDecimal rating) {
+                int reviewCount, double rating) {
         super();
         this.title = title;
         this.author = author;
