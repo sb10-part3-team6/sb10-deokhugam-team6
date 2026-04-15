@@ -45,7 +45,7 @@ public class Review extends BaseEntity {
     private String content;                                     // 리뷰 내용 (최댓값: 500)
 
     @Column(nullable = false)
-    @Min(0) @Max(5)
+    @Min(1) @Max(5)
     private int rating;                                         // 리뷰 평점
 
     @Column(nullable = false)
@@ -74,7 +74,7 @@ public class Review extends BaseEntity {
 
     // 유효성 검증 (평점): 평점 범위(0~5)를 벗어날 경우, 예외 발생
     private void validateRating(int rating) {
-        if (rating < 0 || rating > 5) {
+        if (rating < 1 || rating > 5) {
             throw new InvalidReviewRatingRangeException(
                 ErrorCode.INVALID_REVIEW_RATING_RANGE,
                 Map.of("rating", rating)
