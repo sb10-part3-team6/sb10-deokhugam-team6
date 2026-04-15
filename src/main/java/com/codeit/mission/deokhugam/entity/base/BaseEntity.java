@@ -8,6 +8,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.sql.Timestamp;
+import java.util.UUID;
 
 /*
     공통 엔티티
@@ -20,7 +21,7 @@ public abstract class BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)     // 무작위 UUID 발급
-    private Long id;                                    // 도매안 식별자
+    private UUID id;                                    // 도매안 식별자
 
     @CreatedDate
     @Column(updatable = false)
