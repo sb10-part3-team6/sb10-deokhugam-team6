@@ -4,7 +4,6 @@ import com.codeit.mission.deokhugam.base.BaseEntity;
 import com.codeit.mission.deokhugam.error.ErrorCode;
 import com.codeit.mission.deokhugam.review.exception.InvalidReviewRatingRangeException;
 import com.codeit.mission.deokhugam.review.exception.ReviewContentBlankException;
-import com.codeit.mission.deokhugam.review.exception.ReviewContentTooLongException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -42,7 +41,7 @@ public class Review extends BaseEntity {
     private UUID userId;                                        // 리뷰 작성자
 
     @Column(nullable = false)
-    private String content;                                     // 리뷰 내용 (최댓값: 500)
+    private String content;                                     // 리뷰 내용
 
     @Column(nullable = false)
     @Min(1) @Max(5)
