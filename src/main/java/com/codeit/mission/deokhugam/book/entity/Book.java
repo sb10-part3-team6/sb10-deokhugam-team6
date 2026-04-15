@@ -15,23 +15,27 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "books")
 @Getter
-@Setter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Builder
 public class Book extends BaseEntity {
     @Column(nullable = false)
+    @Setter
     private String title;
 
     @Column(nullable = false)
+    @Setter
     private String author;
 
     @Column(nullable = false, columnDefinition = "TEXT")
+    @Setter
     private String description;
 
     @Column(nullable = false)
+    @Setter
     private String publisher;
 
     @Column(nullable = false)
+    @Setter
     private LocalDate publishedDate;
 
     @Column
