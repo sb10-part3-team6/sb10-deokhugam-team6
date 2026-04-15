@@ -41,7 +41,7 @@ public class Book extends BaseEntity {
     private String thumbnailUrl;
 
     @Column(nullable = false)
-    private long reviewCount;
+    private int reviewCount;
 
     @Column(nullable = false)
     private BigDecimal rating;

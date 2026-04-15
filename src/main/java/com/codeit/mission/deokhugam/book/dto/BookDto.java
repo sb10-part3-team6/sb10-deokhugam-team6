@@ -14,7 +14,7 @@ public record BookDto(
     LocalDate publishedDate,
     String isbn,
     String thumbnailUrl,
-    long reviewCount,
+    int reviewCount,
     BigDecimal rating,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
