@@ -18,10 +18,8 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
 
     // 유저 (로그인/회원가입)
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not found"),
-    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "Invalid email or password"),
-    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "Email is already in use"),
-    DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "Nickname is already in use"),
+    LOGIN_INPUT_INVALID(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."),
+    EMAIL_DUPLICATION(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
 
     // 리뷰
     INVALID_REVIEW_RATING_RANGE(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5"),
