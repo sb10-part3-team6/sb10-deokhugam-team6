@@ -19,8 +19,7 @@ public enum ErrorCode {
 
     // 리뷰
     INVALID_REVIEW_RATING_RANGE(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5"),
-    REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank"),
-    REVIEW_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "Review content exceeds maximum length (500 characters)");
+    REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank");
 
     private final HttpStatus httpStatus;
     private final String message;
