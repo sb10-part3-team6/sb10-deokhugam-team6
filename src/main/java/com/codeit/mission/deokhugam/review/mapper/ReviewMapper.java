@@ -12,6 +12,12 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ReviewMapper {
     // Entity -> 응답 DTO 변환
+    @Mapping(target = "id", source = "review.id")
+    @Mapping(target = "bookId", source = "review.book.id")
+    @Mapping(target = "bookTitle", source = "review.book.title")
+    @Mapping(target = "bookThumbnailUrl", source = "review.book.thumbnailUrl")
+    @Mapping(target = "userId", source = "review.user.id")
+    @Mapping(target = "userNickName", source = "review.user.nickname")
     @Mapping(target = "likedByMe", source = "isLiked")
-    ReviewDto toDto(Review review);
+    ReviewDto toDto(Review review, boolean isLiked);
 }
