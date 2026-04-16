@@ -1,0 +1,85 @@
+package com.codeit.mission.deokhugam.book.entity;
+
+import com.codeit.mission.deokhugam.base.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "books")
+@Getter
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+public class Book extends BaseEntity {
+    @Column(nullable = false)
+    @Setter
+    private String title;
+
+    @Column(nullable = false)
+    @Setter
+    private String author;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    @Setter
+    private String description;
+
+    @Column(nullable = false)
+    @Setter
+    private String publisher;
+
+    @Column(nullable = false)
+    @Setter
+    private LocalDate publishedDate;
+
+    @Column
+    private String isbn;
+
+    @Column
+    private String thumbnailUrl;
+
+    @Column(nullable = false)
+    @Min(0)
+    private int reviewCount;
+
+    @Column(nullable = false)
+    @Min(1) @Max(5)
+    private double rating;
+
+    //빌더 패턴 적용
+    @Builder
+    public Book(String title, String author, String description,
+                String publisher, LocalDate publishedDate,
+                String isbn, String thumbnailUrl,
+                int reviewCount, double rating) {
+        super();
+        this.title = title;
+        this.author = author;
+        this.description = description;
+        this.publisher = publisher;
+        this.publishedDate = publishedDate;
+        this.isbn = isbn;
+        this.thumbnailUrl = thumbnailUrl;
+        this.reviewCount = reviewCount;
+        this.rating = rating;
+    }
+
+    //리뷰 추가
+    public void addReview(int review) {
+        this.rating = (this.rating * this.reviewCount + review) / (this.reviewCount + 1);
+        this.reviewCount++;
+    }
+
+    //리뷰 삭제 (물리 삭제 시 활용)
+    public void removeReview(int review) {
+        this.rating = (this.rating * this.reviewCount - review) / (this.reviewCount - 1);
+        this.reviewCount--;
+    }
+}
