@@ -9,6 +9,7 @@ import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
@@ -21,6 +22,7 @@ public class BookService {
     private final BookDtoMapper bookDtoMapper;
 
     //도서 생성 메서드
+    @Transactional
     public BookDto createBook(BookCreateRequest request, MultipartFile image){
         String imagePath = null;
 
