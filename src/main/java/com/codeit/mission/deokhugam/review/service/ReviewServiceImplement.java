@@ -27,7 +27,6 @@ public class ReviewServiceImplement implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
-    private final LikeRepository likeRepository;
 
     private final ReviewMapper reviewMapper;
 
@@ -52,8 +51,7 @@ public class ReviewServiceImplement implements ReviewService {
         reviewRepository.save(newReview);
 
         // 4. 리뷰 응답 DTO 변환 및 반환
-        boolean isLiked = likeRepository.existByReviewIdAndUserId(newReview.getId(), newReview.getUser().getId());
-        return reviewMapper.toDto(newReview, isLiked);
+        return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0개
     }
 
     // Book 엔티티 반환
