@@ -94,6 +94,7 @@ class BookServiceTest {
 
         MultipartFile image = mock(MultipartFile.class);
         when(image.getContentType()).thenReturn("image/png");
+        when(image.isEmpty()).thenReturn(false);
 
         String imageUrl = "https://image.url/test.png";
 
@@ -142,7 +143,9 @@ class BookServiceTest {
         );
 
         MultipartFile image = mock(MultipartFile.class);
+
         //when & then
+        when(image.isEmpty()).thenReturn(false);
         when(image.getContentType()).thenReturn("image/jpeg");
 
         when(bookImageService.upload(image))
@@ -166,7 +169,7 @@ class BookServiceTest {
         );
 
         MultipartFile image = mock(MultipartFile.class);
-
+        when(image.isEmpty()).thenReturn(false);
         when(image.getContentType()).thenReturn("text/plain");
 
         // when & then
