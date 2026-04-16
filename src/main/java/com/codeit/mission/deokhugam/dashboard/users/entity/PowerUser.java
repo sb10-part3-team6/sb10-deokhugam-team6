@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.dashboard.users.entity;
 
+import com.codeit.mission.deokhugam.base.BaseEntity;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,11 +32,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
           name = "uk_power_users_period",
           columnNames = {"user_id", "period_type", "period_start", "period_end"})
     })
-public class PowerUser {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID id;
+public class PowerUser extends BaseEntity {
 
   @Column(name = "user_id", nullable = false)
   private UUID userId;
@@ -67,10 +64,6 @@ public class PowerUser {
 
   @Column(name = "aggregated_at", nullable = false)
   private LocalDateTime aggregatedAt;
-
-  @CreatedDate
-  @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
 
   @Builder
   public PowerUser(

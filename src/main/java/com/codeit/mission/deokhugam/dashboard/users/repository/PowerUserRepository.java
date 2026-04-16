@@ -31,7 +31,7 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
           pu.commentCount
       )
       from PowerUser pu
-      join com.codeit.mission.deokhugam.domain.user.entity.User u on u.id = pu.userId 
+      join com.codeit.mission.deokhugam.user.entity.User u on u.id = pu.userId 
       /*추후 현호님이 user 패키지 경로를 바꾸시면 해당 경로도 바뀌어야 함.*/
             where pu.periodType = :periodType
         and (:cursor is null or pu.rank > :cursor)
