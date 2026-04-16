@@ -27,7 +27,7 @@ class PowerUserRepositoryTest {
   private EntityManager em;
 
   @Test
-  @DisplayName("기간 별 PowerUser의 개수 검증")
+  @DisplayName("기간 별 최신 PowerUser의 개수 검증")
   void countLatestRankingsByPeriodType_success(){
     // given
     LocalDateTime periodStart = LocalDateTime.of(2026,4,17,0,0);
@@ -63,8 +63,8 @@ class PowerUserRepositoryTest {
     PowerUser p3 = PowerUser.builder()
         .userId(UUID.randomUUID())
         .periodType(PeriodType.WEEKLY)
-        .periodStart(periodStart)
-        .periodEnd(periodEnd)
+        .periodStart(periodStart.minusWeeks(1))
+        .periodEnd(periodEnd.minusWeeks(1))
         .rank(1L)
         .score(30.0)
         .reviewScoreSum(20.0)
@@ -81,7 +81,7 @@ class PowerUserRepositoryTest {
     long count = powerUserRepository.countLatestRankingsByPeriodType(PeriodType.WEEKLY);
 
     // then
-    assertEquals(3, count);
+    assertEquals(2L, count);
   }
 
   @Test
@@ -133,15 +133,18 @@ class PowerUserRepositoryTest {
         .aggregatedAt(periodEnd)
         .build();
 
-    // Reflection을 써서 필드를 강제로 세팅할 수 있었다.
-    ReflectionTestUtils.setField(early, "createdAt", LocalDateTime.of(2026, 4, 21, 0, 0));
-    ReflectionTestUtils.setField(later, "createdAt", LocalDateTime.of(2026, 4, 21, 0, 1));
 
 
     em.persist(early);
     em.persist(later);
     em.flush(); // 영속성 컨텍스트 내보내기
-    em.clear(); // 영속성 컨텍스트 비움.
+
+    // Reflection을 써서 필드를 강제로 세팅할 수 있었다.
+    ReflectionTestUtils.setField(early, "createdAt", LocalDateTime.of(2026, 4, 21, 0, 0));
+    ReflectionTestUtils.setField(later, "createdAt", LocalDateTime.of(2026, 4, 21, 0, 1));
+
+    em.flush();
+    em.clear();
 
     // When
     List<PowerUserDto> result =

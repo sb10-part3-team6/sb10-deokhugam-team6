@@ -10,6 +10,7 @@ import com.codeit.mission.deokhugam.dashboard.users.dto.CursorPageResponsePowerU
 import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserRepository;
 import com.codeit.mission.deokhugam.error.DeokhugamException;
+import com.codeit.mission.deokhugam.error.ErrorCode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -345,21 +346,25 @@ class PowerUserServiceTest {
   @Test
   @DisplayName("잘못된 cursor 값 입력 시 예외가 발생한다")
   void getDailyPowerUsersWrongCursor() {
-    assertThrows(DeokhugamException.class, () ->
+    DeokhugamException ex = assertThrows(DeokhugamException.class, () ->
         powerUserService.getLatestRankings(
             PeriodType.DAILY,
             DirectionEnum.DESC,
             "sfsfsfe",
-            null,
+            "2026-04-15T10:00:00",
             50
         )
     );
+
+    assertEquals(ErrorCode.CURSOR_OR_AFTER_FORMAT_NOT_VALID, ex.getErrorCode());
   }
 
   @Test
   @DisplayName("잘못된 after 값 입력 시 커스텀 예외가 발생한다")
   void getDailyPowerUsersWrongNext(){
-    assertThrows(DeokhugamException.class, () ->
+
+
+    DeokhugamException ex = assertThrows(DeokhugamException.class, () ->
         powerUserService.getLatestRankings(
             PeriodType.DAILY,
             DirectionEnum.DESC,
@@ -368,6 +373,25 @@ class PowerUserServiceTest {
             50
         )
     );
+
+    assertEquals(ErrorCode.CURSOR_OR_AFTER_FORMAT_NOT_VALID, ex.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("cursor와 after가 동시에 제공되지 않을 때 커스텀 예외 발생")
+  void getDailyPowerUsers_cursor_after_not_provided_together(){
+
+    DeokhugamException ex = assertThrows(DeokhugamException.class, () ->
+        powerUserService.getLatestRankings(
+            PeriodType.DAILY,
+            DirectionEnum.DESC,
+            "33333333-3333-3333-3333-333333333333",
+            null,
+            50
+        )
+    );
+
+    assertEquals(ErrorCode.CURSOR_AFTER_NOT_PROVIDED_TOGETHER, ex.getErrorCode());
   }
 
 
