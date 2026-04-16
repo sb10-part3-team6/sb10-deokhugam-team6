@@ -1,5 +1,4 @@
-
-package com.codeit.mission.deokhugam.domain.user.dto;
+package com.codeit.mission.deokhugam.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -12,4 +11,5 @@ public record UserLoginRequest(
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
     String password
 ) {
+
 }
