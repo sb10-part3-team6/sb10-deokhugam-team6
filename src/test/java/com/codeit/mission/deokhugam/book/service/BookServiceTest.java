@@ -93,6 +93,7 @@ class BookServiceTest {
         );
 
         MultipartFile image = mock(MultipartFile.class);
+        when(image.getContentType()).thenReturn("image/png");
 
         String imageUrl = "https://image.url/test.png";
 
@@ -141,15 +142,37 @@ class BookServiceTest {
         );
 
         MultipartFile image = mock(MultipartFile.class);
+        //when & then
+        when(image.getContentType()).thenReturn("image/jpeg");
 
         when(bookImageService.upload(image))
-                .thenThrow(new RuntimeException("업로드 실패"));
+                .thenThrow(new RuntimeException("upload fail"));
+
+        assertThatThrownBy(() -> bookService.createBook(request, image))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("upload fail");
+
+        verify(bookRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("이미지 타입이 아니면 예외가 발생한다")
+    void createBookFailWhenWrongFileType() {
+        // given
+        BookCreateRequest request = new BookCreateRequest(
+                "제목", "저자", "설명", "출판사",
+                LocalDate.now(), "isbn"
+        );
+
+        MultipartFile image = mock(MultipartFile.class);
+
+        when(image.getContentType()).thenReturn("text/plain");
 
         // when & then
         assertThatThrownBy(() -> bookService.createBook(request, image))
-                .isInstanceOf(WrongFileTypeException.class)
-                .hasMessage("업로드 실패");
+                .isInstanceOf(WrongFileTypeException.class);
 
+        verify(bookImageService, never()).upload(any());
         verify(bookRepository, never()).save(any());
     }
 
