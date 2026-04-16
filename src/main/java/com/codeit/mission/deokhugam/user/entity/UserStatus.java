@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.user.enums;
+package com.codeit.mission.deokhugam.user.entity;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

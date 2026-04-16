@@ -1,7 +1,6 @@
 package com.codeit.mission.deokhugam.user.entity;
 
 import com.codeit.mission.deokhugam.base.BaseEntity;
-import com.codeit.mission.deokhugam.user.enums.UserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,7 +20,7 @@ public class User extends BaseEntity {
   @Column(nullable = false, unique = true)
   private String email;
 
-  @Column(nullable = false, unique = true, length = 20)
+  @Column(nullable = false, length = 20)
   private String nickname;
 
   @Column(nullable = false)

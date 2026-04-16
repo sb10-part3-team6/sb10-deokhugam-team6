@@ -3,10 +3,11 @@ package com.codeit.mission.deokhugam.user.mapper;
 import com.codeit.mission.deokhugam.user.dto.UserDto;
 import com.codeit.mission.deokhugam.user.dto.UserRegisterRequest;
 import com.codeit.mission.deokhugam.user.entity.User;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface UserMapper {
 
   @Mapping(target = "id", ignore = true)
