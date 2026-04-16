@@ -1,7 +1,6 @@
 package com.codeit.mission.deokhugam.user.entity;
 
 import com.codeit.mission.deokhugam.base.BaseEntity;
-import com.codeit.mission.deokhugam.user.enums.UserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -17,6 +17,12 @@ public enum ErrorCode {
     METHOD_ARGUMENT_TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "Method argument type mismatch"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
 
+    // 유저 (로그인/회원가입)
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not found"),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "Invalid email or password"),
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "Email is already in use"),
+    DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "Nickname is already in use"),
+
     // 리뷰
     INVALID_REVIEW_RATING_RANGE(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5"),
     REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank");
