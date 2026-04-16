@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.book.service;
 import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.BookDto;
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -146,7 +147,7 @@ class BookServiceTest {
 
         // when & then
         assertThatThrownBy(() -> bookService.createBook(request, image))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(WrongFileTypeException.class)
                 .hasMessage("업로드 실패");
 
         verify(bookRepository, never()).save(any());

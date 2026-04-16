@@ -19,7 +19,10 @@ public enum ErrorCode {
 
     // 리뷰
     INVALID_REVIEW_RATING_RANGE(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5"),
-    REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank");
+    REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank"),
+
+    //도서
+    WRONG_FILE_TYPE(HttpStatus.BAD_REQUEST, "Wrong file type");
 
     private final HttpStatus httpStatus;
     private final String message;

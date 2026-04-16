@@ -3,11 +3,15 @@ package com.codeit.mission.deokhugam.book.service;
 import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.BookDto;
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
+import com.codeit.mission.deokhugam.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -16,12 +20,22 @@ public class BookService {
     private final BookImageService bookImageService;
     private final BookDtoMapper bookDtoMapper;
 
+    //도서 생성 메서드
     public BookDto createBook(BookCreateRequest request, MultipartFile image){
         String imagePath = null;
 
+        //파일이 비지 않았고, 컨텐츠 타입이 image라면 파일 업로드 로직 수행
         if(image != null){
-            if(image.getSize() > 0){
-                imagePath = bookImageService.upload(image);
+            if(image.getContentType()!= null){
+                if(image.getContentType().startsWith("image/")){
+                    imagePath = bookImageService.upload(image);
+                }
+                else{
+                    throw new WrongFileTypeException(ErrorCode.WRONG_FILE_TYPE, Map.of("contentType", image.getContentType()));
+                }
+            }
+            else{
+                throw new WrongFileTypeException(ErrorCode.WRONG_FILE_TYPE, Map.of("contentType", "null"));
             }
         }
 
