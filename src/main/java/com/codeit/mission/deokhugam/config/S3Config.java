@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 @Configuration
 public class S3Config {
     //임시로 세팅, 추후 인프라 세팅 시 변경될 예정
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${cloud.aws.s3.region}")
     private String region;
 
     @Bean
