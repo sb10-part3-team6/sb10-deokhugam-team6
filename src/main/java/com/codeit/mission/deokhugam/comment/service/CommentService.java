@@ -54,6 +54,12 @@ public class CommentService {
         return commentMapper.toDto(updatedComment, user.getNickname());
     }
 
+    public CommentDto find(UUID commentId) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
+        User user = userRepository.findById(comment.getUserId()).orElseThrow(EntityNotFoundException::new);
+        return commentMapper.toDto(comment, user.getNickname());
+    }
+
     // 리뷰가 존재하는지 검증
     private void validReviewExists(UUID reviewId) {
         if (!reviewRepository.existById(reviewId)) {

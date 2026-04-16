@@ -20,12 +20,14 @@ public class CommentController {
     private final CommentService commentService;
     private final CommentRepository commentRepository;
 
+    // 댓글 생성
     @PostMapping
     public ResponseEntity<CommentDto> createComment(@Valid @RequestBody CommentCreateRequest request) {
         CommentDto commentDto = commentService.createComment(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(commentDto);
     }
 
+    // 댓글 수정
     @PatchMapping(value = "/{commentId}")
     public void updateComment(@PathVariable("commentId") UUID commentId,
                               @RequestParam UUID requestUserId,
@@ -33,8 +35,10 @@ public class CommentController {
         CommentDto commentDto = commentService.updateComment(commentId, requestUserId, request);
     }
 
+    // 댓글 상세 조회
     @GetMapping(value = "/{commentId}")
     public ResponseEntity<CommentDto> getComment(@PathVariable("commentId") UUID commentId) {
-
+        CommentDto commentDto = commentService.find(commentId);
+        return ResponseEntity.status(HttpStatus.OK).body(commentDto);
     }
 }
