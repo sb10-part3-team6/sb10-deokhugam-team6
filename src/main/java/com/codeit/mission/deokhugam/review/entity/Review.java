@@ -53,7 +53,7 @@ public class Review extends BaseEntity {
     private int rating;                                         // 리뷰 평점
 
     @Column(nullable = false)
-    private int likesCount = 0;                                 // 리뷰의 좋아요 수 (기본값: 0)
+    private int likeCount = 0;                                 // 리뷰의 좋아요 수 (기본값: 0)
 
     @ManyToMany
     @JoinTable(
@@ -61,10 +61,10 @@ public class Review extends BaseEntity {
             joinColumns = @JoinColumn(name = "review_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> likedUsers = new ArrayList<>();          // 특정 리뷰에 좋아요를 누른 사용자 목록
+    private List<User> likedUsers = new ArrayList<>();           // 특정 리뷰에 좋아요를 누른 사용자 목록
 
     @Column(nullable = false)
-    private int commentsCount = 0;                              // 리뷰의 댓글 수 (기본값: 0)
+    private int commentCount = 0;                                // 리뷰의 댓글 수 (기본값: 0)
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -80,6 +80,15 @@ public class Review extends BaseEntity {
 
         this.book = book;
         this.user = user;
+        this.content = content;
+        this.rating = rating;
+    }
+
+    // 리뷰 수정
+    public void updateContentAndRating(String content, int rating) {
+        validateContent(content);
+        validateRating(rating);
+
         this.content = content;
         this.rating = rating;
     }
@@ -120,27 +129,27 @@ public class Review extends BaseEntity {
         // 특정 리뷰에 대한 사용자의 좋아요 중복 방지
         if (!this.likedUsers.contains(user)) {
             this.likedUsers.add(user);
-            this.likesCount += 1;
+            this.likeCount += 1;
         }
     }
 
     // 좋아요 수 감소
     public void decrementLikesCount(User user) {
-        if (this.likesCount > 0 && this.likedUsers.contains(user)) {
+        if (this.likeCount > 0 && this.likedUsers.contains(user)) {
             this.likedUsers.remove(user);
-            this.likesCount -= 1;
+            this.likeCount -= 1;
         }
     }
 
     // 댓글 수 증가
     public void incrementCommentsCount() {
-        this.commentsCount += 1;
+        this.commentCount += 1;
     }
 
     // 댓글 수 감소
     public void decrementCommentsCount() {
-        if (this.commentsCount > 0) {
-            this.commentsCount -= 1;
+        if (this.commentCount > 0) {
+            this.commentCount -= 1;
         }
     }
 }

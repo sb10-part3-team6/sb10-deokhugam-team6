@@ -3,9 +3,12 @@ package com.codeit.mission.deokhugam.review.service;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.error.ErrorCode;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
+import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
+import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
+import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
@@ -51,7 +54,37 @@ public class ReviewServiceImplement implements ReviewService {
         reviewRepository.save(newReview);
 
         // 4. 리뷰 응답 DTO 변환 및 반환
-        return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0개
+        return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0
+    }
+
+    // 리뷰 수정
+    @Override
+    @Transactional
+    public ReviewDto update(UUID id, UUID requestUserId, ReviewUpdateRequest reviewUpdateRequest) {
+        // 1. 수정할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+        Review targetReview = getReviewEntityOrThrow(id);
+        User requestUser = getUserEntityOrThrow(requestUserId);
+
+        // 2. 권한 확인: 본인이 작성한 리뷰에 대해서만 수정 가능
+        validateOwner(targetReview, requestUser);
+
+        // 3. 리뷰 수정
+        targetReview.updateContentAndRating(reviewUpdateRequest.content(), reviewUpdateRequest.rating());
+
+        // 4. 특정 리뷰에 대한 작성자의 좋아요 여부 확인
+        boolean isLiked = reviewRepository.existsByIdAndUserId(targetReview.getId(), requestUser.getId());
+
+        // 5. 리뷰 응답 DTO 반환 및 변환
+        return reviewMapper.toDto(targetReview, isLiked);
+    }
+
+    // Review 엔티티 반환
+    private Review getReviewEntityOrThrow(UUID id) {
+        return reviewRepository.findById(id)
+                .orElseThrow(() -> new ReviewNotFoundException(
+                        ErrorCode.REVIEW_NOT_FOUND,
+                        Map.of("reviewId", id)
+                ));
     }
 
     // Book 엔티티 반환
@@ -75,6 +108,19 @@ public class ReviewServiceImplement implements ReviewService {
                             "bookId", bookId,
                             "userId", userId
                     )
+            );
+        }
+    }
+
+    // 유효성 검증 (권한 확인): 요청자와 리뷰 작성자가 다를 경우, 예외 발생
+    private void validateOwner (Review targetReview, User requestUser) {
+        boolean isOwner = targetReview.getUser().getId().equals(requestUser.getId());
+
+        if (!isOwner) {
+            throw  new ReviewAuthorMismatchException(
+                    ErrorCode.REVIEW_AUTHOR_MISMATCH,
+                    Map.of("reviewOwnerId", targetReview.getUser().getId(),
+                            "requestUserId", requestUser.getId())
             );
         }
     }

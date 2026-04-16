@@ -1,15 +1,16 @@
 package com.codeit.mission.deokhugam.review.controller;
 
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
+import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 /*
     리뷰 컨트롤러
@@ -25,12 +26,20 @@ public class ReviewController {
     // 리뷰 등록
     @PostMapping("/api/reviews")
     public ResponseEntity<ReviewDto> create(@Valid @RequestBody ReviewCreateRequest reviewCreateRequest) {
-        ReviewDto reviewDto = reviewService.create(reviewCreateRequest);
+        ReviewDto response = reviewService.create(reviewCreateRequest);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(reviewDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     // 리뷰 수정
+    @PatchMapping("/api/reviews/{reviewId}")
+    public ResponseEntity<ReviewDto> update(@PathVariable UUID reviewId,
+                                            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
+                                            @Valid @RequestBody ReviewUpdateRequest reviewUpdateRequest) {
+        ReviewDto response = reviewService.update(reviewId, requestUserId, reviewUpdateRequest);
+
+        return ResponseEntity.ok(response);
+    }
 
     // 리뷰 논리 삭제
     // 리뷰 물리 삭제
