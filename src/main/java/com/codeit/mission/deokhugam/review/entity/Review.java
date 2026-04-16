@@ -40,7 +40,7 @@ public class Review extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private UUID userId;                                        // 리뷰 작성자
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;                                     // 리뷰 내용
 
     @Column(nullable = false)
