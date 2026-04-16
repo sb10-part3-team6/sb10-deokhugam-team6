@@ -20,7 +20,7 @@ public enum ErrorCode {
     // 리뷰
     INVALID_REVIEW_RATING_RANGE(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5"),          // 평점 범위(1~5) 이탈
     REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank"),                 // 평점 내용 공백
-    DUPLICATE_REVIEWS(HttpStatus.BAD_REQUEST, "Review with BookId and UserId already exists");      // 사용의 특정 도서 리뷰 중복
+    DUPLICATE_REVIEWS(HttpStatus.CONFLICT, "Review with BookId and UserId already exists");         // 사용의 특정 도서 리뷰 중복
 
     private final HttpStatus httpStatus;
     private final String message;
