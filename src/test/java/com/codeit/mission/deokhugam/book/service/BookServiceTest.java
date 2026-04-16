@@ -153,6 +153,7 @@ class BookServiceTest {
                 .hasMessage("upload fail");
 
         verify(bookRepository, never()).save(any());
+        verify(bookDtoMapper, never()).toDto(any());
     }
 
     @Test
