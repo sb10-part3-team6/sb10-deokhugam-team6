@@ -2,7 +2,6 @@ package com.codeit.mission.deokhugam.comment.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.Length;
 
 import java.util.UUID;
 
