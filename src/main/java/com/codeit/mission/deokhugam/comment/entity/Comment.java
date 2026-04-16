@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -31,13 +32,24 @@ public class Comment extends BaseEntity {
     @Builder
     public Comment (UUID reviewId, UUID userId, String content) {
         super();
-        this.reviewId = reviewId;
-        this.userId = userId;
+        this.reviewId = Objects.requireNonNull(reviewId);
+        this.userId = Objects.requireNonNull(userId);
+        validateContent(content);
         this.content = content;
     }
 
     // 댓글 수정
     public void updateContent(String content) {
         this.content = content;
+    }
+
+    // 댓글 내용 유효성 검사
+    private void validateContent(String content) {
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("댓글 내용은 비워둘 수 없습니다.");
+        }
+        if (content.length() > 500) {
+            throw new IllegalArgumentException("댓글 내용은 500자 이하로 작성해 주세요.");
+        }
     }
 }
