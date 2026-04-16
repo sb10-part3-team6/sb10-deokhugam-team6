@@ -1,9 +1,11 @@
 package com.codeit.mission.deokhugam.review.entity;
 
 import com.codeit.mission.deokhugam.base.BaseEntity;
+import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.error.ErrorCode;
 import com.codeit.mission.deokhugam.review.exception.InvalidReviewRatingRangeException;
 import com.codeit.mission.deokhugam.review.exception.ReviewContentBlankException;
+import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -14,7 +16,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.UUID;
 
 /*
     Review
@@ -34,11 +35,13 @@ import java.util.UUID;
         }
 )
 public class Review extends BaseEntity {
-    @Column(name = "book_id", nullable = false)
-    private UUID bookId;                                        // 리뷰 대상 도서
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;                                          // 리뷰 대상 도서
 
-    @Column(name = "user_id", nullable = false)
-    private UUID userId;                                        // 리뷰 작성자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;                                          // 리뷰 작성자
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;                                     // 리뷰 내용
@@ -61,12 +64,12 @@ public class Review extends BaseEntity {
 
     // 생성자: 빌더 패턴을 통해 객체 생성 시, 유효성 검증 강제 수행
     @Builder
-    public Review(UUID bookId, UUID userId, String content, int rating) {
+    public Review(Book book, User user, String content, int rating) {
         validateContent(content);                           // 내용 검증
         validateRating(rating);                             // 평점 검증
 
-        this.bookId = bookId;
-        this.userId = userId;
+        this.book = book;
+        this.user = user;
         this.content = content;
         this.rating = rating;
     }
