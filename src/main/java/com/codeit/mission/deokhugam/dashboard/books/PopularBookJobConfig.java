@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.batch.config.books;
+package com.codeit.mission.deokhugam.dashboard.books;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.repository.JobRepository;
