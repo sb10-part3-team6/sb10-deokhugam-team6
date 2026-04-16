@@ -23,6 +23,6 @@ public record ReviewCreateRequest (
         @NotNull(message = "평점이 필요합니다.")
         @Min(value = 1, message = "평점의 최솟값은 1입니다.")
         @Max(value = 5, message = "평점의 최댓값은 5입니다.")
-        int rating                                             // 리뷰 평점
+        Integer rating                                          // 리뷰 평점
 ){
 }
