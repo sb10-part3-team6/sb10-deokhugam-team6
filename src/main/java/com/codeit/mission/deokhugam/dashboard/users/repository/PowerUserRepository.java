@@ -60,7 +60,7 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
       @Param("after") LocalDateTime after,
       Pageable pageable); // 여기서 이 Pageable은 size + 1 을 조회하기 위한 역할
 
-  // 파워 유저 집계 테이블에서 기간(Period)에 따른 파워 유저들을 오름차순으로 Fetch해오는 쿼리
+  // 파워 유저 집계 테이블에서 기간(Period)에 따른 파워 유저들을 내림차순으로 Fetch해오는 쿼리
   @Query(
       """
       select new com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserDto(
