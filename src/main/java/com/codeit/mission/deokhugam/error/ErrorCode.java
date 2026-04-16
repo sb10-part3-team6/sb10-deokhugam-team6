@@ -22,6 +22,9 @@ public enum ErrorCode {
     REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank"),                 // 평점 내용 공백
     DUPLICATE_REVIEWS(HttpStatus.CONFLICT, "Review with BookId and UserId already exists");         // 사용의 특정 도서 리뷰 중복
 
+    // 파워 유저 조회
+    CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
+    CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST,"Invalid cursor or after format");
     private final HttpStatus httpStatus;
     private final String message;
 }
