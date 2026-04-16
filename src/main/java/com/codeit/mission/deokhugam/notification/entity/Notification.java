@@ -1,8 +1,8 @@
 package com.codeit.mission.deokhugam.notification.entity;
 
 import com.codeit.mission.deokhugam.base.BaseEntity;
-import com.codeit.mission.deokhugam.domain.user.entity.User;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

@@ -1,5 +1,4 @@
-
-package com.codeit.mission.deokhugam.domain.user.dto;
+package com.codeit.mission.deokhugam.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -22,4 +21,5 @@ public record UserRegisterRequest(
     )
     String password
 ) {
+
 }
