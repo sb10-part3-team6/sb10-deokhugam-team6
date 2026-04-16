@@ -5,6 +5,10 @@ import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.users.dto.CursorPageResponsePowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserRepository;
+import com.codeit.mission.deokhugam.error.DeokhugamException;
+import com.codeit.mission.deokhugam.error.ErrorCode;
+import java.text.NumberFormat;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,14 +37,27 @@ public class PowerUserService {
   @Transactional(readOnly = true)
   public CursorPageResponsePowerUserDto getLatestRankings(
       PeriodType periodType, DirectionEnum direction, String cursor, String after, int size) { // 기간, 정렬 순서, 커서, 보조커서, 사이즈를 파라미터로 받음.
+
     int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE); // 사이즈가 0이면 1로 강제 고정 및 최대 사이즈를 벗어나지 않게 조정
 
-    // String으로 들어온 Cursor를 Long으로 바꿈. null일 경우 after도 null 처리 (첫 페이지이기 떄문)
-    Long cursorLong = cursor == null ? null : Long.parseLong(cursor);
-    LocalDateTime afterDate =
-        ((cursor == null || after == null))
-            ? null : LocalDateTime.parse(after); // String으로 들어온 after를 LocalDate로 변환
+    // 커서와 보조커서 (after)가 동시에 들어와있는지 검증하는 로직
+    if((cursor == null) != (after == null)){
+      throw new DeokhugamException(ErrorCode.CURSOR_AFTER_NOT_PROVIDED_TOGETHER);
+    }
 
+    // String으로 들어온 Cursor를 after를 null로 초기화
+    Long cursorLong = null;
+    LocalDateTime afterDate = null;
+
+    try {
+      if (cursor != null) {
+        cursorLong = Long.parseLong(cursor);
+        afterDate = LocalDateTime.parse(after);
+      }
+    }
+      catch(NumberFormatException | DateTimeException e){
+        throw new DeokhugamException(ErrorCode.CURSOR_OR_AFTER_FORMAT_NOT_VALID);
+      }
     List<PowerUserDto> rows = new ArrayList<>();
 
     // 정렬이 오름차순이라면 오름차순 조회 레포지토리 메서드를 호출, 반대도 동일

@@ -39,6 +39,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 }
 
