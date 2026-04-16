@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -72,6 +73,8 @@ public class BookImageService {
     }
 
     private String getUrl(String fileName) {
-        return "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + fileName;
+        return s3Client.utilities()
+                .getUrl(GetUrlRequest.builder().bucket(bucket).key(fileName).build())
+                .toExternalForm();
     }
 }
