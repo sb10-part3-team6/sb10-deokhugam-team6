@@ -15,6 +15,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /*
@@ -52,6 +54,14 @@ public class Review extends BaseEntity {
 
     @Column(nullable = false)
     private int likesCount = 0;                                 // 리뷰의 좋아요 수 (기본값: 0)
+
+    @ManyToMany
+    @JoinTable(
+            name = "review_likes",
+            joinColumns = @JoinColumn(name = "review_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> reviewLikes = new ArrayList<>();         // 특정 리뷰에 좋아요를 누른 사용자 목록
 
     @Column(nullable = false)
     private int commentsCount = 0;                              // 리뷰의 댓글 수 (기본값: 0)
