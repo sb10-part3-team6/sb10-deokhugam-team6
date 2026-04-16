@@ -4,6 +4,7 @@ import com.codeit.mission.deokhugam.base.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,6 +25,19 @@ public class Comment extends BaseEntity {
     private UUID userId;
 
     // 댓글 내용
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, length = 500)
     private String content;
+
+    @Builder
+    public Comment (UUID reviewId, UUID userId, String content) {
+        super();
+        this.reviewId = reviewId;
+        this.userId = userId;
+        this.content = content;
+    }
+
+    // 댓글 수정
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }
