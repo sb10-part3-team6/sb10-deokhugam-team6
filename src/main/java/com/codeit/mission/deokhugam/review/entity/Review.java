@@ -61,7 +61,7 @@ public class Review extends BaseEntity {
             joinColumns = @JoinColumn(name = "review_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> reviewLikes = new ArrayList<>();         // 특정 리뷰에 좋아요를 누른 사용자 목록
+    private List<User> likedUsers = new ArrayList<>();          // 특정 리뷰에 좋아요를 누른 사용자 목록
 
     @Column(nullable = false)
     private int commentsCount = 0;                              // 리뷰의 댓글 수 (기본값: 0)
@@ -116,13 +116,18 @@ public class Review extends BaseEntity {
     }
 
     // 좋아요 수 증가
-    public void incrementLikesCount() {
-        this.likesCount += 1;
+    public void incrementLikesCount(User user) {
+        // 특정 리뷰에 대한 사용자의 좋아요 중복 방지
+        if (!this.likedUsers.contains(user)) {
+            this.likedUsers.add(user);
+            this.likesCount += 1;
+        }
     }
 
     // 좋아요 수 감소
-    public void decrementLikesCount() {
-        if (this.likesCount > 0) {
+    public void decrementLikesCount(User user) {
+        if (this.likesCount > 0 && this.likedUsers.contains(user)) {
+            this.likedUsers.remove(user);
             this.likesCount -= 1;
         }
     }
