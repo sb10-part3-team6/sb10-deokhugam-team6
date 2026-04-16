@@ -25,7 +25,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 @Table( // 추후 schema.sql 등을 통해 테이블이 인식되도록 해야 할 듯.
     name = "power_users",
     // 정렬에 최적화된 인덱스 (기준 시간과 rank를 인덱스화)
