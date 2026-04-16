@@ -21,6 +21,7 @@ public enum ErrorCode {
     INVALID_REVIEW_RATING_RANGE(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5"),          // 평점 범위(1~5) 이탈
     REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank"),                 // 평점 내용 공백
     DUPLICATE_REVIEWS(HttpStatus.CONFLICT, "Review with BookId and UserId already exists"),         // 사용의 특정 도서 리뷰 중복
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "Review with Id not found"),                             // 특정 리뷰 조회 실패
 
     // 파워 유저 조회
     CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
