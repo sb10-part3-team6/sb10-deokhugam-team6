@@ -27,18 +27,17 @@ public class BookService {
         String imagePath = null;
 
         //파일이 비지 않았고, 컨텐츠 타입이 image라면 파일 업로드 로직 수행
-        if(image != null){
-            if(image.getContentType()!= null){
-                if(image.getContentType().startsWith("image/")){
-                    imagePath = bookImageService.upload(image);
-                }
-                else{
-                    throw new WrongFileTypeException(ErrorCode.WRONG_FILE_TYPE, Map.of("contentType", image.getContentType()));
-                }
+        if (image != null && !image.isEmpty()) {
+            String contentType = image.getContentType();
+
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new WrongFileTypeException(
+                        ErrorCode.WRONG_FILE_TYPE,
+                        Map.of("contentType", contentType == null ? "null" : contentType)
+                );
             }
-            else{
-                throw new WrongFileTypeException(ErrorCode.WRONG_FILE_TYPE, Map.of("contentType", "null"));
-            }
+
+            imagePath = bookImageService.upload(image);
         }
 
         Book book = Book.builder()
