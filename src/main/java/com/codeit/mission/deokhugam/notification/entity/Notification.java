@@ -19,18 +19,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends BaseEntity {
 
-  @Column(name = "review_content", nullable = false)
-  private String reviewContent;
+    @Column(name = "review_content", nullable = false)
+    private String reviewContent;
 
-  @Column(name = "message", nullable = false)
-  private String message;
+    @Column(name = "message", nullable = false)
+    private String message;
 
-  @Column(name = "confirmed", nullable = false)
-  private boolean confirmed = false;
+    @Column(name = "confirmed", nullable = false)
+    private boolean confirmed = false;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
-  private User user; // 알림을 수신한 사용자의 ID
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user; // 알림을 수신할 사용자의 ID
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "review_id")
