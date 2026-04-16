@@ -22,13 +22,16 @@ import java.util.UUID;
 
 /*
     리뷰 서비스
+    ----------
+    도서 (Book)과 관련된 코드 주석 처리
+    관련 내용 병합 이후, 제거 및 테스트 예정
  */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ReviewServiceImplement implements ReviewService {
     private final ReviewRepository reviewRepository;
-    private final BookRepository bookRepository;
+    //private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
     private final ReviewMapper reviewMapper;
@@ -55,12 +58,12 @@ public class ReviewServiceImplement implements ReviewService {
         validateDuplicateReview(reviewCreateRequest.bookId(), reviewCreateRequest.userId());
 
         // 2. Book / User 엔티티 조회
-        Book book = getBookEntityOrThrow(reviewCreateRequest.bookId());
+        //Book book = getBookEntityOrThrow(reviewCreateRequest.bookId());
         User user = getUserEntityOrThrow(reviewCreateRequest.userId());
 
         // 3. 리뷰 생성
         Review newReview = Review.builder()
-                .book(book)
+                //.book(book)
                 .user(user)
                 .content(reviewCreateRequest.content())
                 .rating(reviewCreateRequest.rating())
@@ -102,14 +105,15 @@ public class ReviewServiceImplement implements ReviewService {
     }
 
     // Book 엔티티 반환
-    private Book getBookEntityOrThrow(UUID bookId) {
-        return bookRepository.findById(bookId)
-                .orElseThrow();
-    }
+//    private Book getBookEntityOrThrow(UUID bookId) {
+//        return bookRepository.findById(bookId)
+//                .orElseThrow();
+//    }
 
     // User 엔티티 반환
     private User getUserEntityOrThrow(UUID userId) {
         return userRepository.findById(userId)
+                // userNotFound 커스텀 예외 구현 병합 시, 적용할 예정
                 .orElseThrow();
     }
 
