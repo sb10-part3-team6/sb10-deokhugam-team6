@@ -3,8 +3,10 @@ package com.codeit.mission.deokhugam.review.service;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
+import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
+import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
@@ -21,8 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
@@ -48,6 +49,70 @@ public class ReviewServiceImplementTest {
     @InjectMocks
     private ReviewServiceImplement reviewServiceImplement;
 
+    /*
+        리뷰 상세 조회
+     */
+
+    // [성공]
+    @Test
+    @DisplayName("리뷰 상세 조회 완료")
+    void find_review_by_id_success() {
+        // given
+        UUID reviewId = UUID.randomUUID();
+        UUID requestUserId = UUID.randomUUID();
+
+        // 가짜 객체 | 상세 조회 요청자
+        User requestUser = User.builder().build();
+        ReflectionTestUtils.setField(requestUser, "id", requestUserId);
+
+        // 조회할 리뷰
+        Review savedReview = Review.builder()
+                .content("meow meow")
+                .rating(5)
+                .build();
+        ReflectionTestUtils.setField(savedReview, "id", reviewId);
+
+        // 내부 로직 흐름 설정
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                    // savedReview 반환
+        given(userRepository.findById(requestUserId)).willReturn(Optional.of(requestUser));                 // requestUser 반환
+        given(reviewRepository.existsByIdAndUserId(reviewId, requestUserId)).willReturn(true);        // 특정 리뷰에 대한 사용자의 좋아요 여부
+
+        // 응답 DTO 객체
+        ReviewDto expectedReviewDto = ReviewDto.builder()
+                .content(savedReview.getContent())
+                .rating(savedReview.getRating())
+                .likedByMe(true)
+                .build();
+        given(reviewMapper.toDto(any(Review.class), anyBoolean())).willReturn(expectedReviewDto);           // exceptedReviewDto 반환
+
+        // when
+        ReviewDto result = reviewServiceImplement.findById(reviewId, requestUserId);
+
+        // then
+        assertNotNull(result);                                                          // 상세 조회 성공 여부
+        assertEquals(expectedReviewDto.content(), result.content());                    // 가짜 DTO 객체와 실제 조회 결과 비교
+        assertTrue(result.likedByMe());                                                 // 좋아요 여부 반영 확인
+    }
+
+    // [실패]
+    @Test
+    @DisplayName("리뷰 상세 조회 완료")
+    void find_review_by_id_failure() {
+        // given
+        UUID reviewId = UUID.randomUUID();
+        UUID requestUserId = UUID.randomUUID();
+
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
+
+        // when & then
+        ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class,
+                () -> {
+                    // validateOwner 예외 반환 확인
+                    reviewServiceImplement.findById(reviewId, requestUserId);
+                });
+        verify(reviewRepository, never()).existsByIdAndUserId(any(), any());        // Repository의 유효성 검증 (중복 검사) 미호출 확인
+        verify(reviewMapper, never()).toDto(any(), anyBoolean());                   // Mapper의 toDto 미호출 확인
+    }
 
     /*
         리뷰 등록
@@ -109,7 +174,7 @@ public class ReviewServiceImplementTest {
         // 내부 로직 흐름 설정
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));            // savedReview 반환
         given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                   // mockUser 반환
-        given(reviewRepository.existsByIdAndUserId(reviewId, userId)).willReturn(false);      // 중복 검사 결과 반환 (false = 기존에 생성한 리뷰 없음)
+        given(reviewRepository.existsByIdAndUserId(reviewId, userId)).willReturn(false);      // 특정 리뷰에 대한 사용자의 좋아요 여부
 
         // when
         reviewServiceImplement.update(reviewId, userId, updateRequest);
