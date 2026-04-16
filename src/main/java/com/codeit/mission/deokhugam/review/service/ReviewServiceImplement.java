@@ -33,6 +33,20 @@ public class ReviewServiceImplement implements ReviewService {
 
     private final ReviewMapper reviewMapper;
 
+    // 리뷰 상세 조회
+    @Override
+    public ReviewDto findById(UUID id, UUID requestUserId) {
+        // 1. 조정할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+        Review targetReview = getReviewEntityOrThrow(id);
+        User requestUser = getUserEntityOrThrow(requestUserId);
+
+        // 2. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
+        boolean isLiked = reviewRepository.existsByIdAndUserId(targetReview.getId(), requestUser.getId());
+
+        // 3. 응답 DTO 변환 및 반환
+        return reviewMapper.toDto(targetReview, isLiked);
+    }
+
     // 리뷰 등록
     @Override
     @Transactional

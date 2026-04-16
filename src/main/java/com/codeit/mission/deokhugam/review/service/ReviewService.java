@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public interface ReviewService {
     // 리뷰 상세 정보 조회
+    ReviewDto findById(UUID id, UUID requestUserId);
+
     // 리뷰 목록 조회
 
     // 리뷰 등록

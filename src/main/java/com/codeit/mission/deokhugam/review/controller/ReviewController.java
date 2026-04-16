@@ -21,6 +21,14 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     // 리뷰 상세 조회
+    @GetMapping("/api/reviews/{reviewId}")
+    public ResponseEntity<ReviewDto> findById(@PathVariable UUID reviewId,
+                                              @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+        ReviewDto response = reviewService.findById(reviewId, );
+
+        return ResponseEntity.ok(response);
+    }
+
     // 리뷰 목록 조회
 
     // 리뷰 등록
