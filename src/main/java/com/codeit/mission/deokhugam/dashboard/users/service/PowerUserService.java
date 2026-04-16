@@ -1,12 +1,15 @@
 package com.codeit.mission.deokhugam.dashboard.users.service;
 
+import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.users.dto.CursorPageResponsePowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PowerUserService {
-
+  // 페이지의 최대 사이즈
+  private static final int MAX_PAGE_SIZE = 100;
   // 파워 유저 계산에 필요한 가중치들.
   private static final double REVIEW_SCORE_WEIGHT = 0.5d;
   private static final double LIKE_COUNT_WEIGHT = 0.2d;
@@ -28,13 +32,24 @@ public class PowerUserService {
   // 집계된 파워유저를 조회하는 메서드
   @Transactional(readOnly = true)
   public CursorPageResponsePowerUserDto getLatestRankings(
-      PeriodType periodType, Long cursor, int size) { // 기간, 커서, 사이즈를 파라미터로 받음.
-    int pageSize = Math.max(size, 1); // 사이즈가 0이면 1로 강제 고정
+      PeriodType periodType, DirectionEnum direction, String cursor, String after, int size) { // 기간, 정렬 순서, 커서, 보조커서, 사이즈를 파라미터로 받음.
+    int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE); // 사이즈가 0이면 1로 강제 고정 및 최대 사이즈를 벗어나지 않게 조정
 
-    // CursorPageResponse의 content에 삽입할 PowerUserDto의 List를 추출
-    List<PowerUserDto> rows =
-        powerUserRepository.findLatestRankingDtosByPeriodType(
-            periodType, cursor, PageRequest.of(0, pageSize + 1));
+    // String으로 들어온 Cursor를 Long으로 바꿈. null일 경우 after도 null 처리 (첫 페이지이기 떄문)
+    Long cursorLong = cursor == null ? null : Long.parseLong(cursor);
+    LocalDateTime afterDate =
+        ((cursor == null || after == null))
+            ? null : LocalDateTime.parse(after); // String으로 들어온 after를 LocalDate로 변환
+
+    List<PowerUserDto> rows = new ArrayList<>();
+
+    // 정렬이 오름차순이라면 오름차순 조회 레포지토리 메서드를 호출, 반대도 동일
+    if (direction == DirectionEnum.ASC){
+      rows = powerUserRepository.findLatestRankingDtosByPeriodTypeAsc(periodType, cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
+    }
+    else {
+      rows = powerUserRepository.findLatestRankingDtosByPeriodTypeDesc(periodType, cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
+    }
 
     // 추출한 row의 size가 pageSize보다 크다면 다음 페이지가 존재함.
     boolean hasNext = rows.size() > pageSize;

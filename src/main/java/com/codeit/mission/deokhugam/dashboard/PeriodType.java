@@ -28,7 +28,7 @@ public enum PeriodType {
   ALL_TIME {
     @Override
     public LocalDateTime calculateStart(LocalDateTime aggregatedAt) {
-      return LocalDateTime.MIN;
+      return LocalDateTime.of(1970,1,1,0,0);
     }
   };
 

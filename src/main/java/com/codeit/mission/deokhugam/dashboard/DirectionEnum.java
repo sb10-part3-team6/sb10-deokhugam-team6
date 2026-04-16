@@ -1,4 +1,8 @@
-package com.codeit.mission.deokhugam.dashboard.users;
+package com.codeit.mission.deokhugam.dashboard;
 
 public enum DirectionEnum {
+  ASC(),
+  DESC()
+
+
 }
