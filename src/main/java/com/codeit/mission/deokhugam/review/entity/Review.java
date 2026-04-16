@@ -81,7 +81,7 @@ public class Review extends BaseEntity {
         }
     }
 
-    // 유효성 검증 (내용): 내용이 비어있을 경우 경우 예외 발생
+    // 유효성 검증 (내용): 내용이 비어있을 경우 예외 발생
     private void validateContent(String content) {
         if (content == null || content.isBlank()) {
             throw new ReviewContentBlankException(
