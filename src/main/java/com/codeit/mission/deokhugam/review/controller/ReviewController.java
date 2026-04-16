@@ -24,7 +24,7 @@ public class ReviewController {
     @GetMapping("/api/reviews/{reviewId}")
     public ResponseEntity<ReviewDto> findById(@PathVariable UUID reviewId,
                                               @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
-        ReviewDto response = reviewService.findById(reviewId, );
+        ReviewDto response = reviewService.findById(reviewId, requestUserId);
 
         return ResponseEntity.ok(response);
     }
