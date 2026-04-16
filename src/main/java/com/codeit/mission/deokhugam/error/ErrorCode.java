@@ -22,6 +22,7 @@ public enum ErrorCode {
     REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank"),                 // 평점 내용 공백
     DUPLICATE_REVIEWS(HttpStatus.CONFLICT, "Review with BookId and UserId already exists"),         // 사용의 특정 도서 리뷰 중복
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "Review with Id not found"),                             // 특정 리뷰 조회 실패
+    REVIEW_AUTHOR_MISMATCH(HttpStatus.BAD_REQUEST, "Review author mismatch with requestUserId"),    // 요청자와 리뷰 작성자 불일치
 
     // 파워 유저 조회
     CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
