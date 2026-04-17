@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import static com.codeit.mission.deokhugam.error.ErrorCode.BOOK_NOT_FOUND;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.V4RequestSigner.header;
 
 @RequiredArgsConstructor
 @Service
@@ -88,11 +89,7 @@ public class BookService {
         validateIsbn13(isbn);
 
         NaverResponseDto response = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(NAVER_BOOK_API_URL)
-                        .queryParam("d_isbn", isbn)
-                        .build()
-                )
+                .uri(NAVER_BOOK_API_URL + "?d_isbn=" + isbn)
                 .header("X-Naver-Client-Id", NAVER_CLIENT_ID)
                 .header("X-Naver-Client-Secret", NAVER_CLIENT_SECRET)
                 .retrieve()
