@@ -10,7 +10,7 @@ public class CommentException extends DeokhugamException {
         super(errorCode);
     }
 
-  public CommentException(ErrorCode errorCode, Map<String, Object> details) {
+    public CommentException(ErrorCode errorCode, Map<String, Object> details) {
     super(errorCode, details);
   }
 }

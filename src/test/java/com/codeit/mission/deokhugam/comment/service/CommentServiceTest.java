@@ -8,6 +8,7 @@ import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class CommentSrviceTest {
+public class CommentServiceTest {
 
     @Mock
     private CommentRepository commentRepository;
@@ -75,7 +76,7 @@ public class CommentSrviceTest {
     void createCommentSuccess() {
         // given
         CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "test content");
-        given(reviewRepository.existById(eq(reviewId))).willReturn(true);
+        given(reviewRepository.existsById(eq(reviewId))).willReturn(true);
 
         Comment savedComment = Comment.builder()
                 .reviewId(reviewId)
@@ -90,7 +91,7 @@ public class CommentSrviceTest {
 
         // then
         assertThat(result).isEqualTo(commentDto);
-        verify(commentRepository.save(any(Comment.class)));
+        verify(commentRepository).save(any(Comment.class));
     }
 
     @Test
@@ -104,7 +105,8 @@ public class CommentSrviceTest {
         // when
 
         // then
-        assertThatThrownBy(() -> commentService.createComment(request));
+        assertThatThrownBy(() -> commentService.createComment(request))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -133,7 +135,8 @@ public class CommentSrviceTest {
         // when
 
         // then
-        assertThatThrownBy(() -> commentService.updateComment(commentId, userId, request));
+        assertThatThrownBy(() -> commentService.updateComment(commentId, userId, request))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -141,10 +144,11 @@ public class CommentSrviceTest {
     void findCommentSuccess() {
         // given
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+        given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
         given(commentMapper.toDto(comment, userNickName)).willReturn(commentDto);
 
         // when
-        CommentDto result = commentService.find(commentId);
+        CommentDto result = commentService.findComment(commentId);
 
         // then
         assertThat(result).isEqualTo(commentDto);
@@ -159,6 +163,7 @@ public class CommentSrviceTest {
         // when
 
         // then
-        assertThatThrownBy(() -> commentService.find(commentId));
+        assertThatThrownBy(() -> commentService.findComment(commentId))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 }
