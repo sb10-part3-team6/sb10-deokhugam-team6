@@ -48,7 +48,7 @@ public class BookService {
         //ISBN 유효성 검증
         validateIsbn13(request.isbn());
         if(!bookRepository.existsByIsbn(request.isbn())){
-            throw new DuplicatedIsbnException(ErrorCode.DUPLICATE_ISBN, Map.of("isbn", request.isbn()));
+            throw new DuplicatedIsbnException(request.isbn());
         }
 
         String imagePath = upload(image);
@@ -74,10 +74,7 @@ public class BookService {
             String contentType = image.getContentType();
 
             if (contentType == null || !contentType.startsWith("image/")) {
-                throw new WrongFileTypeException(
-                        ErrorCode.WRONG_FILE_TYPE,
-                        Map.of("contentType", contentType == null ? "null" : contentType)
-                );
+                throw new WrongFileTypeException(contentType == null ? "null" : contentType);
             }
 
             return bookImageService.upload(image);
@@ -104,7 +101,7 @@ public class BookService {
 
         //응답값이 없으면 예외 처리
         if(response == null || response.items().isEmpty()) {
-            throw new BookNotFoundException(BOOK_NOT_FOUND);
+            throw new BookNotFoundException();
         }
 
         // 응답받은 날짜값을 LocalDate로 변환
@@ -134,7 +131,7 @@ public class BookService {
     //유효한지 여부 확인하고 예외 던지는 메서드
     private void validateIsbn13(String isbn){
         if (!isValidIsbn13(isbn)) {
-            throw new InvalidIsbnException(ErrorCode.INVALID_ISBN, Map.of("isbn", isbn));
+            throw new InvalidIsbnException(isbn);
         }
     }
 

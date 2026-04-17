@@ -6,11 +6,7 @@ import com.codeit.mission.deokhugam.error.ErrorCode;
 import java.util.Map;
 
 public class DuplicatedIsbnException extends DeokhugamException {
-    public DuplicatedIsbnException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public DuplicatedIsbnException(ErrorCode errorCode, Map<String, Object> details){
-        super(errorCode, details);
+    public DuplicatedIsbnException(String isbn){
+        super(ErrorCode.DUPLICATE_ISBN, Map.of("isbn", isbn));
     }
 }

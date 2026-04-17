@@ -6,11 +6,7 @@ import com.codeit.mission.deokhugam.error.ErrorCode;
 import java.util.Map;
 
 public class InvalidIsbnException extends DeokhugamException {
-    public InvalidIsbnException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public InvalidIsbnException(ErrorCode errorCode, Map<String, Object> details){
-        super(errorCode, details);
+    public InvalidIsbnException(String isbn) {
+        super(ErrorCode.INVALID_ISBN, Map.of("isbn", isbn));
     }
 }

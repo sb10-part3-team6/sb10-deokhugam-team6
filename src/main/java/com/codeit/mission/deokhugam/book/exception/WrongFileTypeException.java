@@ -6,11 +6,7 @@ import com.codeit.mission.deokhugam.error.ErrorCode;
 import java.util.Map;
 
 public class WrongFileTypeException extends DeokhugamException {
-    public WrongFileTypeException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public WrongFileTypeException(ErrorCode errorCode, Map<String, Object> details){
-        super(errorCode, details);
+    public WrongFileTypeException(String contentType){
+        super(ErrorCode.WRONG_FILE_TYPE, Map.of("contentType", contentType));
     }
 }

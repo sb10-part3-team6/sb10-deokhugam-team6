@@ -6,11 +6,7 @@ import com.codeit.mission.deokhugam.error.ErrorCode;
 import java.util.Map;
 
 public class BookNotFoundException extends DeokhugamException {
-  public BookNotFoundException(ErrorCode errorCode) {
-    super(errorCode);
-  }
-
-  public BookNotFoundException(ErrorCode errorCode, Map<String, Object> details){
-    super(errorCode, details);
+  public BookNotFoundException() {
+    super(ErrorCode.BOOK_NOT_FOUND);
   }
 }
