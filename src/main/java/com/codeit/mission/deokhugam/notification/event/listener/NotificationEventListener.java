@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class NotificationEventListner {
+public class NotificationEventListener {
 
     private final NotificationService notificationService;
 
