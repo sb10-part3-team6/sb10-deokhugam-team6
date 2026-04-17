@@ -98,7 +98,6 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
       """
       select count(pu.id)
       from PowerUser pu
-      join com.codeit.mission.deokhugam.user.entity.User u on u.id = pu.userId
       where pu.periodType = :periodType
         and pu.periodStart = (
           select max(p2.periodStart)
