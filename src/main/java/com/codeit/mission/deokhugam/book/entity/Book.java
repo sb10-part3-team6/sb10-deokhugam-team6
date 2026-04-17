@@ -50,7 +50,7 @@ public class Book extends BaseEntity {
     private int reviewCount;
 
     @Column(nullable = false)
-    @Min(1) @Max(5)
+    @Min(0) @Max(5)
     private double rating;
 
     //빌더 패턴 적용
