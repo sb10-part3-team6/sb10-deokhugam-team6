@@ -5,6 +5,7 @@ import com.codeit.mission.deokhugam.book.dto.BookDto;
 import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
 import com.codeit.mission.deokhugam.book.dto.NaverResponseDto;
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
 import com.codeit.mission.deokhugam.book.exception.DuplicatedIsbnException;
 import com.codeit.mission.deokhugam.book.exception.InvalidIsbnException;
 import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
@@ -21,6 +22,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+
+import static com.codeit.mission.deokhugam.error.ErrorCode.BOOK_NOT_FOUND;
 
 @RequiredArgsConstructor
 @Service
@@ -101,7 +104,7 @@ public class BookService {
 
         //응답값이 없으면 예외 처리
         if(response == null || response.items().isEmpty()) {
-            throw new RuntimeException("Book not found");
+            throw new BookNotFoundException(BOOK_NOT_FOUND);
         }
 
         // 응답받은 날짜값을 LocalDate로 변환
