@@ -27,7 +27,12 @@ public enum ErrorCode {
 
     // 파워 유저 조회
     CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
-    CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST,"Invalid cursor or after format");
+    CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST,"Invalid cursor or after format"),
+
+    //도서
+    WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),
+    S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed");
+
     private final HttpStatus httpStatus;
     private final String message;
 }
