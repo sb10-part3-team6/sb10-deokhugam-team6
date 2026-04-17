@@ -8,6 +8,7 @@ import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserReposito
 import com.codeit.mission.deokhugam.error.DeokhugamException;
 import com.codeit.mission.deokhugam.error.ErrorCode;
 import com.codeit.mission.deokhugam.error.InvalidCursorValueException;
+import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.text.NumberFormat;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
@@ -25,15 +26,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class PowerUserService {
   // 페이지의 최대 사이즈
   private static final int MAX_PAGE_SIZE = 100;
-  // 파워 유저 계산에 필요한 가중치들.
-  private static final double REVIEW_SCORE_WEIGHT = 0.5d;
-  private static final double LIKE_COUNT_WEIGHT = 0.2d;
-  private static final double RECEIVED_REVIEW_LIKE_WEIGHT = 0.3d;
+
 
   // 집계된 파워유저를 담아놓는 레포지토리
   private final PowerUserRepository powerUserRepository;
+
   // 리뷰의 좋아요들을 담아놓는 레포지토리 (누가 좋아요를 눌렀는지 확인하기 위해 만들어놓음)
   //private final ReviewLikeRepository reviewLikeRepository;
+  private final UserRepository userRepository;
+
 
   // 집계된 파워유저를 조회하는 메서드
   @Transactional(readOnly = true)

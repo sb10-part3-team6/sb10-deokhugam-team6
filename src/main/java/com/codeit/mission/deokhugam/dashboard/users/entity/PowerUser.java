@@ -93,7 +93,7 @@ public class PowerUser extends BaseEntity {
     this.aggregatedAt = aggregatedAt;
   }
 
-  public void setRank(Long rank){
+  public void updateRank(long rank){
     this.rank = rank;
   }
 }
