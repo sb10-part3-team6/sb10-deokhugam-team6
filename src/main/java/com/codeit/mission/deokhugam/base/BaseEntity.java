@@ -26,8 +26,8 @@ public abstract class BaseEntity {
 
     @CreatedDate
     @Column(updatable = false)
-    protected LocalDateTime createdAt;                    // 객체 생성 시점
+    private LocalDateTime createdAt;                    // 객체 생성 시점
 
     @LastModifiedDate
-    protected LocalDateTime updatedAt;                    // 객체 수정 시점
+    private LocalDateTime updatedAt;                    // 객체 수정 시점
 }
