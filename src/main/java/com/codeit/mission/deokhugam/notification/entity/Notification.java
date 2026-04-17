@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,25 +20,35 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends BaseEntity {
 
-  @Column(name = "review_content", nullable = false)
-  private String reviewContent;
+    @Column(name = "review_content", nullable = false, columnDefinition = "TEXT")
+    private String reviewContent;
 
-  @Column(name = "message", nullable = false)
-  private String message;
+    @Column(name = "message", nullable = false)
+    private String message;
 
-  @Column(name = "confirmed", nullable = false)
-  private boolean confirmed = false;
+    @Column(name = "confirmed", nullable = false)
+    private boolean confirmed = false;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
-  private User user; // 알림을 수신한 사용자의 ID
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user; // 알림을 수신할 사용자의 ID
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "review_id")
-  private Review review; // 좋아요 또는 댓글이 달린 리뷰
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id", nullable = false)
+    private Review review; // 알림 대상이 된 리뷰(좋아요, 댓글, 랭킹)
 
-  public void updateConfirmed(boolean confirmed) {
-    this.confirmed = confirmed;
-  }
+    @Builder
+    public Notification(String reviewContent, String message, boolean confirmed, User user,
+        Review review) {
+        this.reviewContent = reviewContent;
+        this.message = message;
+        this.confirmed = confirmed;
+        this.user = user;
+        this.review = review;
+    }
+
+    public void updateConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
+    }
 
 }
