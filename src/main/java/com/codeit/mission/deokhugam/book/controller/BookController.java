@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class BookController {
     private final BookService bookService;
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<BookDto> createBook(
             @Valid @RequestPart("bookData") BookCreateRequest bookData,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
