@@ -184,7 +184,8 @@ class UserControllerTest {
       // when & then
       mockMvc.perform(get("/api/users/{userId}", userId))
           .andDo(print())
-          .andExpect(status().isNotFound());
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
     }
   }
 
@@ -223,7 +224,8 @@ class UserControllerTest {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andDo(print())
-          .andExpect(status().isBadRequest());
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"));
     }
 
     @Test
@@ -240,7 +242,8 @@ class UserControllerTest {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andDo(print())
-          .andExpect(status().isNotFound());
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
     }
   }
 }
