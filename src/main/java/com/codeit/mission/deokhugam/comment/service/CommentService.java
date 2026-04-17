@@ -4,11 +4,12 @@ import com.codeit.mission.deokhugam.comment.dto.request.CommentCreateRequest;
 import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
+import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.error.ErrorCode;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
-import com.codeit.mission.deokhugam.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,8 +23,8 @@ import java.util.UUID;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final ReviewRepository reviewRepository;
-    private final UserRepository userRepository
+    //private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
     private final CommentMapper commentMapper;
 
     public CommentDto createComment(CommentCreateRequest request) {
@@ -46,7 +47,7 @@ public class CommentService {
         User user = userRepository.findById(reqeustUserId).orElseThrow(EntityNotFoundException::new);
         Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
         if (!comment.getUserId().equals(reqeustUserId)) {
-            throw new EntityNotFoundException();
+            throw new CommentAuthorException();
         }
 
         comment.updateContent(request.content());
