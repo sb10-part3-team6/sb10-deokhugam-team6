@@ -4,6 +4,7 @@ import com.codeit.mission.deokhugam.comment.dto.request.CommentCreateRequest;
 import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
+import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
@@ -131,6 +132,7 @@ public class CommentServiceTest {
     void updateCommentFail() {
         // given
         CommentUpdateRequest request = new CommentUpdateRequest("updated content");
+        given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.empty());
 
         // when
@@ -138,6 +140,22 @@ public class CommentServiceTest {
         // then
         assertThatThrownBy(() -> commentService.updateComment(commentId, userId, request))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - 작성자 불일치")
+    void upDateCommentFailByAuthorMismatch() {
+        // given
+        UUID otherUserId = UUID.randomUUID();
+        CommentUpdateRequest request = new CommentUpdateRequest("updated content");
+        given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(user));
+        given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+
+        // when
+
+        // then
+        assertThatThrownBy(() -> commentService.updateComment(commentId, otherUserId, request))
+                .isInstanceOf(CommentAuthorException.class);
     }
 
     @Test
