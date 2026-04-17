@@ -65,7 +65,7 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-    testAnnotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+    testAnnotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:6.10.1:jpa'
     testAnnotationProcessor 'jakarta.annotation:jakarta.annotation-api'
     testAnnotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 }
