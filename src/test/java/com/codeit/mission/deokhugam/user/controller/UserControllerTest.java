@@ -2,6 +2,8 @@ package com.codeit.mission.deokhugam.user.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -11,8 +13,10 @@ import com.codeit.mission.deokhugam.error.GlobalExceptionHandler;
 import com.codeit.mission.deokhugam.user.dto.UserDto;
 import com.codeit.mission.deokhugam.user.dto.UserLoginRequest;
 import com.codeit.mission.deokhugam.user.dto.UserRegisterRequest;
+import com.codeit.mission.deokhugam.user.dto.UserUpdateRequest;
 import com.codeit.mission.deokhugam.user.exception.EmailDuplicationException;
 import com.codeit.mission.deokhugam.user.exception.LoginFailedException;
+import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
@@ -147,6 +151,96 @@ class UserControllerTest {
               .content(objectMapper.writeValueAsString(request)))
           .andDo(print())
           .andExpect(status().isUnauthorized());
+    }
+  }
+
+  @Nested
+  @DisplayName("유저 정보 조회 API")
+  class GetUserApiTest {
+
+    @Test
+    @DisplayName("성공: 200 OK를 반환")
+    void getUser_Success() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      UserDto response = new UserDto(userId, "test@example.com", "테스터", LocalDateTime.now());
+      given(userService.getUser(userId)).willReturn(response);
+
+      // when & then
+      mockMvc.perform(get("/api/users/{userId}", userId))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.email").value("test@example.com"))
+          .andExpect(jsonPath("$.nickname").value("테스터"));
+    }
+
+    @Test
+    @DisplayName("실패: 존재하지 않는 유저 (404 Not Found)")
+    void getUser_Fail_NotFound() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      given(userService.getUser(userId)).willThrow(new UserNotFoundException(userId));
+
+      // when & then
+      mockMvc.perform(get("/api/users/{userId}", userId))
+          .andDo(print())
+          .andExpect(status().isNotFound());
+    }
+  }
+
+  @Nested
+  @DisplayName("닉네임 수정 API")
+  class UpdateNicknameApiTest {
+
+    @Test
+    @DisplayName("성공: 200 OK를 반환")
+    void updateNickname_Success() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      UserUpdateRequest request = new UserUpdateRequest("새닉네임");
+      UserDto response = new UserDto(userId, "test@example.com", "새닉네임", LocalDateTime.now());
+      given(userService.updateNickname(any(UUID.class), any(UserUpdateRequest.class))).willReturn(
+          response);
+
+      // when & then
+      mockMvc.perform(patch("/api/users/{userId}", userId)
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.nickname").value("새닉네임"));
+    }
+
+    @Test
+    @DisplayName("실패: 유효하지 않은 닉네임 (400 Bad Request)")
+    void updateNickname_Fail_InvalidInput() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      UserUpdateRequest request = new UserUpdateRequest("a"); // 2자 미만
+
+      // when & then
+      mockMvc.perform(patch("/api/users/{userId}", userId)
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("실패: 존재하지 않는 유저 (404 Not Found)")
+    void updateNickname_Fail_NotFound() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      UserUpdateRequest request = new UserUpdateRequest("새닉네임");
+      given(userService.updateNickname(any(UUID.class), any(UserUpdateRequest.class)))
+          .willThrow(new UserNotFoundException(userId));
+
+      // when & then
+      mockMvc.perform(patch("/api/users/{userId}", userId)
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isNotFound());
     }
   }
 }

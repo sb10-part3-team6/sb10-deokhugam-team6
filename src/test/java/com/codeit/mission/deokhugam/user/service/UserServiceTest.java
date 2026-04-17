@@ -10,12 +10,15 @@ import com.codeit.mission.deokhugam.error.ErrorCode;
 import com.codeit.mission.deokhugam.user.dto.UserDto;
 import com.codeit.mission.deokhugam.user.dto.UserLoginRequest;
 import com.codeit.mission.deokhugam.user.dto.UserRegisterRequest;
+import com.codeit.mission.deokhugam.user.dto.UserUpdateRequest;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.EmailDuplicationException;
 import com.codeit.mission.deokhugam.user.exception.LoginFailedException;
+import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.mapper.UserMapper;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -131,6 +134,79 @@ class UserServiceTest {
       assertThatThrownBy(() -> userService.login(request))
           .isInstanceOf(LoginFailedException.class)
           .hasFieldOrPropertyWithValue("errorCode", ErrorCode.LOGIN_INPUT_INVALID);
+    }
+  }
+
+  @Nested
+  @DisplayName("유저 정보 조회")
+  class GetUserTest {
+
+    @Test
+    @DisplayName("성공")
+    void getUser_Success() {
+      // given
+      UUID userId = UUID.randomUUID();
+      User user = User.builder()
+          .email("test@example.com")
+          .nickname("테스터")
+          .build();
+      given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+      // when
+      UserDto result = userService.getUser(userId);
+
+      // then
+      assertThat(result.email()).isEqualTo(user.getEmail());
+      assertThat(result.nickname()).isEqualTo(user.getNickname());
+    }
+
+    @Test
+    @DisplayName("실패: 유저 없음")
+    void getUser_Fail_NotFound() {
+      // given
+      UUID userId = UUID.randomUUID();
+      given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+      // when & then
+      assertThatThrownBy(() -> userService.getUser(userId))
+          .isInstanceOf(UserNotFoundException.class);
+    }
+  }
+
+  @Nested
+  @DisplayName("닉네임 수정")
+  class UpdateNicknameTest {
+
+    @Test
+    @DisplayName("성공")
+    void updateNickname_Success() {
+      // given
+      UUID userId = UUID.randomUUID();
+      User user = User.builder()
+          .email("test@example.com")
+          .nickname("기존닉네임")
+          .build();
+      UserUpdateRequest request = new UserUpdateRequest("새닉네임");
+      given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+      // when
+      UserDto result = userService.updateNickname(userId, request);
+
+      // then
+      assertThat(result.nickname()).isEqualTo("새닉네임");
+    }
+
+    @Test
+    @DisplayName("실패: 유저 없음")
+    void updateNickname_Fail_NotFound() {
+      // given
+      UUID userId = UUID.randomUUID();
+      UserUpdateRequest request = new UserUpdateRequest("새닉네임");
+      given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+      // when & then
+      assertThatThrownBy(() -> userService.updateNickname(userId, request))
+          .isInstanceOf(UserNotFoundException.class);
     }
   }
 }
