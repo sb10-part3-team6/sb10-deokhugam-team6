@@ -5,6 +5,8 @@ import com.codeit.mission.deokhugam.book.dto.BookDto;
 import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
 import com.codeit.mission.deokhugam.book.dto.NaverResponseDto;
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.exception.DuplicatedIsbnException;
+import com.codeit.mission.deokhugam.book.exception.InvalidIsbnException;
 import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
@@ -39,6 +41,13 @@ public class BookService {
     //도서 생성 메서드
     @Transactional
     public BookDto createBook(BookCreateRequest request, MultipartFile image){
+
+        //ISBN 유효성 검증
+        validateIsbn13(request.isbn());
+        if(!bookRepository.existsByIsbn(request.isbn())){
+            throw new DuplicatedIsbnException(ErrorCode.DUPLICATE_ISBN, Map.of("isbn", request.isbn()));
+        }
+
         String imagePath = upload(image);
 
         Book book = Book.builder()
@@ -75,6 +84,8 @@ public class BookService {
 
     //isbn 기반 Naver API 연동 메서드
     public NaverBookDto getBookInfoFromNaverApi(String isbn) {
+        validateIsbn13(isbn);
+
         NaverResponseDto response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(NAVER_BOOK_API_URL)
