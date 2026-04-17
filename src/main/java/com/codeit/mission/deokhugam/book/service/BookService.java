@@ -118,11 +118,18 @@ public class BookService {
 
     //링크로부터 파일 byte 가져오기
     private byte[] getBytesInLink(String imageUrl){
-        return webClient.get()
-                .uri(imageUrl)
-                .retrieve()
-                .bodyToMono(byte[].class)
-                .block();
+        if(imageUrl == null || imageUrl.isBlank()) return null;
+
+        try{
+            return webClient.get()
+                    .uri(imageUrl)
+                    .retrieve()
+                    .bodyToMono(byte[].class)
+                    .block();
+        }catch (Exception e){
+            //이미지 로딩 실패시 null
+            return null;
+        }
     }
 
     //유효한지 여부 확인하고 예외 던지는 메서드
