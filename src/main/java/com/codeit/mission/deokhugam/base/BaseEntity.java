@@ -21,7 +21,7 @@ public abstract class BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)     // 무작위 UUID 발급
-    protected
+    private
     UUID id;                                    // 도매안 식별자
 
     @CreatedDate
