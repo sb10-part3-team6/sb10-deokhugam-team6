@@ -47,7 +47,7 @@ public class BookService {
 
         //ISBN 유효성 검증
         validateIsbn13(request.isbn());
-        if(!bookRepository.existsByIsbn(request.isbn())){
+        if(bookRepository.existsByIsbn(request.isbn())){
             throw new DuplicatedIsbnException(request.isbn());
         }
 
