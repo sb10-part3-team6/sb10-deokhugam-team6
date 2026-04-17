@@ -25,21 +25,7 @@ public class BookService {
     //도서 생성 메서드
     @Transactional
     public BookDto createBook(BookCreateRequest request, MultipartFile image){
-        String imagePath = null;
-
-        //파일이 비지 않았고, 컨텐츠 타입이 image라면 파일 업로드 로직 수행
-        if (image != null && !image.isEmpty()) {
-            String contentType = image.getContentType();
-
-            if (contentType == null || !contentType.startsWith("image/")) {
-                throw new WrongFileTypeException(
-                        ErrorCode.WRONG_FILE_TYPE,
-                        Map.of("contentType", contentType == null ? "null" : contentType)
-                );
-            }
-
-            imagePath = bookImageService.upload(image);
-        }
+        String imagePath = upload(image);
 
         Book book = Book.builder()
                 .title(request.title())
@@ -54,5 +40,22 @@ public class BookService {
                 .build();
 
         return bookDtoMapper.toDto(bookRepository.save(book));
+    }
+
+    private String upload(MultipartFile image) {
+        //파일이 비지 않았고, 컨텐츠 타입이 image라면 파일 업로드 로직 수행
+        if (image != null && !image.isEmpty()) {
+            String contentType = image.getContentType();
+
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new WrongFileTypeException(
+                        ErrorCode.WRONG_FILE_TYPE,
+                        Map.of("contentType", contentType == null ? "null" : contentType)
+                );
+            }
+
+            return bookImageService.upload(image);
+        }
+        return null;
     }
 }
