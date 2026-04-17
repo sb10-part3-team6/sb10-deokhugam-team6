@@ -16,6 +16,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class BookService {
     private final BookRepository bookRepository;
     private final BookImageService bookImageService;
