@@ -73,6 +73,11 @@ class BookServiceTest {
         Book saved = captor.getValue();
 
         assertThat(saved.getTitle()).isEqualTo("제목");
+        assertThat(saved.getAuthor()).isEqualTo("저자");
+        assertThat(saved.getDescription()).isEqualTo("설명");
+        assertThat(saved.getPublisher()).isEqualTo("출판사");
+        assertThat(saved.getPublishedDate()).isEqualTo(request.publishedDate());
+        assertThat(saved.getIsbn()).isEqualTo("isbn");
         assertThat(saved.getThumbnailUrl()).isNull();
         assertThat(saved.getReviewCount()).isEqualTo(0);
         assertThat(saved.getRating()).isEqualTo(0.0);
