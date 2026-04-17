@@ -118,6 +118,7 @@ public class CommentServiceTest {
         CommentUpdateRequest request = new CommentUpdateRequest("updated content");
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
         given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
+        given(commentRepository.save(any(Comment.class))).willReturn(comment);
         given(commentMapper.toDto(comment, userNickName)).willReturn(commentDto);
 
         // when
