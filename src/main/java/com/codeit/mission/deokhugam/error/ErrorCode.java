@@ -31,7 +31,9 @@ public enum ErrorCode {
 
     //도서
     WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),
-    S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed");
+    S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed"),
+    INVALID_ISBN(HttpStatus.BAD_REQUEST, "Invalid ISBN"),
+    DUPLICATE_ISBN(HttpStatus.CONFLICT, "Duplicate ISBN");
 
     private final HttpStatus httpStatus;
     private final String message;

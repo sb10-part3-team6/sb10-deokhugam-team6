@@ -113,4 +113,34 @@ public class BookService {
                 .bodyToMono(byte[].class)
                 .block();
     }
+
+    private void validateIsbn13(String isbn){
+        if (!isValidIsbn13(isbn)) {
+            throw new InvalidIsbnException(ErrorCode.INVALID_ISBN, Map.of("isbn", isbn));
+        }
+    }
+
+    private boolean isValidIsbn13(String isbn) {
+        if (isbn == null) return false;
+
+        // 13자리 숫자인지 확인
+        if (!isbn.matches("\\d{13}")) return false;
+
+        int sum = 0;
+
+        for (int i = 0; i < 12; i++) {
+            int digit = isbn.charAt(i) - '0';
+
+            // 짝수/홀수 위치에 따라 가중치 적용
+            sum += (i % 2 == 0) ? digit : digit * 3;
+        }
+
+        // 체크섬 계산
+        int checkDigit = (10 - (sum % 10)) % 10;
+
+        // 마지막 자리와 비교
+        return checkDigit == (isbn.charAt(12) - '0');
+    }
+
+
 }
