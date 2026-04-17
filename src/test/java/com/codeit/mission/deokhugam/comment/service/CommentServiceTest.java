@@ -56,6 +56,7 @@ public class CommentServiceTest {
     void setup() {
         userId = UUID.randomUUID();
         reviewId = UUID.randomUUID();
+        commentId = UUID.randomUUID();
         userNickName = "testUser";
 
         user = mock(User.class);
@@ -66,7 +67,6 @@ public class CommentServiceTest {
                 .userId(userId)
                 .content("test content")
                 .build();
-        commentId = comment.getId();
 
         commentDto = mock(CommentDto.class);
     }
@@ -77,6 +77,7 @@ public class CommentServiceTest {
         // given
         CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "test content");
         given(reviewRepository.existsById(eq(reviewId))).willReturn(true);
+        given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
 
         Comment savedComment = Comment.builder()
                 .reviewId(reviewId)
