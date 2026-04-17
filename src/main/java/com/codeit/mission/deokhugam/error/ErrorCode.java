@@ -30,7 +30,8 @@ public enum ErrorCode {
     CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST,"Invalid cursor or after format"),
 
     //도서
-    WRONG_FILE_TYPE(HttpStatus.BAD_REQUEST, "Wrong file type");
+    WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),
+    S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed");
 
     private final HttpStatus httpStatus;
     private final String message;

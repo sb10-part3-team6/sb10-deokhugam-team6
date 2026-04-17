@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.book.service;
 
+import com.codeit.mission.deokhugam.book.exception.S3UploadFailureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,8 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import java.time.Duration;
 import java.io.IOException;
 import java.util.UUID;
+
+import static com.codeit.mission.deokhugam.error.ErrorCode.S3_UPLOAD_FAILED;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +51,7 @@ public class BookImageService {
             return getUrl(fileName);
 
         } catch (IOException e) {
-            throw new RuntimeException("S3 업로드 실패", e);
+            throw new S3UploadFailureException(S3_UPLOAD_FAILED);
         }
     }
 
