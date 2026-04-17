@@ -30,11 +30,11 @@ public class Notification extends BaseEntity {
     private boolean confirmed = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user; // 알림을 수신할 사용자의 ID
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "review_id")
+    @JoinColumn(name = "review_id", nullable = false)
     private Review review; // 알림 대상이 된 리뷰(좋아요, 댓글, 랭킹)
 
     @Builder
