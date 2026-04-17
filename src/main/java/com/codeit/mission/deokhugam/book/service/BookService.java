@@ -84,6 +84,7 @@ public class BookService {
 
     //isbn 기반 Naver API 연동 메서드
     public NaverBookDto getBookInfoFromNaverApi(String isbn) {
+        //isbn 유효성 검증
         validateIsbn13(isbn);
 
         NaverResponseDto response = webClient.get()
@@ -98,6 +99,7 @@ public class BookService {
                 .bodyToMono(NaverResponseDto.class)
                 .block();
 
+        //응답값이 없으면 예외 처리
         if(response == null || response.items().isEmpty()) {
             throw new RuntimeException("Book not found");
         }
@@ -117,6 +119,7 @@ public class BookService {
                 .build();
     }
 
+    //링크로부터 파일 byte 가져오기
     private byte[] getBytesInLink(String imageUrl){
         return webClient.get()
                 .uri(imageUrl)
@@ -125,12 +128,14 @@ public class BookService {
                 .block();
     }
 
+    //유효한지 여부 확인하고 예외 던지는 메서드
     private void validateIsbn13(String isbn){
         if (!isValidIsbn13(isbn)) {
             throw new InvalidIsbnException(ErrorCode.INVALID_ISBN, Map.of("isbn", isbn));
         }
     }
 
+    //유효성을 실제로 확인하는 메서드
     private boolean isValidIsbn13(String isbn) {
         if (isbn == null) return false;
 
