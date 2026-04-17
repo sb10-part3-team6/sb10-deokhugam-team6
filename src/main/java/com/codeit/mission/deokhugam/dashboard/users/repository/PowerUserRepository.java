@@ -106,4 +106,21 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
         )
       """)
   long countLatestRankingsByPeriodType(@Param("periodType") PeriodType periodType);
+
+
+  // period 범위 안에 있는 PowerUser들을 활동 점수 기준 내림차순으로 가져오는 쿼리
+  @Query(
+      """
+      select pu
+      from PowerUser pu
+         where pu.periodType = :periodType
+         and pu.periodStart = :periodStart
+         and pu.periodEnd = :periodEnd
+      order by pu.score desc, pu.createdAt asc
+"""
+  )
+  public List<PowerUser> findByPeriodDescByScore(
+      @Param("periodType") PeriodType periodType,
+      @Param("periodStart") LocalDateTime periodStart,
+      @Param("periodEnd") LocalDateTime periodEnd);
 }

@@ -92,4 +92,8 @@ public class PowerUser extends BaseEntity {
     this.commentCount = commentCount;
     this.aggregatedAt = aggregatedAt;
   }
+
+  public void setRank(Long rank){
+    this.rank = rank;
+  }
 }
