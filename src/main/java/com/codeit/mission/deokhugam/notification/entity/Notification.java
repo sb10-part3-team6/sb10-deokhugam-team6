@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends BaseEntity {
 
-    @Column(name = "review_content", nullable = false)
+    @Column(name = "review_content", nullable = false, columnDefinition = "TEXT")
     private String reviewContent;
 
     @Column(name = "message", nullable = false)
