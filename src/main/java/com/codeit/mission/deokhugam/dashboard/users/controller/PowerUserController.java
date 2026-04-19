@@ -26,7 +26,7 @@ public class PowerUserController {
   @GetMapping
   public ResponseEntity<CursorPageResponsePowerUserDto> getPowerUsers(
       @RequestParam(defaultValue = "DAILY") PeriodType period, // 기간 (일간, 주간, 월간, 올타임)
-      @RequestParam(defaultValue = "DESC") DirectionEnum direction, // 정렬 방향
+      @RequestParam(defaultValue = "ASC") DirectionEnum direction, // 정렬 방향
       @RequestParam(required = false) String cursor, // 커서는 필수 값이 아님.
       @RequestParam(required = false) String after,
       @RequestParam(defaultValue = "50") int size){ // 페이지의 사이즈는 기본값이 50

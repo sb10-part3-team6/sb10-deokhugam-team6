@@ -7,11 +7,13 @@ import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserRepository;
 import com.codeit.mission.deokhugam.error.DeokhugamException;
 import com.codeit.mission.deokhugam.error.ErrorCode;
+import com.codeit.mission.deokhugam.error.InvalidCursorValueException;
 import java.text.NumberFormat;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.PageRequest;
@@ -56,7 +58,7 @@ public class PowerUserService {
       }
     }
       catch(NumberFormatException | DateTimeException e){
-        throw new DeokhugamException(ErrorCode.CURSOR_OR_AFTER_FORMAT_NOT_VALID);
+        throw new InvalidCursorValueException();
       }
     List<PowerUserDto> rows = new ArrayList<>();
 

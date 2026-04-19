@@ -9,6 +9,10 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,13 +32,13 @@ import java.util.Map;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
-        name = "reviews",                                           // 데이터베이스 테이블 이름
-        uniqueConstraints = {                                       // 중복 방지를 위한 제약 조건 설정
-                @UniqueConstraint(
-                        name = "uk_book_user",
-                        columnNames = {"book_id", "user_id"}
-                )
-        }
+    name = "reviews",                                           // 데이터베이스 테이블 이름
+    uniqueConstraints = {                                       // 중복 방지를 위한 제약 조건 설정
+        @UniqueConstraint(
+            name = "uk_book_user",
+            columnNames = {"book_id", "user_id"}
+        )
+    }
 )
 public class Review extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
@@ -49,7 +53,8 @@ public class Review extends BaseEntity {
     private String content;                                     // 리뷰 내용
 
     @Column(nullable = false)
-    @Min(1) @Max(5)
+    @Min(1)
+    @Max(5)
     private int rating;                                         // 리뷰 평점
 
     @Column(nullable = false)
@@ -57,9 +62,9 @@ public class Review extends BaseEntity {
 
     @ManyToMany
     @JoinTable(
-            name = "review_likes",
-            joinColumns = @JoinColumn(name = "review_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
+        name = "review_likes",
+        joinColumns = @JoinColumn(name = "review_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private List<User> likedUsers = new ArrayList<>();           // 특정 리뷰에 좋아요를 누른 사용자 목록
 
@@ -71,6 +76,7 @@ public class Review extends BaseEntity {
     private ReviewStatus status = ReviewStatus.ACTIVE;          // 리뷰 상태 (기본값: 활성)
 
     private LocalDateTime deletedAt;                            // 리뷰 논리 삭제 시점
+
 
     // 생성자: 빌더 패턴을 통해 객체 생성 시, 유효성 검증 강제 수행
     @Builder
@@ -107,14 +113,14 @@ public class Review extends BaseEntity {
     private void validateContent(String content) {
         if (content == null || content.isBlank()) {
             throw new ReviewContentBlankException(
-                    ErrorCode.REVIEW_CONTENT_BLANK,
-                    Map.of("content", content == null ? "null" : content)
+                ErrorCode.REVIEW_CONTENT_BLANK,
+                Map.of("content", content == null ? "null" : content)
             );
         }
     }
 
     // 리뷰 논리 삭제: 리뷰 상태 변경 및 삭제 시간 기록
-    public void delete(){
+    public void delete() {
         // 최초 삭제 시점 보존을 위한 중복 삭제 방지
         if (this.status == ReviewStatus.DELETED) {
             return;

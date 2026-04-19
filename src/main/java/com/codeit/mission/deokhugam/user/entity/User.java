@@ -38,4 +38,8 @@ public class User extends BaseEntity {
     this.password = password;
     this.status = UserStatus.ACTIVE;
   }
+
+  public void updateNickname(String nickname) {
+    this.nickname = nickname;
+  }
 }
