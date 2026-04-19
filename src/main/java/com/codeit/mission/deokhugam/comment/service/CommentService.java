@@ -1,10 +1,8 @@
 package com.codeit.mission.deokhugam.comment.service;
 
 import com.codeit.mission.deokhugam.comment.dto.request.CommentCreateRequest;
-import com.codeit.mission.deokhugam.comment.dto.request.CommentFindAllRequest;
 import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
-import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
 import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
@@ -24,14 +22,14 @@ import java.util.UUID;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final ReviewRepository reviewRepository;
+//    private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final CommentMapper commentMapper;
 
     // 댓글 등록
     @Transactional
     public CommentDto createComment(CommentCreateRequest request) {
-        validReviewExists(request.reviewId());
+//        validReviewExists(request.reviewId());
         // User검증 + userNickName을 가져오기 위한 user
         User user = userRepository.findById(request.userId()).orElseThrow(EntityNotFoundException::new);
 
@@ -67,15 +65,12 @@ public class CommentService {
         return commentMapper.toDto(comment, user.getNickname());
     }
 
-    // 댓글 목록 조회
-    public CursorPageResponseCommentDto<CommentDto> findComments(CommentFindAllRequest request) {
-        return null;
-    }
-
     // 리뷰가 존재하는지 검증
+    /*
     private void validReviewExists(UUID reviewId) {
         if (!reviewRepository.existsById(reviewId)) {
             throw new EntityNotFoundException("리뷰가 존재하지 않습니다.");
         }
     }
+     */
 }
