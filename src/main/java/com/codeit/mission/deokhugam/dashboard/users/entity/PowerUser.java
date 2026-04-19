@@ -69,6 +69,9 @@ public class PowerUser extends BaseEntity {
   @Column(name = "aggregated_at", nullable = false)
   private LocalDateTime aggregatedAt;
 
+  @Column(name = "snapshot_id", nullable = false)
+  private UUID snapshotId;
+
   @Builder
   public PowerUser(
       UUID userId,
@@ -80,7 +83,8 @@ public class PowerUser extends BaseEntity {
       double reviewScoreSum,
       long likeCount,
       long commentCount,
-      LocalDateTime aggregatedAt) {
+      LocalDateTime aggregatedAt,
+      UUID snapshotId) {
     this.userId = userId;
     this.periodType = periodType;
     this.periodStart = periodStart;
@@ -91,6 +95,7 @@ public class PowerUser extends BaseEntity {
     this.likeCount = likeCount;
     this.commentCount = commentCount;
     this.aggregatedAt = aggregatedAt;
+    this.snapshotId = snapshotId;
   }
 
   public void updateRank(long rank){

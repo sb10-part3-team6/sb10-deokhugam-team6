@@ -57,14 +57,14 @@ public class PowerUserAggregateService {
 
   // 오름차순으로 정렬 된 PowerUser 리스트에 0L으로 초기화된 RANK를 순서대로 부여하는 메서드
   @Transactional
-  public void rankPowerUsers(PeriodType periodType, LocalDateTime aggregatedAt){
+  public void rankPowerUsers(PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId){
 
     // 집계 일자를 기준으로 시작, 끝 날짜를 구함.
     LocalDateTime periodStart = periodType.calculateStart(aggregatedAt);
     LocalDateTime periodEnd= periodType.calculateEnd(aggregatedAt);
 
-    // 집계 일자 범위 내의 PowerUser를 list로 추출
-    List<PowerUser> powers = powerUserRepository.findByPeriodDescByScore(periodType, periodStart, periodEnd);
+    // 집계 일자 범위 내에 해당되고 새로 생성한 snapshot에 해당하는 PowerUser를 list로 추출
+    List<PowerUser> powers = powerUserRepository.findByPeriodDescByScore(periodType, periodStart, periodEnd, snapshotId);
     // 첫 번째 순서(score가 가장 높은 파워 유저) 랭크
     long rank = 1L;
     // 이전 점수는 처음에는 NaN으로 초기화
@@ -86,7 +86,7 @@ public class PowerUserAggregateService {
 
 
   // 유저를 파워 유저로 변환하는 메서드 (랭크는 빈값으로 둠)
-  public PowerUser toPowerUser(User user, PeriodType periodType, LocalDateTime aggregatedAt){
+  public PowerUser toPowerUser(User user, PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId){
     UserStat stat = calculateUserStat(user.getId(), periodType, aggregatedAt);
 
     LocalDateTime periodStart = periodType.calculateStart(aggregatedAt);
@@ -103,6 +103,7 @@ public class PowerUserAggregateService {
         .reviewScoreSum(stat.reviewScoreSum())
         .likeCount(stat.likeCount())
         .aggregatedAt(aggregatedAt)
+        .snapshotId(snapshotId)
         .build();
   }
 

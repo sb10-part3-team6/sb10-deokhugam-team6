@@ -1,5 +1,8 @@
 package com.codeit.mission.deokhugam.dashboard.users.batch;
 
+import com.codeit.mission.deokhugam.dashboard.users.batch.tasklet.CreateNewSnapshotTasklet;
+import com.codeit.mission.deokhugam.dashboard.users.batch.tasklet.PublishSnapshotTasklet;
+import com.codeit.mission.deokhugam.dashboard.users.batch.tasklet.RankPowerUsersTasklet;
 import com.codeit.mission.deokhugam.dashboard.users.entity.PowerUser;
 import com.codeit.mission.deokhugam.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +27,25 @@ public class PowerUserBatchConfig {
   // Batch의 최상단의 작업 논리인 Job을 설정한다.
   @Bean
   public Job powerUserAggregationJob(
-      Step deleteOldPowerUsersStep,
+      Step createNewSnapshotStep,
       Step aggregatePowerUsersStep,
-      Step rankPowerUsersStep){
+      Step rankPowerUsersStep,
+      Step publishSnapshotStep){
 
     return new JobBuilder("powerUserAggregationJob", jobRepository)
-        .start(deleteOldPowerUsersStep)
+        .start(createNewSnapshotStep)
         .next(aggregatePowerUsersStep)
         .next(rankPowerUsersStep)
+        .next(publishSnapshotStep)
+        .build();
+  }
+
+
+  @Bean
+  public Step createNewSnapshotStep(CreateNewSnapshotTasklet createNewSnapshotTasklet){
+
+    return new StepBuilder("createNewSnapshotStep", jobRepository)
+        .tasklet(createNewSnapshotTasklet, transactionManager)
         .build();
   }
 
@@ -50,19 +64,20 @@ public class PowerUserBatchConfig {
         .build();
   }
 
-  @Bean
-  public Step deleteOldPowerUsersStep(
-      DeleteOldPowerUsersTasklet deleteOldPowerUsersTasklet
-  ){
-    return new StepBuilder("deleteOldPowerUsersStep", jobRepository)
-        .tasklet(deleteOldPowerUsersTasklet, transactionManager)
-        .build();
-  }
 
+  // 집계가 끝난 뒤 파워 유저 테이블을 정렬 및 랭킹을 부여하는 스텝
   @Bean
   public Step rankPowerUsersStep(RankPowerUsersTasklet rankPowerUsersTasklet){
     return new StepBuilder("rankPowerUsersStep", jobRepository)
         .tasklet(rankPowerUsersTasklet, transactionManager)
+        .build();
+  }
+
+  // 새로이 집계된 파워유저 스냅샷 객체를 publish로 바꾸는 스텝
+  @Bean
+  public Step publishSnapshotStep(PublishSnapshotTasklet publishSnapshotTasklet){
+    return new StepBuilder("publishSnapshotStep", jobRepository)
+        .tasklet(publishSnapshotTasklet, transactionManager)
         .build();
   }
 
