@@ -9,10 +9,6 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,7 +54,7 @@ public class Review extends BaseEntity {
     private int rating;                                         // 리뷰 평점
 
     @Column(nullable = false)
-    private int likeCount = 0;                                 // 리뷰의 좋아요 수 (기본값: 0)
+    private int likeCount = 0;                                  // 리뷰의 좋아요 수 (기본값: 0)
 
     @ManyToMany
     @JoinTable(
@@ -73,9 +69,9 @@ public class Review extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ReviewStatus status = ReviewStatus.ACTIVE;          // 리뷰 상태 (기본값: 활성)
+    private ReviewStatus status = ReviewStatus.ACTIVE;           // 리뷰 상태 (기본값: 활성)
 
-    private LocalDateTime deletedAt;                            // 리뷰 논리 삭제 시점
+    private LocalDateTime deletedAt;                             // 리뷰 논리 삭제 시점
 
 
     // 생성자: 빌더 패턴을 통해 객체 생성 시, 유효성 검증 강제 수행
@@ -102,20 +98,14 @@ public class Review extends BaseEntity {
     // 유효성 검증 (평점): 평점 범위(0~5)를 벗어날 경우, 예외 발생
     private void validateRating(int rating) {
         if (rating < 1 || rating > 5) {
-            throw new InvalidReviewRatingRangeException(
-                ErrorCode.INVALID_REVIEW_RATING_RANGE,
-                Map.of("rating", rating)
-            );
+            throw new InvalidReviewRatingRangeException(rating);
         }
     }
 
     // 유효성 검증 (내용): 내용이 비어있을 경우 예외 발생
     private void validateContent(String content) {
         if (content == null || content.isBlank()) {
-            throw new ReviewContentBlankException(
-                ErrorCode.REVIEW_CONTENT_BLANK,
-                Map.of("content", content == null ? "null" : content)
-            );
+            throw new ReviewContentBlankException(content);
         }
     }
 

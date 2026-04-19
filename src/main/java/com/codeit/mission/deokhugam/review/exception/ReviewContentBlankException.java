@@ -10,7 +10,10 @@ public class ReviewContentBlankException extends DeokhugamException {
         super(errorCode);
     }
 
-    public ReviewContentBlankException(ErrorCode errorCode, Map<String, Object> details) {
-        super(errorCode, details);
+    public ReviewContentBlankException(String content) {
+        super(
+                ErrorCode.REVIEW_CONTENT_BLANK,
+                Map.of("content", content == null ? "null" : content)
+        );
     }
 }

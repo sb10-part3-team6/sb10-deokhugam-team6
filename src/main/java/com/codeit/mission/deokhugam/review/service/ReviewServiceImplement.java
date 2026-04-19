@@ -98,10 +98,7 @@ public class ReviewServiceImplement implements ReviewService {
     // Review 엔티티 반환
     private Review getReviewEntityOrThrow(UUID id) {
         return reviewRepository.findById(id)
-                .orElseThrow(() -> new ReviewNotFoundException(
-                        ErrorCode.REVIEW_NOT_FOUND,
-                        Map.of("reviewId", id)
-                ));
+                .orElseThrow(() -> new ReviewNotFoundException(id));
     }
 
     // Book 엔티티 반환
@@ -120,13 +117,7 @@ public class ReviewServiceImplement implements ReviewService {
     // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
     private void validateDuplicateReview(UUID bookId, UUID userId) {
         if (reviewRepository.existsByBookIdAndUserId(bookId, userId)) {
-            throw new DuplicateReviewException(
-                    ErrorCode.DUPLICATE_REVIEWS,
-                    Map.of(
-                            "bookId", bookId,
-                            "userId", userId
-                    )
-            );
+            throw new DuplicateReviewException(bookId, userId);
         }
     }
 
@@ -135,11 +126,7 @@ public class ReviewServiceImplement implements ReviewService {
         boolean isOwner = targetReview.getUser().getId().equals(requestUser.getId());
 
         if (!isOwner) {
-            throw  new ReviewAuthorMismatchException(
-                    ErrorCode.REVIEW_AUTHOR_MISMATCH,
-                    Map.of("reviewOwnerId", targetReview.getUser().getId(),
-                            "requestUserId", requestUser.getId())
-            );
+            throw  new ReviewAuthorMismatchException(targetReview.getUser().getId(), requestUser.getId());
         }
     }
 }
