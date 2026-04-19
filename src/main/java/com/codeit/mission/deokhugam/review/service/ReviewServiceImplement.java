@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.review.service;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.error.ErrorCode;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
@@ -12,6 +13,7 @@ import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
+import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class ReviewServiceImplement implements ReviewService {
     private final ReviewRepository reviewRepository;
-    //private final BookRepository bookRepository;
+    private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
     private final ReviewMapper reviewMapper;
@@ -102,16 +104,16 @@ public class ReviewServiceImplement implements ReviewService {
     }
 
     // Book 엔티티 반환
-//    private Book getBookEntityOrThrow(UUID bookId) {
-//        return bookRepository.findById(bookId)
-//                .orElseThrow();
-//    }
+    private Book getBookEntityOrThrow(UUID bookId) {
+        return bookRepository.findById(bookId)
+                // 헤딩 커스텀 예외 클래스 구현 시, 적용 예정
+                .orElseThrow();
+    }
 
     // User 엔티티 반환
     private User getUserEntityOrThrow(UUID userId) {
         return userRepository.findById(userId)
-                // userNotFound 커스텀 예외 구현 병합 시, 적용할 예정
-                .orElseThrow();
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
