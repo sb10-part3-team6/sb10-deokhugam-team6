@@ -97,7 +97,7 @@ public class BookService {
                 .block();
 
         //응답값이 없으면 예외 처리
-        if(response == null || response.items().isEmpty()) {
+        if(response == null ||  response.items() == null || response.items().isEmpty()) {
             throw new BookNotFoundException();
         }
 
