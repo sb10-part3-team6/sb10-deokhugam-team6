@@ -3,7 +3,6 @@ package com.codeit.mission.deokhugam.comment.controller;
 import com.codeit.mission.deokhugam.comment.dto.request.CommentCreateRequest;
 import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
-import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -42,15 +39,5 @@ public class CommentController {
     public ResponseEntity<CommentDto> getComment(@PathVariable("commentId") UUID commentId) {
         CommentDto commentDto = commentService.findComment(commentId);
         return ResponseEntity.status(HttpStatus.OK).body(commentDto);
-    }
-
-    // 댓글 목록 조회
-    @GetMapping
-    public ResponseEntity<CursorPageResponseCommentDto> getComments(@RequestParam UUID reviewId,
-                                                                    @RequestParam String direction,
-                                                                    @RequestParam String cursor,
-                                                                    @RequestParam LocalDateTime after,
-                                                                    @RequestParam int limit) {
-        return ResponseEntity.status(HttpStatus.OK).body();
     }
 }
