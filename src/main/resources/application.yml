@@ -9,7 +9,7 @@ cloud:
   aws:
     s3:
       region: ap-northeast-2
-      bucket: sb10-deokhugam-team6 #?? ??, ?? ?? ??
+      bucket: sb10-deokhugam-team6 #임시로 작성
 
 naverapi:
   client-id: ${NAVER_CLIENT_ID}
