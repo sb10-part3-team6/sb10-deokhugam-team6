@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -27,8 +28,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ReviewServiceImplementTest {
@@ -139,7 +139,7 @@ public class ReviewServiceImplementTest {
 
         given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(false);          // 중복체크 통과
         given(bookRepository.findById(bookId)).willReturn(Optional.of(mockBook));                         // mockBook 반환
-        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                         // mockUser 반
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                         // mockUser 반환
 
         // 생성할 리뷰
         Review createdReview = Review.builder()
@@ -168,7 +168,7 @@ public class ReviewServiceImplementTest {
     // [실패]
     @Test
     @DisplayName("리뷰 등록 실패: 특정 도서에 이미 사용자의 리뷰가 존재할 경우, DUPLICATE_REVIEW 에러 반환")
-    void create_review_failure() {
+    void create_review_failure_duplicate_review() {
         // given
         UUID bookId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -190,7 +190,46 @@ public class ReviewServiceImplementTest {
         verify(bookRepository, never()).findById(any());
         verify(userRepository, never()).findById(any());
         verify(reviewRepository, never()).saveAndFlush(any());
+    }
 
+    // [실패]
+    @Test
+    @DisplayName("리뷰 등록 실패: 동일한 사용자로부터 똑같은 요청을 연속으로 받아 동시성 이슈가 발생한 경우, DUPLICATE_REVIEW 에러 반환")
+    void crate_review_failure_concurrency() {
+        // given
+        UUID bookId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        // 생성할 리뷰 내용
+        ReviewCreateRequest createRequest = new ReviewCreateRequest(
+                bookId,
+                userId,
+                "고양이가 의젓하게 상점 운영도 하고 정말 귀엽네요",
+                4
+        );
+
+        // 가짜 객체 | 도서 및 사용자
+        Book mockBook = Book.builder().build();
+        ReflectionTestUtils.setField(mockBook, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+        User mockUser = User.builder().build();
+        ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+
+        given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(false);          // 중복체크 통과
+        given(bookRepository.findById(bookId)).willReturn(Optional.of(mockBook));                         // mockBook 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                         // mockUser 반환
+
+        // saveAndFlush 시점에 데이터베이스 제약 위반 예외 발생
+        DataIntegrityViolationException exception = mock(DataIntegrityViolationException.class);
+        Throwable cause = mock(Throwable.class);
+
+        given(exception.getMostSpecificCause()).willReturn(cause);
+        given(cause.getMessage()).willReturn("Unique index or primary key violation: uk_book_user");        // 발생한 제약 위반 예외 = 중복 리뷰 예외
+        given(reviewRepository.saveAndFlush(any(Review.class))).willThrow(exception);                             // exception 반환
+
+        // when & then
+        assertThrows(DuplicateReviewException.class, () -> {
+            reviewServiceImplement.create(createRequest);
+        });
     }
 
     /*
