@@ -29,6 +29,7 @@ public enum ErrorCode {
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "Review with Id not found"),                             // 특정 리뷰 조회 실패
     REVIEW_AUTHOR_MISMATCH(HttpStatus.FORBIDDEN, "Review author mismatch with requestUserId"),      // 요청자와 리뷰 작성자 불일치
     DUPLICATE_REVIEW_LIKE_REQUEST(HttpStatus.CONFLICT, "Review like request already exists"),       // 특정 도서에 대한 좋아요 추가 생성 요청 존재
+    REVIEW_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "Review like with Id not found"),                   // 특정 도서에 대한 사용자의 좋아요 조회 실패
 
     // 파워 유저 집계 및 조회
     CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
