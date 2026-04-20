@@ -362,7 +362,6 @@ public class ReviewServiceImplementTest {
         ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
         ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.ACTIVE);                          // status 강제 주입
 
-
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                        // savedReview 반환
         given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                               // mockUser 반환
 
@@ -372,5 +371,38 @@ public class ReviewServiceImplementTest {
         // then
         assertEquals(ReviewStatus.DELETED, savedReview.getStatus());                // 특정 리뷰의 논리 삭제 여부 검증
         verify(reviewRepository, never()).delete(any(Review.class));                // Repository의 delete 함수 미호출 확인
+    }
+
+    // [물리 삭제 성공]
+    @Test
+    @DisplayName("리뷰 물리 삭제 성공")
+    void hard_delete_review_success() {
+        // given
+        UUID reviewId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        // 가짜 객체 | 도서 및 사용자
+        Book mockBook = Book.builder().build();
+        User mockUser = User.builder().build();
+        ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
+
+        // 삭제할 리뷰 정보
+        Review savedReview = Review.builder()
+                .book(mockBook)
+                .user(mockUser)
+                .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
+                .rating(3)
+                .build();
+        ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
+        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.ACTIVE);                          // status 강제 주입
+
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                         // savedReview 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                                // mockUser 반환
+
+        // when
+        reviewServiceImplement.hardDelete(reviewId, userId);
+
+        // then
+        verify(reviewRepository, times(1)).delete(any(Review.class));                // Repository의 delete 함수 미호출 확인
     }
 }
