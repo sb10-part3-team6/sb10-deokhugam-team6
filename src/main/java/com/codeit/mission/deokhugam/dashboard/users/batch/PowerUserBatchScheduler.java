@@ -21,7 +21,7 @@ public class PowerUserBatchScheduler {
 
   // 매일 00:00 마다 Job을 수행한다.
   @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
-  public void runDailyAggregation() throws Exception{
+  public void runDailyAggregation(){
     LocalDateTime aggregatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
         .withHour(0)
         .withMinute(0)

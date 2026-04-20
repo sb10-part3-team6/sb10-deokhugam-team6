@@ -27,7 +27,7 @@ public class PowerUserAggregationJobListener implements JobExecutionListener {
     }
 
     String snapshotIdValue = executionContext.getString("snapshotId");
-    if (snapshotIdValue.isBlank()) {
+    if (snapshotIdValue == null || snapshotIdValue.isBlank()) {
       return;
     }
 

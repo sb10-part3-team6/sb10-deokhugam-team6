@@ -30,8 +30,8 @@ public class RankPowerUsersTasklet implements Tasklet {
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
       throws Exception {
 
-    LocalDateTime aggregatedAt = LocalDateTime.parse(aggregatedAtValue);
-    PeriodType periodType = PeriodType.valueOf(periodTypeValue);
+    LocalDateTime aggregatedAt = getAggregatedAt();
+    PeriodType periodType = getPeriodType();
     UUID snapshotId = getSnapshotId();
 
     powerUserAggregateService.rankPowerUsers(periodType, aggregatedAt, snapshotId);
@@ -44,5 +44,19 @@ public class RankPowerUsersTasklet implements Tasklet {
       throw new InvalidJobParameterException("snapshotId");
     }
     return UUID.fromString(snapshotIdValue);
+  }
+
+  private LocalDateTime getAggregatedAt(){
+    if(aggregatedAtValue == null || aggregatedAtValue.isBlank()){
+      throw new InvalidJobParameterException("aggregatedAt");
+    }
+    return LocalDateTime.parse(aggregatedAtValue);
+  }
+
+  private PeriodType getPeriodType(){
+    if(periodTypeValue == null || periodTypeValue.isBlank()){
+      throw new InvalidJobParameterException("periodType");
+    }
+    return PeriodType.valueOf(periodTypeValue);
   }
 }

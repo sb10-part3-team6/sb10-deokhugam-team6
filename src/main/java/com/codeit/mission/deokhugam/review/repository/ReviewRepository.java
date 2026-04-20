@@ -24,7 +24,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
       """
       select new com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate(
           r.user.id,
-          coalesce(sum(r.rating), 0)
+          coalesce(sum(r.rating), 0.0)
       )
       from Review r
       where r.createdAt >= :periodStart
@@ -36,6 +36,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
       @Param("periodStart") LocalDateTime periodStart,
       @Param("periodEnd") LocalDateTime periodEnd,
       @Param("status") ReviewStatus status);
+
     // 특정 리뷰에 대한 특정 유저의 좋아요 여부
     @Query("SELECT COUNT(review.id) > 0 " +                                         // 조건 만족 여부에 따라, true / false 반환
             "FROM Review review " +

@@ -4,14 +4,9 @@ import com.codeit.mission.deokhugam.base.BaseEntity;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
@@ -20,8 +15,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Entity
@@ -30,7 +23,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     name = "power_users",
     // 정렬에 최적화된 인덱스 (기준 시간과 rank를 인덱스화)
     indexes = {
-        @Index(name = "idx_power_users_period_start_rank", columnList = "period_type, period_start, rank")
+        @Index(name = "idx_power_users_period_start_rank", columnList = "period_type, period_start, rank"),
+        @Index(name = "idx_power_users_snapshot_rank", columnList = "snapshot_id, rank")
     },
     uniqueConstraints = {
       @UniqueConstraint(
