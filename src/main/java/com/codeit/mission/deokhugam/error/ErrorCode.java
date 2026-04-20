@@ -35,7 +35,8 @@ public enum ErrorCode {
     S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed"),
     INVALID_ISBN(HttpStatus.BAD_REQUEST, "Invalid ISBN"),
     DUPLICATE_ISBN(HttpStatus.CONFLICT, "Duplicate ISBN"),
-    BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "Book not found");
+    BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "Book not found"),
+    EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 API 요청 오류");
 
     private final HttpStatus httpStatus;
     private final String message;

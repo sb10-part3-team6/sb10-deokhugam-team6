@@ -5,19 +5,18 @@ import com.codeit.mission.deokhugam.book.dto.BookDto;
 import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
 import com.codeit.mission.deokhugam.book.dto.NaverResponseDto;
 import com.codeit.mission.deokhugam.book.entity.Book;
-import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
-import com.codeit.mission.deokhugam.book.exception.DuplicatedIsbnException;
-import com.codeit.mission.deokhugam.book.exception.InvalidIsbnException;
-import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
+import com.codeit.mission.deokhugam.book.exception.*;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -93,6 +92,14 @@ public class BookService {
                 .header("X-Naver-Client-Id", NAVER_CLIENT_ID)
                 .header("X-Naver-Client-Secret", NAVER_CLIENT_SECRET)
                 .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError(),
+                        res -> Mono.error(new ExternalApiErrorException())
+                )
+                .onStatus(
+                        status -> status.is5xxServerError(),
+                        res -> Mono.error(new ExternalApiErrorException())
+                )
                 .bodyToMono(NaverResponseDto.class)
                 .block();
 
