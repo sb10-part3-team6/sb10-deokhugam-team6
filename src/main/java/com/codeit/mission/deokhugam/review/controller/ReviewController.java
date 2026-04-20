@@ -50,6 +50,14 @@ public class ReviewController {
     }
 
     // 리뷰 논리 삭제
+    @DeleteMapping("/api/reviews/{reviewId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID reviewId,
+                                       @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+        reviewService.delete(reviewId, requestUserId);
+
+        return ResponseEntity.noContent().build();
+    }
+
     // 리뷰 물리 삭제
 
     // 리뷰 좋아요
