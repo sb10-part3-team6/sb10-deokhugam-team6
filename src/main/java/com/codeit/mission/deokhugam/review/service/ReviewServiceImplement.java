@@ -149,11 +149,35 @@ public class ReviewServiceImplement implements ReviewService {
         reviewRepository.delete(targetReview);
     }
 
-    // 리뷰 좋아요 생성
+    // 리뷰 좋아요 추가 및 취소
     @Override
     @Transactional
-    public ReviewLikeDto createReviewLike(UUID id, UUID requestUserId) {
-        return null;
+    public ReviewLikeDto toggleLike(UUID id, UUID requestUserId) {
+        // 1. 좋아요를 생성할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+        Review targetReview = getReviewEntityOrThrow(id);
+        User requestUser = getUserEntityOrThrow(requestUserId);
+
+        // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+        validateReviewActive(targetReview);
+
+        // 3. 좋아요 생성 및 취소
+        boolean isLiked;
+        // 사용자가 특정 리뷰에 좋아요를 남기지 않은 경우, 좋아요 생서
+        if (!isReviewLiked(targetReview.getId(), requestUser.getId())) {
+            targetReview.incrementLikesCount(requestUser);
+            isLiked = true;
+        } else {
+            // 이미 사용자가 특정 리뷰에 좋아요를 남긴 경우, 좋아요 취소
+            targetReview.decrementLikesCount(requestUser);
+            isLiked = false;
+        }
+
+        // 4. 응답 DTO 생성 및 반환
+        return ReviewLikeDto.builder()
+                .reviewId(targetReview.getId())
+                .userId(requestUser.getId())
+                .liked(isLiked)
+                .build();
     }
 
     // Review 엔티티 반환
