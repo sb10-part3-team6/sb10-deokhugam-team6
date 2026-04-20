@@ -162,30 +162,9 @@ public class ReviewServiceImplement implements ReviewService {
         validateReviewActive(targetReview);
 
         // 3. 좋아요 생성 및 취소
-        boolean isLiked;
-        // 4. 같은 사용자로부터 두 번 이상 생성 요청이 들어온 경우, 동시성 문제 발생 가능
-        try {
-            // 사용자가 특정 리뷰에 좋아요를 남기지 않은 경우, 좋아요 추가
-            if (!isReviewLiked(targetReview.getId(), requestUser.getId())) {
-                reviewRepository.incrementLikes(targetReview.getId());
-                targetReview.incrementLikesCount(requestUser);
-                reviewRepository.saveAndFlush(targetReview);
-                isLiked = true;
-            } else {
-                // 이미 사용자가 특정 리뷰에 좋아요를 남긴 경우, 좋아요 취소
-                reviewRepository.decrementLikes(targetReview.getId());
-                targetReview.decrementLikesCount(requestUser);
-                reviewRepository.saveAndFlush(targetReview);
-                isLiked = false;
-            }
-        } catch (DataIntegrityViolationException e) {
-            if (!isDuplicateReviewLikeConstraintViolation(e)){
-                throw e;
-            }
-            throw new DuplicateReviewLikeRequestException(targetReview.getId(), requestUser.getId());
-        }
+        boolean isLiked = executeToggleWithConcurrencyHandle(targetReview, requestUser);
 
-        // 5. 응답 DTO 생성 및 반환
+        // 4. 응답 DTO 생성 및 반환
         return ReviewLikeDto.builder()
                 .reviewId(targetReview.getId())
                 .userId(requestUser.getId())
@@ -209,6 +188,52 @@ public class ReviewServiceImplement implements ReviewService {
     private User getUserEntityOrThrow(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    // 좋아요 추가 및 생성 동시성 문제 해결을 위한 메서드
+    private boolean executeToggleWithConcurrencyHandle(Review review, User requestUser) {
+        try {
+            // 특정 리뷰에 대한 사용자의 좋아요가 존재하지 않을 경우, 좋아요 추가
+            if (!isReviewLiked(review.getId(), requestUser.getId())) {
+                processAddLike(review, requestUser);
+                return true;
+            } else {
+                // 특정 리뷰에 대한 사용자의 좋아요가 존재할 경우, 좋아요 취소
+                processRemoveLike(review, requestUser);
+                return false;
+            }
+        } catch (DataIntegrityViolationException e) {
+            // 동시 요청으로 인한 중복 데이터 삽입 시 발생하는 특정 제약 조건 위반인지 확인
+            if (!isDuplicateReviewLikeConstraintViolation(e)) {
+                // 리뷰 좋아요 요청이 아닌 예외
+                throw e;
+            }
+            throw new DuplicateReviewLikeRequestException(review.getId(), requestUser.getId());
+        }
+    }
+
+    // 좋아요 수 증가
+    private void processAddLike(Review review, User user) {
+        // 1. 여러 사용자의 요청을 동시에 처리하기 위해 데이터베이스 직접 수정 (likeCount += 1)
+        reviewRepository.incrementLikes(review.getId());
+
+        // 2. 특정 도서의 좋아요를 남긴 사용자 목록 업데이트 (추가)
+        review.incrementLikesCount(user);
+
+        // 3. 데이터베이스 즉시 반영
+        reviewRepository.saveAndFlush(review);
+    }
+
+    // 좋아요 수 감소
+    private void processRemoveLike(Review review, User user) {
+        // 1. 여러 사용자의 요청을 동시에 처리하기 위해 데이터베이스 직접 수정 (likeCount -= 1)
+        reviewRepository.decrementLikes(review.getId());
+
+        // 2. 특정 도서의 좋아요를 남긴 사용자 목록 업데이트 (제거)
+        review.decrementLikesCount(user);
+
+        // 3. 데이터베이스 즉시 반영
+        reviewRepository.saveAndFlush(review);
     }
 
     // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
@@ -252,5 +277,4 @@ public class ReviewServiceImplement implements ReviewService {
 
         return cause != null && cause.getMessage() != null && cause.getMessage().contains("uk_review_user_like");
     }
-
 }
