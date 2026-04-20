@@ -472,7 +472,7 @@ public class ReviewServiceImplementTest {
         // when
         assertThrows(ReviewAuthorMismatchException.class, () -> {
             // validateOwner 예외 반환 확인
-            reviewServiceImplement.delete(savedReview.getId(), requestUser.getId());
+            reviewServiceImplement.hardDelete(savedReview.getId(), requestUser.getId());
         });
         verify(reviewRepository, never()).delete(any(Review.class));
     }
