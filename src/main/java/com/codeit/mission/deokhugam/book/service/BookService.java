@@ -2,17 +2,28 @@ package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.BookDto;
+import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
+import com.codeit.mission.deokhugam.book.dto.NaverResponseDto;
 import com.codeit.mission.deokhugam.book.entity.Book;
-import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
+import com.codeit.mission.deokhugam.book.exception.*;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
+
+import static com.codeit.mission.deokhugam.error.ErrorCode.BOOK_NOT_FOUND;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.V4RequestSigner.header;
 
 @RequiredArgsConstructor
 @Service
@@ -21,10 +32,25 @@ public class BookService {
     private final BookRepository bookRepository;
     private final BookImageService bookImageService;
     private final BookDtoMapper bookDtoMapper;
+    private final WebClient webClient;
+
+    private static final String NAVER_BOOK_API_URL = "https://openapi.naver.com/v1/search/book_adv";
+
+    @Value("${naverapi.client-id}")
+    private String NAVER_CLIENT_ID;
+    @Value("${naverapi.client-secret}")
+    private String NAVER_CLIENT_SECRET;
 
     //도서 생성 메서드
     @Transactional
     public BookDto createBook(BookCreateRequest request, MultipartFile image){
+
+        //ISBN 유효성 검증
+        validateIsbn13(request.isbn());
+        if(bookRepository.existsByIsbn(request.isbn())){
+            throw new DuplicatedIsbnException(request.isbn());
+        }
+
         String imagePath = upload(image);
 
         Book book = Book.builder()
@@ -48,14 +74,100 @@ public class BookService {
             String contentType = image.getContentType();
 
             if (contentType == null || !contentType.startsWith("image/")) {
-                throw new WrongFileTypeException(
-                        ErrorCode.WRONG_FILE_TYPE,
-                        Map.of("contentType", contentType == null ? "null" : contentType)
-                );
+                throw new WrongFileTypeException(contentType == null ? "null" : contentType);
             }
 
             return bookImageService.upload(image);
         }
         return null;
     }
+
+    //isbn 기반 Naver API 연동 메서드
+    public NaverBookDto getBookInfoFromNaverApi(String isbn) {
+        //isbn 유효성 검증
+        validateIsbn13(isbn);
+
+        NaverResponseDto response = webClient.get()
+                .uri(NAVER_BOOK_API_URL + "?d_isbn=" + isbn)
+                .header("X-Naver-Client-Id", NAVER_CLIENT_ID)
+                .header("X-Naver-Client-Secret", NAVER_CLIENT_SECRET)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError(),
+                        res -> Mono.error(new ExternalApiErrorException())
+                )
+                .onStatus(
+                        status -> status.is5xxServerError(),
+                        res -> Mono.error(new ExternalApiErrorException())
+                )
+                .bodyToMono(NaverResponseDto.class)
+                .block();
+
+        //응답값이 없으면 예외 처리
+        if(response == null ||  response.items() == null || response.items().isEmpty()) {
+            throw new BookNotFoundException();
+        }
+
+        // 응답받은 날짜값을 LocalDate로 변환
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDate pubdate = LocalDate.parse(response.items().get(0).pubdate(), formatter);
+
+        return NaverBookDto.builder()
+                .title(response.items().get(0).title())
+                .author(response.items().get(0).author())
+                .description(response.items().get(0).description())
+                .publisher(response.items().get(0).publisher())
+                .publishedDate(pubdate)
+                .isbn(response.items().get(0).isbn())
+                .thumbnailImage(getBytesInLink(response.items().get(0).image()))
+                .build();
+    }
+
+    //링크로부터 파일 byte 가져오기
+    private byte[] getBytesInLink(String imageUrl){
+        if(imageUrl == null || imageUrl.isBlank()) return null;
+
+        try{
+            return webClient.get()
+                    .uri(imageUrl)
+                    .retrieve()
+                    .bodyToMono(byte[].class)
+                    .block();
+        }catch (Exception e){
+            //이미지 로딩 실패시 null
+            return null;
+        }
+    }
+
+    //유효한지 여부 확인하고 예외 던지는 메서드
+    private void validateIsbn13(String isbn){
+        if (!isValidIsbn13(isbn)) {
+            throw new InvalidIsbnException(isbn);
+        }
+    }
+
+    //유효성을 실제로 확인하는 메서드
+    private boolean isValidIsbn13(String isbn) {
+        if (isbn == null) return false;
+
+        // 13자리 숫자인지 확인
+        if (!isbn.matches("\\d{13}")) return false;
+
+        int sum = 0;
+
+        for (int i = 0; i < 12; i++) {
+            int digit = isbn.charAt(i) - '0';
+
+            // 짝수/홀수 위치에 따라 가중치 적용
+            sum += (i % 2 == 0) ? digit : digit * 3;
+        }
+
+        // 체크섬 계산
+        int checkDigit = (10 - (sum % 10)) % 10;
+
+        // 마지막 자리와 비교
+        return checkDigit == (isbn.charAt(12) - '0');
+    }
+
+
 }
