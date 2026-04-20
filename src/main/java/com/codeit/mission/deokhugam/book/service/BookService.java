@@ -198,13 +198,13 @@ public class BookService {
             while (matcher.find()) {
                 String raw = matcher.group();
 
-                // 3. 정제 (하이픈 제거)
-                String isbn = raw.replaceAll("[^0-9X]", "");
-
-                // 4. OCR 오인식 보정
-                isbn = isbn.replace("O", "0")
+                // 3. OCR 오인식 보정
+                String isbn = raw.replace("O", "0")
                         .replace("I", "1")
                         .replace("S", "5");
+
+                // 4. 정제 (하이픈 제거)
+                isbn = isbn.replaceAll("[^0-9X]", "");
 
                 // 5. 길이 체크
                 if (isbn.length() == 13 && isValidIsbn13(isbn)) {
