@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -30,7 +31,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class ReviewServiceImplementTest {
     @Mock
     private ReviewRepository reviewRepository;
@@ -114,8 +115,6 @@ public class ReviewServiceImplementTest {
 
     /*
         리뷰 등록
-        -------
-        현재 미구현 상태, 도서 (Book) 코드가 올라오면 진행할 예정
      */
 
     // [성공]
@@ -123,14 +122,37 @@ public class ReviewServiceImplementTest {
     @DisplayName("리뷰 생성 완료")
     void create_review_success() throws Exception {
         // given
+        UUID bookId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
 
-        // 생성할 리뷰
+        // 생성할 리뷰 내용
         ReviewCreateRequest createRequest = new ReviewCreateRequest(
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 "고양이가 의젓하게 상점 운영도 하고 정말 귀엽네요",
                 4
         );
+
+        // 가짜 객체 | 도서 및 사용자
+        Book mockBook = Book.builder().build();
+        ReflectionTestUtils.setField(mockBook, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+        User mockUser = User.builder().build();
+        ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+
+        given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(false);          // 중복체크 통과
+        given(bookRepository.findById(bookId)).willReturn(Optional.of(mockBook));                         // mockBook 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                         // mockUser 반환
+
+        // 생성할 리뷰
+        Review createdReview = Review.builder()
+                .content(createRequest.content())
+                .rating(createRequest.rating()).
+                build();
+
+        // 응답 DTO
+        ReviewDto expectedDto = ReviewDto.builder()
+                .content(request.content())
+                .build();
 
         // when
 
