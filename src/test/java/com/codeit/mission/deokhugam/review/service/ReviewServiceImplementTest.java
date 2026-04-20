@@ -6,6 +6,7 @@ import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
@@ -61,14 +62,15 @@ public class ReviewServiceImplementTest {
 
         // 가짜 객체 | 상세 조회 요청자
         User requestUser = User.builder().build();
-        ReflectionTestUtils.setField(requestUser, "id", requestUserId);
+        ReflectionTestUtils.setField(requestUser, "id", requestUserId);                                    // NPE 방지를 위한 id 강제 주입
 
         // 조회할 리뷰
         Review savedReview = Review.builder()
                 .content("meow meow")
                 .rating(5)
                 .build();
-        ReflectionTestUtils.setField(savedReview, "id", reviewId);
+        ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
+        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.ACTIVE);                          // status 강제 주입
 
         // 내부 로직 흐름 설정
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                         // savedReview 반환
@@ -81,7 +83,7 @@ public class ReviewServiceImplementTest {
                 .rating(savedReview.getRating())
                 .likedByMe(true)
                 .build();
-        given(reviewMapper.toDto(any(Review.class), anyBoolean())).willReturn(expectedReviewDto);           // exceptedReviewDto 반환
+        given(reviewMapper.toDto(any(Review.class), anyBoolean())).willReturn(expectedReviewDto);                // exceptedReviewDto 반환
 
         // when
         ReviewDto result = reviewServiceImplement.findById(reviewId, requestUserId);
@@ -94,21 +96,21 @@ public class ReviewServiceImplementTest {
 
     // [실패]
     @Test
-    @DisplayName("리뷰 상세 조회 완료")
+    @DisplayName("리뷰 상세 조회 실패: 해당 리뷰가 존재하지 않을 경우, REVIEW_NOT_FOUND 예외 반환")
     void find_review_by_id_failure() {
         // given
         UUID reviewId = UUID.randomUUID();
         UUID requestUserId = UUID.randomUUID();
 
-        given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());        // 빈 객체 반환
 
         // when & then
         assertThrows(ReviewNotFoundException.class, () -> {
-                    // validateOwner 예외 반환 확인
-                    reviewServiceImplement.findById(reviewId, requestUserId);
+            // validateOwner 예외 반환 확인
+            reviewServiceImplement.findById(reviewId, requestUserId);
         });
-        verify(reviewRepository, never()).existsLikedByIdAndUserId(any(), any());        // Repository의 유효성 검증 (중복 검사) 미호출 확인
-        verify(reviewMapper, never()).toDto(any(), anyBoolean());                        // Mapper의 toDto 미호출 확인
+        verify(reviewRepository, never()).existsLikedByIdAndUserId(any(), any());             // Repository의 유효성 검증 (중복 검사) 미호출 확인
+        verify(reviewMapper, never()).toDto(any(), anyBoolean());                             // Mapper의 toDto 미호출 확인
     }
 
     /*
@@ -160,8 +162,8 @@ public class ReviewServiceImplementTest {
         ReviewDto result = reviewServiceImplement.create(createRequest);
 
         // then
-        assertNotNull(result);
-        assertEquals(expectedDto.content(), result.content());
+        assertNotNull(result);                                                  // 리뷰 등록 여부
+        assertEquals(expectedDto.content(), result.content());                  // 가짜 DTO 결과와 실제 실행 결과 비교
         assertEquals(expectedDto.rating(), result.rating());
     }
 
@@ -185,6 +187,7 @@ public class ReviewServiceImplementTest {
 
         // when & then
         assertThrows(DuplicateReviewException.class, () -> {
+            // validateDuplicateReview 예외 반환 확인
             reviewServiceImplement.create(createRequest);
         });
         verify(bookRepository, never()).findById(any());
@@ -228,6 +231,7 @@ public class ReviewServiceImplementTest {
 
         // when & then
         assertThrows(DuplicateReviewException.class, () -> {
+            // try-catch 구문 예외 반환 확인
             reviewServiceImplement.create(createRequest);
         });
     }
@@ -247,7 +251,7 @@ public class ReviewServiceImplementTest {
         // 가짜 객체 | 도서 및 사용자
         Book mockBook = Book.builder().build();
         User mockUser = User.builder().build();
-        ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+        ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
 
         // 기존 리뷰 정보
         Review savedReview = Review.builder()
@@ -256,18 +260,19 @@ public class ReviewServiceImplementTest {
                 .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
                 .rating(3)
                 .build();
-        ReflectionTestUtils.setField(savedReview, "id", reviewId);
+        ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
+        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.ACTIVE);                          // status 강제 주입
 
-        // 수정할 리븊 내용
+        // 수정할 리뷰 내용
         ReviewUpdateRequest updateRequest = new ReviewUpdateRequest(
                 "나도 선량한 지구인인데 왜 로키를 만날 수 없는 거지. 질문.",
                 5
         );
 
         // 내부 로직 흐름 설정
-        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                 // savedReview 반환
-        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                        // mockUser 반환
-        given(reviewRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(false);      // 특정 리뷰에 대한 사용자의 좋아요 여부
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                        // savedReview 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                               // mockUser 반환
+        given(reviewRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(false);             // 특정 리뷰에 대한 사용자의 좋아요 여부
 
         // 응답 DTO 객체
         ReviewDto expectedDto = ReviewDto.builder()
@@ -275,31 +280,31 @@ public class ReviewServiceImplementTest {
                 .rating(updateRequest.rating())
                 .likedByMe(false)
                 .build();
-        given(reviewMapper.toDto(any(Review.class), anyBoolean())).willReturn(expectedDto);             // expectedDto 반환
+        given(reviewMapper.toDto(any(Review.class), anyBoolean())).willReturn(expectedDto);                     // expectedDto 반환
 
         // when
         ReviewDto result = reviewServiceImplement.update(reviewId, userId, updateRequest);
 
         // then
         assertNotNull(result);
-        assertEquals(updateRequest.content(), result.content());                    // 리뷰 내용 변경 확인
-        assertEquals(updateRequest.rating(), result.rating());                      // 평점 변경 확인
-        verify((reviewMapper)).toDto(savedReview, false);
+        assertEquals(updateRequest.content(), result.content());                    // 가짜 DTO와 실제 실행 결과 확인
+        assertEquals(updateRequest.rating(), result.rating());
+        verify((reviewMapper)).toDto(savedReview, false);                    // Mapper 호출 내역 확인
     }
 
     // [실패] 요청자와 리뷰 작성자 불일치
     @Test
-    @DisplayName("리뷰 수정 실패: 요청자와 리뷰 작성자가 불일치 할 경우, REVIEW_AUTHOR_MISMACHT 에러 반환")
+    @DisplayName("리뷰 수정 실패: 요청자와 리뷰 작성자가 불일치 할 경우, REVIEW_AUTHOR_MISMATCH 에러 반환")
     void update_review_failure() {
         // given
         UUID reviewId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         UUID requestUserId = UUID.randomUUID();
 
-        // 가짜 객체
-        User author = User.builder().build();                                     // 가짜 작성자 객체
-        ReflectionTestUtils.setField(author, "id", userId);                 // NPE 방지를 위한 id 강제 삽입
-        User requestUser = User.builder().build();                                // 가짜 요청자 객체
+        // 가짜 객체 | 리뷰 작성자 및 리뷰 수정 요청자
+        User author = User.builder().build();
+        ReflectionTestUtils.setField(author, "id", userId);                                                 // NPE 방지를 위한 id 강제 삽입
+        User requestUser = User.builder().build();
         ReflectionTestUtils.setField(requestUser, "id", requestUserId);
 
         // 기존 리뷰 정보
@@ -308,9 +313,10 @@ public class ReviewServiceImplementTest {
                 .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
                 .rating(3)
                 .build();
-        ReflectionTestUtils.setField(savedReview, "id", reviewId);
+        ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
+        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.ACTIVE);                          // status 강제 주입
 
-        // 수정할 리븊 내용
+        // 수정할 리뷰 내용
         ReviewUpdateRequest updateRequest = new ReviewUpdateRequest(
                 "나도 선량한 지구인인데 왜 로키를 만날 수 없는 거지. 질문.",
                 5
@@ -318,7 +324,6 @@ public class ReviewServiceImplementTest {
 
         // 내부 로직 흐름 설정
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));          // savedReview 반환
-        given(userRepository.findById(userId)).willReturn(Optional.of(author));                   // author 반환
         given(userRepository.findById(requestUserId)).willReturn(Optional.of(requestUser));       // requestUser 반환
 
         // when & then
