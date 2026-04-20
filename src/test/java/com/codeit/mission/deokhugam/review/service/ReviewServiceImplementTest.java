@@ -24,6 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -465,7 +467,7 @@ public class ReviewServiceImplementTest {
         given(reviewRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(false);              // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
 
         // 응답 DTO
-        ReviewLikeDto expectedDto = ReviewLikeDto.builder()
+        ReviewLikeDto.builder()
                 .reviewId(savedReview.getId())
                 .userId(mockUser.getId())
                 .liked(true)
@@ -476,8 +478,56 @@ public class ReviewServiceImplementTest {
 
         // then
         assertNotNull(result);
-        assertEquals(expectedDto.liked(), result.liked());                   // 실행 결과 확인
+        assertTrue(result.liked());                                          // 실행 결과 확인
         assertEquals(1, savedReview.getLikeCount());                // 특정 리뷰에 추가된 좋아요 개수 확인
         assertTrue(savedReview.getLikedUsers().contains(mockUser));          // 좋아요를 누른 사용자 리스트 내 좋아요 요청자 포함 여부
+    }
+
+    // [성공]
+    @Test
+    @DisplayName("리뷰 좋아요 취소 성공")
+    void remove_review_like_success() {
+        // given
+        UUID reviewId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        // 가짜 객체 | 도서 및 사용자
+        User mockUser = User.builder().build();
+        ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
+
+        // 좋아요를 추가할 리뷰 정보
+        Review savedReview = Review.builder()
+                .user(mockUser)
+                .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
+                .rating(3)
+                .build();
+        ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
+        ReflectionTestUtils.setField(savedReview, "likeCount", 1);                                   // likeCount 강제 주입
+        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.ACTIVE);                          // status 강제 주입
+
+        // 특정 리뷰에 좋아요를 누른 사용자 목록
+        List<User> likedUsers = new ArrayList<>();
+        likedUsers.add(mockUser);
+        ReflectionTestUtils.setField(savedReview, "likedUsers", likedUsers);
+
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                         // savedReview 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                                // mockUser 반환
+        given(reviewRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(true);               // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
+
+        // 응답 DTO
+        ReviewLikeDto.builder()
+                .reviewId(savedReview.getId())
+                .userId(mockUser.getId())
+                .liked(true)
+                .build();
+
+        // when
+        ReviewLikeDto result = reviewServiceImplement.toggleLike(reviewId, userId);
+
+        // then
+        assertNotNull(result);
+        assertFalse(result.liked());                                         // 실행 결과 확인
+        assertEquals(0, savedReview.getLikeCount());                // 특정 리뷰에 추가된 좋아요 개수 확인
+        assertFalse(savedReview.getLikedUsers().contains(mockUser));         // 좋아요를 누른 사용자 리스트 내 좋아요 요청자 포함 여부
     }
 }
