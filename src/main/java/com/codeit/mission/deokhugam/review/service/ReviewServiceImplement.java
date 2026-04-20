@@ -48,7 +48,7 @@ public class ReviewServiceImplement implements ReviewService {
         validateReviewActive(targetReview);
 
         // 3. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
-        boolean isLiked = reviewRepository.existsLikedByIdAndUserId(targetReview.getId(), requestUser.getId());
+        boolean isLiked = isReviewLiked(targetReview.getId(), requestUser.getId());
 
         // 4. 응답 DTO 변환 및 반환
         return reviewMapper.toDto(targetReview, isLiked);
@@ -110,7 +110,7 @@ public class ReviewServiceImplement implements ReviewService {
         targetReview.updateContentAndRating(reviewUpdateRequest.content(), reviewUpdateRequest.rating());
 
         // 5. 특정 리뷰에 대한 작성자의 좋아요 여부 확인
-        boolean isLiked = reviewRepository.existsLikedByIdAndUserId(targetReview.getId(), requestUser.getId());
+        boolean isLiked = isReviewLiked(targetReview.getId(), requestUser.getId());
 
         // 6. 리뷰 응답 DTO 반환 및 변환
         return reviewMapper.toDto(targetReview, isLiked);
@@ -187,6 +187,11 @@ public class ReviewServiceImplement implements ReviewService {
          if (targetReview.getStatus() == ReviewStatus.DELETED) {
             throw  new ReviewNotFoundException(targetReview.getId());
         }
+    }
+
+    // 특정 사용자의 리뷰 좋아요 여부 확인
+    private boolean isReviewLiked (UUID reviewId, UUID userId) {
+        return reviewRepository.existsLikedByIdAndUserId(reviewId, userId);
     }
 
     // 유니크 제약 조건 (uk_book_user) 위반 확인: 발생한 예외가 중복 리뷰 예외에 해당하는지 확인
