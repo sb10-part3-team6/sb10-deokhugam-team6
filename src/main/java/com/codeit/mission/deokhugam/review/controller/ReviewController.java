@@ -59,6 +59,13 @@ public class ReviewController {
     }
 
     // 리뷰 물리 삭제
+    @DeleteMapping("/api/reviews/{reviewId}/hard")
+    public ResponseEntity<Void> hardDelete(@PathVariable UUID reviewId,
+                                           @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+        reviewService.hardDelete(reviewId, requestUserId);
+
+        return ResponseEntity.noContent().build();
+    }
 
     // 리뷰 좋아요
 }
