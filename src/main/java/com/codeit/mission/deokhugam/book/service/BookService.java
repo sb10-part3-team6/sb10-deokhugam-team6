@@ -35,7 +35,7 @@ public class BookService {
     private final BookDtoMapper bookDtoMapper;
     private final WebClient webClient;
 
-    private final String NAVER_BOOK_API_URL = "https://openapi.naver.com/v1/search/book_adv";
+    private static final String NAVER_BOOK_API_URL = "https://openapi.naver.com/v1/search/book_adv";
 
     @Value("${naverapi.client-id}")
     private String NAVER_CLIENT_ID;
