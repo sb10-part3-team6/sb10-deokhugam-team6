@@ -179,34 +179,40 @@ public class BookService {
     }
 
     private String extractIsbn(String text) {
-        // 1. ISBN 포함 라인 우선 필터링
-        List<String> candidateLines = Arrays.stream(text.split("\n"))
+
+        // 1. 라인 분리
+        List<String> lines = Arrays.asList(text.split("\n"));
+
+        // 2. ISBN 포함 라인 필터링
+        List<String> candidateLines = lines.stream()
                 .filter(line -> line.toUpperCase().contains("ISBN"))
                 .toList();
 
-        // fallback: ISBN 키워드 없으면 전체 텍스트 사용
+        // fallback: 없으면 전체 라인 사용
         if (candidateLines.isEmpty()) {
-            candidateLines = List.of(text);
+            candidateLines = lines;
         }
 
-        // 2. ISBN 정규식
+        // 3. 정규식
         Pattern pattern = Pattern.compile("(97[89][- ]?\\d{1,5}[- ]?\\d+[- ]?\\d+[- ]?\\d)");
 
         for (String line : candidateLines) {
-            Matcher matcher = pattern.matcher(line);
+
+            // 4. 라인 단위 OCR 보정
+            String normalizedLine = line
+                    .replace("O", "0").replace("o", "0")
+                    .replace("I", "1").replace("i", "1")
+                    .replace("S", "5").replace("s", "5");
+
+            Matcher matcher = pattern.matcher(normalizedLine);
 
             while (matcher.find()) {
                 String raw = matcher.group();
 
-                // 3. OCR 오인식 보정
-                String isbn = raw.replace("O", "0")
-                        .replace("I", "1")
-                        .replace("S", "5");
+                // 5. 숫자만 남기기
+                String isbn = raw.replaceAll("[^0-9X]", "");
 
-                // 4. 정제 (하이픈 제거)
-                isbn = isbn.replaceAll("[^0-9X]", "");
-
-                // 5. 길이 체크
+                // 6. 검증
                 if (isbn.length() == 13 && isValidIsbn13(isbn)) {
                     return isbn;
                 }
