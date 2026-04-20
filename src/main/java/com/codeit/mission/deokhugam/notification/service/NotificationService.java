@@ -3,8 +3,10 @@ package com.codeit.mission.deokhugam.notification.service;
 import com.codeit.mission.deokhugam.notification.entity.Notification;
 import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
+import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -68,11 +70,11 @@ public class NotificationService {
 
     private User getUser(UUID userId) {
         return userRepository.findById(userId)
-            .orElseThrow(RuntimeException::new); // fixme: UserNotFoundException으로 수정
+            .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     private Review getReview(UUID reviewId) {
         return reviewRepository.findById(reviewId)
-            .orElseThrow(RuntimeException::new); // fixme: ReviewNotFoundException으로 수정
+            .orElseThrow(() -> new ReviewNotFoundException(reviewId));
     }
 }
