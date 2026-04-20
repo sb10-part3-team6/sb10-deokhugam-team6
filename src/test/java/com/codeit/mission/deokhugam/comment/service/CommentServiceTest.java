@@ -33,8 +33,10 @@ public class CommentServiceTest {
     @Mock
     private CommentRepository commentRepository;
 
-//    @Mock
-//    private ReviewRepository reviewRepository;
+    /*
+    @Mock
+    private ReviewRepository reviewRepository;
+     */
 
     @Mock
     private UserRepository userRepository;
