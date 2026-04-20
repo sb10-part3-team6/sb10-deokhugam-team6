@@ -25,6 +25,6 @@ public interface ReviewService {
     // 리뷰 물리 삭제
     void hardDelete(UUID id, UUID requestUserId);
 
-    // 리뷰 좋아요
-    ReviewLikeDto createReviewLike(UUID id, UUID requestUserId);
+    // 리뷰 좋아요 추가 및 취소
+    ReviewLikeDto toggleLike(UUID id, UUID requestUserId);
 }
