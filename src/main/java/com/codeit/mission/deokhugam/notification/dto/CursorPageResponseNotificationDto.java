@@ -1,6 +1,5 @@
 package com.codeit.mission.deokhugam.notification.dto;
 
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -11,7 +10,7 @@ public record CursorPageResponseNotificationDto(
     String nextCursor,
     LocalDateTime nextAfter,
     int size,
-    BigInteger totalElements,
+    long totalElements,
     boolean hasNext
 ) {
 
