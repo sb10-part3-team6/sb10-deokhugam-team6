@@ -142,20 +142,13 @@ public class BookService {
     }
 
     //이미지 기반 ISBN 인식 로직
-    public String ocrIsbnDetect(byte[] image){
-        ByteArrayResource resource = new ByteArrayResource(image) {
-            @Override
-            public String getFilename() {
-                return "image.jpg";
-            }
-        };
-
+    public String ocrIsbnDetect(MultipartFile image){
         OcrResponse response = webClient.post()
                 .uri(OCR_URL)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData("apikey", OCR_API_KEY)
                         .with("language", "eng")
-                        .with("file", resource))
+                        .with("file", image))
                 .retrieve()
                 .onStatus(
                         status -> status.is4xxClientError(),
