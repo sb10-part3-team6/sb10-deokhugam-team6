@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: sb10-deokhugam-team6
+  batch:
+    job:
+      enabled: false
+
+cloud:
+  aws:
+    s3:
+      region: ap-northeast-2
+      bucket: sb10-deokhugam-team6 #임시로 작성
+
+naverapi:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}

@@ -65,6 +65,7 @@ public class PowerUserAggregateService {
     }
 
     // 유저 ID, 좋아요 개수> 형태의 Map
+    // 추후 리뷰 도메인 쪽에서 좋아요 관련 기능을 보고 더 고도화 할 예정
     Map<UUID, Long> likeCounts = new HashMap<>();
     // reviewLikeRepository에서 User별 누른 좋아요 수를 뽑아온 다음 순회함.
     for (PowerUserLikeCount likeCount : reviewLikeRepository.findUserLikeCounts(periodStart, periodEnd)) {

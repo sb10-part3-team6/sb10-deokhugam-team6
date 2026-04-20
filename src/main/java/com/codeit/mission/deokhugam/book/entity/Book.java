@@ -39,7 +39,7 @@ public class Book extends BaseEntity {
     @Setter
     private LocalDate publishedDate;
 
-    @Column
+    @Column(nullable = false, unique = true)
     private String isbn;
 
     @Column

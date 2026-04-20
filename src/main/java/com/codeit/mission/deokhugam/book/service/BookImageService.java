@@ -51,7 +51,7 @@ public class BookImageService {
             return getUrl(fileName);
 
         } catch (IOException e) {
-            throw new S3UploadFailureException(S3_UPLOAD_FAILED);
+            throw new S3UploadFailureException();
         }
     }
 

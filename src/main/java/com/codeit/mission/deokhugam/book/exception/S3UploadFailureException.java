@@ -5,12 +5,10 @@ import com.codeit.mission.deokhugam.error.ErrorCode;
 
 import java.util.Map;
 
-public class S3UploadFailureException extends DeokhugamException {
-    public S3UploadFailureException(ErrorCode errorCode) {
-        super(errorCode);
-    }
+import static com.codeit.mission.deokhugam.error.ErrorCode.S3_UPLOAD_FAILED;
 
-    public S3UploadFailureException(ErrorCode errorCode, Map<String, Object> details){
-        super(errorCode, details);
+public class S3UploadFailureException extends DeokhugamException {
+    public S3UploadFailureException() {
+        super(S3_UPLOAD_FAILED);
     }
 }

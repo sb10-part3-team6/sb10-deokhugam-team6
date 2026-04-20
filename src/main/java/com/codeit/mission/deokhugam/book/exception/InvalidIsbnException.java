@@ -5,8 +5,8 @@ import com.codeit.mission.deokhugam.error.ErrorCode;
 
 import java.util.Map;
 
-public class WrongFileTypeException extends DeokhugamException {
-    public WrongFileTypeException(String contentType){
-        super(ErrorCode.WRONG_FILE_TYPE, Map.of("contentType", contentType));
+public class InvalidIsbnException extends DeokhugamException {
+    public InvalidIsbnException(String isbn) {
+        super(ErrorCode.INVALID_ISBN, Map.of("isbn", isbn));
     }
 }
