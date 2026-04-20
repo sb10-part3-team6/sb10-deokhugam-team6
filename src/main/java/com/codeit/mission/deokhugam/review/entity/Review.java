@@ -49,8 +49,7 @@ public class Review extends BaseEntity {
     private String content;                                     // 리뷰 내용
 
     @Column(nullable = false)
-    @Min(1)
-    @Max(5)
+    @Min(1) @Max(5)
     private int rating;                                         // 리뷰 평점
 
     @Column(nullable = false)
@@ -72,7 +71,6 @@ public class Review extends BaseEntity {
     private ReviewStatus status = ReviewStatus.ACTIVE;           // 리뷰 상태 (기본값: 활성)
 
     private LocalDateTime deletedAt;                             // 리뷰 논리 삭제 시점
-
 
     // 생성자: 빌더 패턴을 통해 객체 생성 시, 유효성 검증 강제 수행
     @Builder
