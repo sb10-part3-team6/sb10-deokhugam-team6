@@ -4,12 +4,22 @@ import static java.lang.Double.NaN;
 
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
+import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserLikeCount;
+import com.codeit.mission.deokhugam.dashboard.users.dto.UserCommentCount;
+import com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.dashboard.users.dto.UserStat;
 import com.codeit.mission.deokhugam.dashboard.users.entity.PowerUser;
 import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserRepository;
+import com.codeit.mission.deokhugam.dashboard.users.repository.ReviewLikeRepository;
+import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
+import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,76 +29,105 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PowerUserAggregateService {
 
-  // 파워 유저 계산에 필요한 가중치들.
   private static final double REVIEW_SCORE_WEIGHT = 0.5d;
   private static final double LIKE_COUNT_WEIGHT = 0.2d;
   private static final double COMMENT_COUNT_WEIGHT = 0.3d;
 
-  // private final ReviewRepository reviewRepository; <- 추후 구현 시 주석 제거
   private final CommentRepository commentRepository;
-  // private final LikeRepository likeRepository <- 좋아요도 레포가 존재한다는 가정 하에 설계함
+  private final ReviewRepository reviewRepository;
+  private final ReviewLikeRepository reviewLikeRepository;
   private final PowerUserRepository powerUserRepository;
 
-  // 유저 ID를 통해 점수 산정 및 스탯 계산
-  public UserStat calculateUserStat(UUID userId, PeriodType periodType, LocalDateTime aggregatedAt){
-    // 집계 날짜를 기준으로 집계 시작 일자와 집계 끝 일자를 구한다.
+  // 기간 내 댓글/리뷰/좋아요를 userId 기준으로 벌크 집계한다.
+  // 소스별 집계를 분리해 조인으로 인한 중복 합산을 피하고,
+  // process 단계의 per-user 조회를 제거한다.
+  @Transactional(readOnly = true)
+  public Map<UUID, UserStat> loadUserStats(PeriodType periodType, LocalDateTime aggregatedAt) {
+    // periodType과 aggregatedAt 기준으로 산정할 기간을 측정
     LocalDateTime periodStart = periodType.calculateStart(aggregatedAt);
     LocalDateTime periodEnd = periodType.calculateEnd(aggregatedAt);
 
-    // 집계 날짜 범위 안에 작성한 댓글의 개수를 가져온다.
-    long commentCount = commentRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId,periodStart);
+    // <유저 ID, 댓글 수> 형태의 Map
+    Map<UUID, Long> commentCounts = new HashMap<>();
 
-    // 집계 날짜 범위 안에 작성한 리뷰들을 추출하고, 점수를 sum up.
-    double reviewScoreSum = reviewRepository.sumRatingByUserIdAndPeriod(userId, periodStart, periodEnd);
+    // commentRepository에서 User별 댓글 수를 뽑아온 다음, 순회
+    for (UserCommentCount commentCount : commentRepository.findUserCommentCounts(periodStart, periodEnd)) {
+      commentCounts.put(commentCount.userId(), commentCount.commentCount()); // commentCounts 해쉬맵에 삽입
+    }
 
-    // 집계 날짜 범위 안에 누른 좋아요의 개수를 구한다.
-    long likeCount = likeRepository.countByUserIdAndPeriod(userId, periodStart, periodEnd);
+    // <유저 ID, 유저 리뷰 점수> 형태의 Map
+    Map<UUID, Double> reviewScoreSums = new HashMap<>();
 
-    double score = (reviewScoreSum * REVIEW_SCORE_WEIGHT) + (commentCount * COMMENT_COUNT_WEIGHT)
-        + (likeCount * LIKE_COUNT_WEIGHT);
+    // reviewRepository에서 User별 리뷰 점수의 합계를 뽑아온 다음 순회함.
+    for (UserReviewAggregate reviewAggregate
+        : reviewRepository.findUserReviewAggregates(periodStart, periodEnd, ReviewStatus.ACTIVE)) {
+      reviewScoreSums.put(reviewAggregate.userId(), reviewAggregate.reviewScoreSum());
+    }
 
-    return new UserStat(
-        userId,
-        reviewScoreSum,
-        likeCount,
-        commentCount,
-        score
-    );
+    // 유저 ID, 좋아요 개수> 형태의 Map
+    Map<UUID, Long> likeCounts = new HashMap<>();
+    // reviewLikeRepository에서 User별 누른 좋아요 수를 뽑아온 다음 순회함.
+    for (PowerUserLikeCount likeCount : reviewLikeRepository.findUserLikeCounts(periodStart, periodEnd)) {
+      likeCounts.put(likeCount.userId(), likeCount.likeCount());
+    }
+
+    // 중복을 허용하지 않도록 HashSet을 이용해 위의 과정에서 얻은 유저 ID를 집어넣음
+    Set<UUID> userIds = new HashSet<>();
+    userIds.addAll(commentCounts.keySet());
+    userIds.addAll(reviewScoreSums.keySet());
+    userIds.addAll(likeCounts.keySet());
+
+    // <유저 ID, 유저 스탯> Map
+    Map<UUID, UserStat> statsByUserId = new HashMap<>();
+
+    for (UUID userId : userIds) {
+      // UserId별 스탯을 이전에 작성했던 도메인 별 Map에서 가져온다.
+      double reviewScoreSum = reviewScoreSums.getOrDefault(userId, 0d);
+      long likeCount = likeCounts.getOrDefault(userId, 0L);
+      long commentCount = commentCounts.getOrDefault(userId, 0L);
+
+      // 유저 별 유저스탯을 삽입
+      statsByUserId.put(
+          userId,
+          new UserStat(
+              userId,
+              reviewScoreSum,
+              likeCount,
+              commentCount,
+              calculateScore(reviewScoreSum, likeCount, commentCount)));
+    }
+    // 모든 유저 별 스탯 Map을 리턴함.
+    return statsByUserId;
   }
 
-  // 오름차순으로 정렬 된 PowerUser 리스트에 0L으로 초기화된 RANK를 순서대로 부여하는 메서드
   @Transactional
-  public void rankPowerUsers(PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId){
-
-    // 집계 일자를 기준으로 시작, 끝 날짜를 구함.
+  public void rankPowerUsers(PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId) {
     LocalDateTime periodStart = periodType.calculateStart(aggregatedAt);
-    LocalDateTime periodEnd= periodType.calculateEnd(aggregatedAt);
+    LocalDateTime periodEnd = periodType.calculateEnd(aggregatedAt);
 
-    // 집계 일자 범위 내에 해당되고 새로 생성한 snapshot에 해당하는 PowerUser를 list로 추출
-    List<PowerUser> powers = powerUserRepository.findByPeriodDescByScore(periodType, periodStart, periodEnd, snapshotId);
-    // 첫 번째 순서(score가 가장 높은 파워 유저) 랭크
+    List<PowerUser> powers =
+        powerUserRepository.findByPeriodDescByScore(periodType, periodStart, periodEnd, snapshotId);
     long rank = 1L;
-    // 이전 점수는 처음에는 NaN으로 초기화
     double previousScore = NaN;
-    // powers를 순회하면서 인덱스를 나타낼 index 변수
     long index = 1L;
 
-    // powers 리스트를 순회
-    for(PowerUser powerUser : powers){
-      // 인덱스가 1 (처음 순서)거나, 해당 인덱스의 파워유저 스코어가 이전과 다르면
-      if(index == 1L || Double.compare(powerUser.getScore(), previousScore) != 0){
+    for (PowerUser powerUser : powers) {
+      if (index == 1L || Double.compare(powerUser.getScore(), previousScore) != 0) {
         rank = index;
         previousScore = powerUser.getScore();
       }
-      powerUser.updateRank(rank); // 랭크 부여
-      index++; // 인덱스 넘김
+      powerUser.updateRank(rank);
+      index++;
     }
   }
 
-
-  // 유저를 파워 유저로 변환하는 메서드 (랭크는 빈값으로 둠)
-  public PowerUser toPowerUser(User user, PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId){
-    UserStat stat = calculateUserStat(user.getId(), periodType, aggregatedAt);
+  // User에서 PowerUser로 변환하는 메서드
+  public PowerUser toPowerUser(
+      User user,
+      UserStat stat,
+      PeriodType periodType,
+      LocalDateTime aggregatedAt,
+      UUID snapshotId) {
 
     LocalDateTime periodStart = periodType.calculateStart(aggregatedAt);
     LocalDateTime periodEnd = periodType.calculateEnd(aggregatedAt);
@@ -108,4 +147,14 @@ public class PowerUserAggregateService {
         .build();
   }
 
+  public UserStat emptyStat(UUID userId) {
+    return new UserStat(userId, 0d, 0L, 0L, 0d);
+  }
+
+  // 활동 점수를 계산하는 private 메서드
+  private double calculateScore(double reviewScoreSum, long likeCount, long commentCount) {
+    return (reviewScoreSum * REVIEW_SCORE_WEIGHT)
+        + (commentCount * COMMENT_COUNT_WEIGHT)
+        + (likeCount * LIKE_COUNT_WEIGHT);
+  }
 }

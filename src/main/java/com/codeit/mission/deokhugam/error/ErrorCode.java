@@ -31,6 +31,8 @@ public enum ErrorCode {
     CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST,"Invalid cursor or after format"),
     POWER_AGGREGATION_BATCH_JOB_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PowerUser Aggregation Batch job Failed"),
     SNAPSHOT_NOT_FOUND(HttpStatus.NOT_FOUND, "Snapshot is not found"),
+    INVALID_JOB_PARAMETER(HttpStatus.BAD_REQUEST, "Batch Job Parameter is Invalid"),
+
     //도서
     WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),
     S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed"),

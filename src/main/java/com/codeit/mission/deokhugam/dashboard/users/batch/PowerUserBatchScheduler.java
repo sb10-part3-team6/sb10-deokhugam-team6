@@ -5,7 +5,6 @@ import com.codeit.mission.deokhugam.dashboard.users.exception.PowerUserAggregati
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -34,10 +33,8 @@ public class PowerUserBatchScheduler {
     // Period 별로 Job을 런치하는데, 특정 Period의 job이 실패하면 예외를 던진다.
     for(PeriodType periodType : List.of(PeriodType.DAILY, PeriodType.WEEKLY, PeriodType.MONTHLY,
         PeriodType.ALL_TIME)){
-      UUID snapshotId = UUID.randomUUID();
-
       try{
-        runJob(periodType, aggregatedAt, snapshotId);
+        runJob(periodType, aggregatedAt);
       } catch (Exception e){
         throw new PowerUserAggregationFailed(periodType);
       }
@@ -45,13 +42,12 @@ public class PowerUserBatchScheduler {
   }
 
   // 실질적으로 PowerUserAggregateJob을 수행하는 메서드
-  private void runJob(PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId)
+  private void runJob(PeriodType periodType, LocalDateTime aggregatedAt)
       throws Exception {
     // Job에 넘겨줄 파라미터를 주입한다.
     JobParameters jobParameters = new JobParametersBuilder()
         .addString("periodType", periodType.name())
         .addString("aggregatedAt", aggregatedAt.toString())
-        .addString("snapshotId", snapshotId.toString(), false)
         .toJobParameters();
 
     jobLauncher.run(powerUserAggregationJob, jobParameters);

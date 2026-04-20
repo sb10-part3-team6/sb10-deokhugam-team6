@@ -30,20 +30,21 @@ public class PowerUserBatchConfig {
       Step createNewSnapshotStep,
       Step aggregatePowerUsersStep,
       Step rankPowerUsersStep,
-      Step publishSnapshotStep){
+      Step publishSnapshotStep,
+      PowerUserAggregationJobListener powerUserAggregationJobListener){
 
     return new JobBuilder("powerUserAggregationJob", jobRepository)
-        .start(createNewSnapshotStep)
-        .next(aggregatePowerUsersStep)
-        .next(rankPowerUsersStep)
-        .next(publishSnapshotStep)
+        .listener(powerUserAggregationJobListener) // 리스너 주입
+        .start(createNewSnapshotStep) // 스냅샷 생성 스텝
+        .next(aggregatePowerUsersStep) // 파워 유저를 집계하는 스텝
+        .next(rankPowerUsersStep) // 집계가 마무리 된 후 랭크를 부여하는 스텝
+        .next(publishSnapshotStep) // 랭크를 부여한 후, 스냅샷을 publish하는 스텝
         .build();
   }
 
-
+  // 스냅샷을 생성하는 Step을 설정한다.
   @Bean
   public Step createNewSnapshotStep(CreateNewSnapshotTasklet createNewSnapshotTasklet){
-
     return new StepBuilder("createNewSnapshotStep", jobRepository)
         .tasklet(createNewSnapshotTasklet, transactionManager)
         .build();

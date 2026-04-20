@@ -37,7 +37,7 @@ public class PowerUserSnapshot extends BaseEntity {
   LocalDateTime aggregatedAt;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
+  @Column(name = "staging_type", nullable = false)
   StagingType stagingType;
 
   @Builder

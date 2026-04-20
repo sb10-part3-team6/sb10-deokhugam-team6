@@ -16,40 +16,43 @@ import org.springframework.transaction.annotation.Transactional;
 public class PowerUserSnapshotService {
   private final PowerUserSnapshotRepository powerUserSnapshotRepository;
 
-  // 새로운 파워유저의 스냅샷 객체를 생성한다. (스냅샷 -> 메타 데이터)
   @Transactional
-  public void createStagingSnapshot(
-      PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId) {
+  public PowerUserSnapshot createStagingSnapshot(
+      PeriodType periodType, LocalDateTime aggregatedAt) {
     PowerUserSnapshot snapshot = PowerUserSnapshot.builder()
-        .snapshotId(snapshotId)
+        .snapshotId(UUID.randomUUID())
         .periodType(periodType)
         .aggregatedAt(aggregatedAt)
-        .stagingType(StagingType.STAGING) // 처음 생성된 스냅샷 객체의 스테이징 타입은 Staging
-        // 추후 publishSnapshot 메소드에 의해 Publish 될 수 있음.
+        .stagingType(StagingType.STAGING)
         .build();
 
-    powerUserSnapshotRepository.save(snapshot);
+    return powerUserSnapshotRepository.save(snapshot);
   }
 
-  // 파워유저 스냅샷 객체의 스테이징 타입을 Staging -> Publish로 바꿈
-  // 배치 작업에 의해 실행되는 메서드
-  // 새롭게 생성된 스냅샷 (Staging)을 적용하기 위해 (Publish)로  바꿈
+  @Transactional
+  public void failSnapshot(UUID snapshotId) {
+    powerUserSnapshotRepository.findBySnapshotId(snapshotId)
+        .filter(snapshot -> snapshot.getStagingType() == StagingType.STAGING)
+        .ifPresent(PowerUserSnapshot::fail);
+  }
+
+  // 스냅샷을 Staging -> publish로 바꿔 조회되게끔 하는 메서드
   @Transactional
   public void publishSnapshot(UUID snapshotId) {
-    // 배치 잡 파라미터로 받은 snapshotId를 통해 스냅샷 객체 가져옴
     PowerUserSnapshot newSnapshot = powerUserSnapshotRepository.findBySnapshotId(snapshotId)
         .orElseThrow(SnapshotNotFoundException::new);
 
-    // 스냅샷의 기간 타입(일간,주간,월간,상시) 종류를 가져온다.
     PeriodType periodType = newSnapshot.getPeriodType();
 
-    // 기간에 해당하는 publish된 snapshot을 archive로 바꾼다.
+    // 가장 최신에 생성된 PeriodType과 StagingType이 published 인 스냅샷을 조회하고
+    // 해당 스냅샷이 스텝 1에서 생성된 새로운 스냅샷과 동일한지 확인한 후
+    // 동일하지 않다면 해당 oldSnapshot을 archive 상태로 돌려놓음
     powerUserSnapshotRepository
         .findTopByPeriodTypeAndStagingTypeOrderByCreatedAtDesc(periodType, StagingType.PUBLISHED)
         .filter(oldSnapshot -> !oldSnapshot.getSnapshotId().equals(snapshotId))
         .ifPresent(PowerUserSnapshot::archive);
 
-    // 그 다음 새로 생성한 스냅샷 객체를 publish
+    // 그 후 새로 생긴 스냅샷은 Publish함.
     newSnapshot.publish();
   }
 }
