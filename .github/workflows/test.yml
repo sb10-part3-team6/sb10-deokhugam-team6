@@ -1,6 +1,7 @@
 name: test
 
 on:
+  # dev 브랜치에 PR을 올리거나, dev,main 브랜치에 push할 시 워크플로우 트리거
   pull_request:
     branches:
       - develop
@@ -9,14 +10,16 @@ on:
       - develop
       - main
 
+#권한은 읽기권한 -> 추후 테스트 실행을 위해서 권한을 부여할 예정
 permissions:
   contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    # 환경 변수를 레포지토리의 secrets로부터 받음
     env:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # CodeCov 관련 시크릿 변수 토큰
 
     steps:
       - name: Checkout
@@ -29,23 +32,28 @@ jobs:
           java-version: '17'
           cache: gradle
 
+      # 컴파일 테스트를 위해 gradlew에 execute 권한 부여
       - name: Grant execute permission for Gradle
         run: chmod +x gradlew
 
+      # Jacoco로 테스트 코드를 실행하고 레포트
       - name: Run tests with JaCoCo
         run: ./gradlew test jacocoTestReport --no-daemon
 
+      # 테스트 레포트 아티팩트를 업로드함.
       - name: Upload test report artifact
-        if: always()
+        if: always() # 항상 해당 스텝 실행함
         uses: actions/upload-artifact@v4
         with:
           name: test-report
+          if-no-files-found: warn
           path: |
             build/reports/tests/test
             build/reports/jacoco/test
 
+      # 커버리지를 CodeCov에 업로드
       - name: Upload coverage to Codecov
-        if: ${{ always() && env.CODECOV_TOKEN != '' }}
+        if: ${{ success() && env.CODECOV_TOKEN != '' && hashFiles('build/reports/jacoco/test/jacocoTestReport.xml') != '' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ env.CODECOV_TOKEN }}
