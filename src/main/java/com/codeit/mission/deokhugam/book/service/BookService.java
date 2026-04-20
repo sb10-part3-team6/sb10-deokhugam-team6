@@ -8,6 +8,7 @@ import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -151,11 +152,11 @@ public class BookService {
                         .with("file", image))
                 .retrieve()
                 .onStatus(
-                        status -> status.is4xxClientError(),
+                        HttpStatusCode::is4xxClientError,
                         res -> Mono.error(new ExternalApiErrorException())
                 )
                 .onStatus(
-                        status -> status.is5xxServerError(),
+                        HttpStatusCode::is5xxServerError,
                         res -> Mono.error(new ExternalApiErrorException())
                 )
                 .bodyToMono(OcrResponse.class)
