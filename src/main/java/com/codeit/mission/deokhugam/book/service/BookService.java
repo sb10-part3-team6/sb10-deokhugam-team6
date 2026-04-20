@@ -1,9 +1,6 @@
 package com.codeit.mission.deokhugam.book.service;
 
-import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
-import com.codeit.mission.deokhugam.book.dto.BookDto;
-import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
-import com.codeit.mission.deokhugam.book.dto.NaverResponseDto;
+import com.codeit.mission.deokhugam.book.dto.*;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.exception.*;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
@@ -11,19 +8,23 @@ import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
-
-import static com.codeit.mission.deokhugam.error.ErrorCode.BOOK_NOT_FOUND;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.V4RequestSigner.header;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Service
@@ -40,6 +41,10 @@ public class BookService {
     private String NAVER_CLIENT_ID;
     @Value("${naverapi.client-secret}")
     private String NAVER_CLIENT_SECRET;
+    @Value("${ocr.url}")
+    private String OCR_URL;
+    @Value("${ocr.api-key}")
+    private String OCR_API_KEY;
 
     //도서 생성 메서드
     @Transactional
@@ -137,6 +142,82 @@ public class BookService {
             //이미지 로딩 실패시 null
             return null;
         }
+    }
+
+    //이미지 기반 ISBN 인식 로직
+    public String ocrIsbnDetect(byte[] image){
+        ByteArrayResource resource = new ByteArrayResource(image) {
+            @Override
+            public String getFilename() {
+                return "image.jpg";
+            }
+        };
+
+        OcrResponse response = webClient.post()
+                .uri(OCR_URL)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(BodyInserters.fromMultipartData("apikey", OCR_API_KEY)
+                        .with("language", "eng")
+                        .with("file", resource))
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError(),
+                        res -> Mono.error(new ExternalApiErrorException())
+                )
+                .onStatus(
+                        status -> status.is5xxServerError(),
+                        res -> Mono.error(new ExternalApiErrorException())
+                )
+                .bodyToMono(OcrResponse.class)
+                .block();
+
+        if(response == null || response.ParsedResults() == null) {
+            throw new ExternalApiErrorException();
+        }
+
+        if(response.ParsedResults().get(0) == null) {
+            throw new OcrFailedException();
+        }
+
+        return extractIsbn(response.ParsedResults().get(0).ParsedText());
+    }
+
+    public String extractIsbn(String text) {
+        // 1. ISBN 포함 라인 우선 필터링
+        List<String> candidateLines = Arrays.stream(text.split("\n"))
+                .filter(line -> line.toUpperCase().contains("ISBN"))
+                .toList();
+
+        // fallback: ISBN 키워드 없으면 전체 텍스트 사용
+        if (candidateLines.isEmpty()) {
+            candidateLines = List.of(text);
+        }
+
+        // 2. ISBN 정규식
+        Pattern pattern = Pattern.compile("(97[89][- ]?\\d{1,5}[- ]?\\d+[- ]?\\d+[- ]?\\d)");
+
+        for (String line : candidateLines) {
+            Matcher matcher = pattern.matcher(line);
+
+            while (matcher.find()) {
+                String raw = matcher.group();
+
+                // 3. 정제 (하이픈 제거)
+                String isbn = raw.replaceAll("[^0-9X]", "");
+
+                // 4. OCR 오인식 보정
+                isbn = isbn.replace("O", "0")
+                        .replace("I", "1")
+                        .replace("S", "5");
+
+                // 5. 길이 체크
+                if (isbn.length() == 13 && isValidIsbn13(isbn)) {
+                    return isbn;
+                }
+            }
+        }
+
+        throw new OcrFailedException();
     }
 
     //유효한지 여부 확인하고 예외 던지는 메서드
