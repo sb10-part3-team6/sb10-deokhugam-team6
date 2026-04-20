@@ -10,6 +10,7 @@ import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
+import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
@@ -162,17 +163,28 @@ public class ReviewServiceImplement implements ReviewService {
 
         // 3. 좋아요 생성 및 취소
         boolean isLiked;
-        // 사용자가 특정 리뷰에 좋아요를 남기지 않은 경우, 좋아요 추가
-        if (!isReviewLiked(targetReview.getId(), requestUser.getId())) {
-            targetReview.incrementLikesCount(requestUser);
-            isLiked = true;
-        } else {
-            // 이미 사용자가 특정 리뷰에 좋아요를 남긴 경우, 좋아요 취소
-            targetReview.decrementLikesCount(requestUser);
-            isLiked = false;
+        // 4. 같은 사용자로부터 두 번 이상 생성 요청이 들어온 경우, 동시성 문제 발생 가능
+        try {
+            // 사용자가 특정 리뷰에 좋아요를 남기지 않은 경우, 좋아요 추가
+            if (!isReviewLiked(targetReview.getId(), requestUser.getId())) {
+                targetReview.incrementLikesCount(requestUser);
+                // 동시성 문제 해결을 위한 DB 반영 로직
+                reviewRepository.saveAndFlush(targetReview);
+                isLiked = true;
+            } else {
+                // 이미 사용자가 특정 리뷰에 좋아요를 남긴 경우, 좋아요 취소
+                targetReview.decrementLikesCount(requestUser);
+                reviewRepository.saveAndFlush(targetReview);
+                isLiked = false;
+            }
+        } catch (DataIntegrityViolationException e) {
+            if (!isDuplicateReviewLikeConstraintViolation(e)){
+                throw e;
+            }
+            throw new DuplicateReviewLikeRequestException(targetReview.getId(), requestUser.getId());
         }
 
-        // 4. 응답 DTO 생성 및 반환
+        // 5. 응답 DTO 생성 및 반환
         return ReviewLikeDto.builder()
                 .reviewId(targetReview.getId())
                 .userId(requestUser.getId())
@@ -232,4 +244,12 @@ public class ReviewServiceImplement implements ReviewService {
 
         return cause != null && cause.getMessage() != null && cause.getMessage().contains("uk_book_user");
     }
+
+    // 유니크 제약 조건 (uk_review_user_like) 위반 확인: 발생한 예외가 중복 리뷰 좋아요 요청 예외에 해당하는지 확인
+    private boolean isDuplicateReviewLikeConstraintViolation(DataIntegrityViolationException e) {
+        Throwable cause = e.getMostSpecificCause();
+
+        return cause != null && cause.getMessage() != null && cause.getMessage().contains("uk_review_user_like");
+    }
+
 }
