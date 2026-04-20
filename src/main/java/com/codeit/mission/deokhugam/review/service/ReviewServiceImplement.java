@@ -2,7 +2,6 @@ package com.codeit.mission.deokhugam.review.service;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
-import com.codeit.mission.deokhugam.error.ErrorCode;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
@@ -20,7 +19,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
 import java.util.UUID;
 
 /*
@@ -47,7 +45,7 @@ public class ReviewServiceImplement implements ReviewService {
         User requestUser = getUserEntityOrThrow(requestUserId);
 
         // 2. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
-        boolean isLiked = reviewRepository.existsByIdAndUserId(targetReview.getId(), requestUser.getId());
+        boolean isLiked = reviewRepository.existsLikedByIdAndUserId(targetReview.getId(), requestUser.getId());
 
         // 3. 응답 DTO 변환 및 반환
         return reviewMapper.toDto(targetReview, isLiked);
@@ -63,12 +61,12 @@ public class ReviewServiceImplement implements ReviewService {
         // 2. 같은 사용자로부터 두 번 이상 생성 요청이 들어온 경우, 동시성 문제 발생 가능
         try {
             // 3. Book / User 엔티티 조회
-            //Book book = getBookEntityOrThrow(reviewCreateRequest.bookId());
+            Book book = getBookEntityOrThrow(reviewCreateRequest.bookId());
             User user = getUserEntityOrThrow(reviewCreateRequest.userId());
 
             // 4. 리뷰 생성
             Review newReview = Review.builder()
-                    //.book(book)
+                    .book(book)
                     .user(user)
                     .content(reviewCreateRequest.content())
                     .rating(reviewCreateRequest.rating())
@@ -98,7 +96,7 @@ public class ReviewServiceImplement implements ReviewService {
         targetReview.updateContentAndRating(reviewUpdateRequest.content(), reviewUpdateRequest.rating());
 
         // 4. 특정 리뷰에 대한 작성자의 좋아요 여부 확인
-        boolean isLiked = reviewRepository.existsByIdAndUserId(targetReview.getId(), requestUser.getId());
+        boolean isLiked = reviewRepository.existsLikedByIdAndUserId(targetReview.getId(), requestUser.getId());
 
         // 5. 리뷰 응답 DTO 반환 및 변환
         return reviewMapper.toDto(targetReview, isLiked);
