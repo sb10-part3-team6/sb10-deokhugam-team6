@@ -23,15 +23,22 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
   // 좋아요 수 증가
   @Modifying
-  @Query("UPDATE Review review SET review.likeCount = review.likeCount + 1" +
+  @Query("UPDATE Review review SET review.likeCount = review.likeCount + 1 " +
           "WHERE review.id = :id")
   void incrementLikes(@Param("id") UUID id);
 
   // 좋아요 수 감소
   @Modifying
-  @Query("UPDATE Review review SET review.likeCount = review.likeCount - 1" +
+  @Query("UPDATE Review review SET review.likeCount = review.likeCount - 1 " +
           "WHERE review.id = :id")
   void decrementLikes(@Param("id") UUID id);
+
+  // 좋아요 삭제
+  @Modifying
+  @Query(value = "DELETE FROM review_likes " +
+                 "WHERE review_id = :reviewId AND user_id = :userId",
+          nativeQuery = true)
+  int deleteReviewLike(@Param("reviewId") UUID reviewId, @Param("userId") UUID userId);
 
   // 특정 리뷰에 대한 특정 유저의 좋아요 여부
   @Query("SELECT COUNT(review.id) > 0 " +                                         // 조건 만족 여부에 따라, true / false 반환
