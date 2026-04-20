@@ -94,7 +94,7 @@ public class ReviewServiceImplementTest {
         assertTrue(result.likedByMe());                                                 // 좋아요 여부 반영 확인
     }
 
-    // [실패]
+    // [실패] 특정 리뷰가 존재하지 않음
     @Test
     @DisplayName("리뷰 상세 조회 실패: 해당 리뷰가 존재하지 않을 경우, REVIEW_NOT_FOUND 예외 반환")
     void find_review_by_id_failure() {
@@ -167,7 +167,7 @@ public class ReviewServiceImplementTest {
         assertEquals(expectedDto.rating(), result.rating());
     }
 
-    // [실패]
+    // [실패] 특정 리뷰에 대한 사용자의 리뷰 중복 생성 요청
     @Test
     @DisplayName("리뷰 등록 실패: 특정 도서에 이미 사용자의 리뷰가 존재할 경우, DUPLICATE_REVIEW 에러 반환")
     void create_review_failure_duplicate_review() {
@@ -195,7 +195,7 @@ public class ReviewServiceImplementTest {
         verify(reviewRepository, never()).saveAndFlush(any());
     }
 
-    // [실패]
+    // [실패] 하나의 리뷰 생성이 완료되기 전, 동일한 사용자로부터 동일한 데이터의 리뷰 생성 요청으로 인한 동시성 문제 발생
     @Test
     @DisplayName("리뷰 등록 실패: 동일한 사용자로부터 똑같은 요청을 연속으로 받아 동시성 이슈가 발생한 경우, DUPLICATE_REVIEW 에러 반환")
     void crate_review_failure_concurrency() {
@@ -403,6 +403,40 @@ public class ReviewServiceImplementTest {
         reviewServiceImplement.hardDelete(reviewId, userId);
 
         // then
-        verify(reviewRepository, times(1)).delete(any(Review.class));                // Repository의 delete 함수 미호출 확인
+        verify(reviewRepository, times(1)).delete(any(Review.class));                // Repository의 delete 함수 호출 확인
+    }
+
+    // [실패] 특정 리뷰가 이미 논리적으로 삭제된 경우
+    @Test
+    @DisplayName("리뷰 논리 삭제 실패: 특정 리뷰가 이미 논리적으로 삭제된 경우, REVIEW_NOT_FOUND 예외 반환")
+    void delete_review_failure() {
+        // given
+        UUID reviewId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        // 가짜 객체 | 도서 및 사용자
+        Book mockBook = Book.builder().build();
+        User mockUser = User.builder().build();
+        ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
+
+        // 삭제할 리뷰 정보
+        Review savedReview = Review.builder()
+                .book(mockBook)
+                .user(mockUser)
+                .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
+                .rating(3)
+                .build();
+        ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
+        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.DELETED);                         // status 강제 주입
+
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                         // savedReview 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                                // mockUser 반환
+
+        // when & then
+        assertThrows(ReviewNotFoundException.class, () -> {
+            // validateReviewActive 예외 반환 확인
+            reviewServiceImplement.delete(reviewId, userId);
+        });
+        verify(reviewRepository, never()).delete(any());                // Repository 내 delete 미호출 확인
     }
 }
