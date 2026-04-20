@@ -35,13 +35,13 @@ public class BookService {
     private static final String NAVER_BOOK_API_URL = "https://openapi.naver.com/v1/search/book_adv";
 
     @Value("${naverapi.client-id}")
-    private String NAVER_CLIENT_ID;
+    private String naverClientId;
     @Value("${naverapi.client-secret}")
-    private String NAVER_CLIENT_SECRET;
+    private String naverClientSecret;
     @Value("${ocr.url}")
-    private String OCR_URL;
+    private String ocrUrl;
     @Value("${ocr.apikey}")
-    private String OCR_API_KEY;
+    private String ocrApiKey;
 
     //도서 생성 메서드
     @Transactional
@@ -91,8 +91,8 @@ public class BookService {
 
         NaverResponseDto response = webClient.get()
                 .uri(NAVER_BOOK_API_URL + "?d_isbn=" + isbn)
-                .header("X-Naver-Client-Id", NAVER_CLIENT_ID)
-                .header("X-Naver-Client-Secret", NAVER_CLIENT_SECRET)
+                .header("X-Naver-Client-Id", naverClientId)
+                .header("X-Naver-Client-Secret", naverClientSecret)
                 .retrieve()
                 .onStatus(
                         status -> status.is4xxClientError(),
@@ -144,9 +144,9 @@ public class BookService {
     //이미지 기반 ISBN 인식 로직
     public String ocrIsbnDetect(MultipartFile image){
         OcrResponse response = webClient.post()
-                .uri(OCR_URL)
+                .uri(ocrUrl)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData("apikey", OCR_API_KEY)
+                .body(BodyInserters.fromMultipartData("apikey", ocrApiKey)
                         .with("language", "eng")
                         .with("file", image.getResource()))
                 .retrieve()
