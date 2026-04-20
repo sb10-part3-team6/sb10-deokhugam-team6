@@ -506,13 +506,6 @@ public class ReviewServiceImplementTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                                // mockUser 반환
         given(reviewRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(false);              // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
 
-        // 응답 DTO
-        ReviewLikeDto.builder()
-                .reviewId(savedReview.getId())
-                .userId(mockUser.getId())
-                .liked(true)
-                .build();
-
         // when
         ReviewLikeDto result = reviewServiceImplement.toggleLike(reviewId, userId);
 
@@ -553,13 +546,6 @@ public class ReviewServiceImplementTest {
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                         // savedReview 반환
         given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                                // mockUser 반환
         given(reviewRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(true);               // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
-
-        // 응답 DTO
-        ReviewLikeDto.builder()
-                .reviewId(savedReview.getId())
-                .userId(mockUser.getId())
-                .liked(true)
-                .build();
 
         // when
         ReviewLikeDto result = reviewServiceImplement.toggleLike(reviewId, userId);
