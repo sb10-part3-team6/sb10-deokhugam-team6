@@ -9,10 +9,7 @@ import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
-import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
-import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
-import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
-import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
+import com.codeit.mission.deokhugam.review.exception.*;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
@@ -226,14 +223,19 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 좋아요 수 감소
     private void processRemoveLike(Review review, User user) {
-        // 1. 여러 사용자의 요청을 동시에 처리하기 위해 데이터베이스 직접 수정 (likeCount -= 1)
-        reviewRepository.decrementLikes(review.getId());
+        // 1. 실제 삭제된 특정 리뷰에 대한 사용자의 좋아요 수 반환
+        int deletedCount = reviewRepository.deleteReviewLike(review.getId(), user.getId());
 
-        // 2. 특정 도서의 좋아요를 남긴 사용자 목록 업데이트 (제거)
-        review.decrementLikesCount(user);
-
-        // 3. 데이터베이스 즉시 반영
-        reviewRepository.saveAndFlush(review);
+        // 실제 삭제된 데이터가 있을 때만, likeCount 감소
+        if (deletedCount > 0) {
+            // 2. 여러 사용자의 요청을 동시에 처리하기 위해 데이터베이스 직접 수정 (likeCount -= 1)
+            reviewRepository.decrementLikes(review.getId());
+            // 3. 특정 도서의 좋아요를 남긴 사용자 목록 업데이트 (제거)
+            review.decrementLikesCount(user);
+        } else {
+            // 이미 다른 스레드가 삭제했다면 아무것도 하지 않거나 예외 처리
+            throw new ReviewLikeNotFoundException(review.getId(), user.getId());
+        }
     }
 
     // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
