@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.review.service;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
@@ -13,12 +14,11 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -30,9 +30,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
+@ExtendWith(SpringExtension.class)
 public class ReviewServiceImplementTest {
     @Mock
     private ReviewRepository reviewRepository;
@@ -40,8 +38,8 @@ public class ReviewServiceImplementTest {
     @Mock
     private UserRepository userRepository;
 
-//    @Mock
-//    private BookRepository bookRepository;
+    @Mock
+    private BookRepository bookRepository;
 
     @Mock
     private ReviewMapper reviewMapper;
@@ -75,7 +73,7 @@ public class ReviewServiceImplementTest {
         // 내부 로직 흐름 설정
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                    // savedReview 반환
         given(userRepository.findById(requestUserId)).willReturn(Optional.of(requestUser));                 // requestUser 반환
-        given(reviewRepository.existsByIdAndUserId(reviewId, requestUserId)).willReturn(true);        // 특정 리뷰에 대한 사용자의 좋아요 여부
+        given(reviewRepository.existsLikedByIdAndUserId(reviewId, requestUserId)).willReturn(true);        // 특정 리뷰에 대한 사용자의 좋아요 여부
 
         // 응답 DTO 객체
         ReviewDto expectedReviewDto = ReviewDto.builder()
@@ -110,7 +108,7 @@ public class ReviewServiceImplementTest {
                     // validateOwner 예외 반환 확인
                     reviewServiceImplement.findById(reviewId, requestUserId);
                 });
-        verify(reviewRepository, never()).existsByIdAndUserId(any(), any());        // Repository의 유효성 검증 (중복 검사) 미호출 확인
+        verify(reviewRepository, never()).existsLikedByIdAndUserId(any(), any());        // Repository의 유효성 검증 (중복 검사) 미호출 확인
         verify(reviewMapper, never()).toDto(any(), anyBoolean());                   // Mapper의 toDto 미호출 확인
     }
 
@@ -174,7 +172,7 @@ public class ReviewServiceImplementTest {
         // 내부 로직 흐름 설정
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));            // savedReview 반환
         given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                   // mockUser 반환
-        given(reviewRepository.existsByIdAndUserId(reviewId, userId)).willReturn(false);      // 특정 리뷰에 대한 사용자의 좋아요 여부
+        given(reviewRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(false);      // 특정 리뷰에 대한 사용자의 좋아요 여부
 
         // when
         reviewServiceImplement.update(reviewId, userId, updateRequest);
