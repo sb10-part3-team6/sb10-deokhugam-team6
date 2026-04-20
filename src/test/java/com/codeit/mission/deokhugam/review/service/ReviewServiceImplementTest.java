@@ -25,8 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -127,8 +126,8 @@ public class ReviewServiceImplementTest {
 
         // 생성할 리뷰 내용
         ReviewCreateRequest createRequest = new ReviewCreateRequest(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
+                bookId,
+                userId,
                 "고양이가 의젓하게 상점 운영도 하고 정말 귀엽네요",
                 4
         );
@@ -141,7 +140,7 @@ public class ReviewServiceImplementTest {
 
         given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(false);          // 중복체크 통과
         given(bookRepository.findById(bookId)).willReturn(Optional.of(mockBook));                         // mockBook 반환
-        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                         // mockUser 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                         // mockUser 반
 
         // 생성할 리뷰
         Review createdReview = Review.builder()
@@ -151,12 +150,20 @@ public class ReviewServiceImplementTest {
 
         // 응답 DTO
         ReviewDto expectedDto = ReviewDto.builder()
-                .content(request.content())
+                .content(createdReview.getContent())
+                .rating(createdReview.getRating())
                 .build();
 
+        given(reviewRepository.saveAndFlush(any(Review.class))).willReturn(createdReview);               // createdReview 반환
+        given(reviewMapper.toDto(any(Review.class), eq(false))).willReturn(expectedDto);           // exceptedDto 반환
+
         // when
+        ReviewDto result = reviewServiceImplement.create(createRequest);
 
         // then
+        assertNotNull(result);
+        assertEquals(expectedDto.content(), result.content());
+        assertEquals(expectedDto.rating(), result.rating());
     }
 
     /*
