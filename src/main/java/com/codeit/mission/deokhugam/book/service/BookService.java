@@ -7,7 +7,6 @@ import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -162,15 +161,15 @@ public class BookService {
                 .bodyToMono(OcrResponse.class)
                 .block();
 
-        if(response == null || response.ParsedResults() == null || response.ParsedResults().isEmpty()) {
+        if(response == null || response.parsedResults() == null || response.parsedResults().isEmpty()) {
             throw new ExternalApiErrorException();
         }
 
-        if(response.ParsedResults().get(0) == null) {
+        if(response.parsedResults().get(0) == null) {
             throw new OcrFailedException();
         }
 
-        String parsedText = response.ParsedResults().get(0).ParsedText();
+        String parsedText = response.parsedResults().get(0).parsedText();
 
         if(parsedText == null || parsedText.isBlank()) {
             throw new OcrFailedException();
