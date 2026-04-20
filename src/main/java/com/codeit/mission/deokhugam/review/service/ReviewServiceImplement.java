@@ -138,7 +138,15 @@ public class ReviewServiceImplement implements ReviewService {
     @Override
     @Transactional
     public void hardDelete(UUID id, UUID requestUserId) {
+        // 1. 삭제할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+        Review targetReview = getReviewEntityOrThrow(id);
+        User requestUser = getUserEntityOrThrow(requestUserId);
 
+        // 2. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
+        validateOwner(targetReview, requestUser);
+
+        // 3. 리뷰 논리 삭제
+        reviewRepository.delete(targetReview);
     }
 
     // 리뷰 좋아요 생성
