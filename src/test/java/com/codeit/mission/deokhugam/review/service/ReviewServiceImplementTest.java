@@ -348,13 +348,11 @@ public class ReviewServiceImplementTest {
         UUID userId = UUID.randomUUID();
 
         // 가짜 객체 | 도서 및 사용자
-        Book mockBook = Book.builder().build();
         User mockUser = User.builder().build();
         ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
 
         // 삭제할 리뷰 정보
         Review savedReview = Review.builder()
-                .book(mockBook)
                 .user(mockUser)
                 .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
                 .rating(3)
@@ -382,13 +380,11 @@ public class ReviewServiceImplementTest {
         UUID userId = UUID.randomUUID();
 
         // 가짜 객체 | 도서 및 사용자
-        Book mockBook = Book.builder().build();
         User mockUser = User.builder().build();
         ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
 
         // 삭제할 리뷰 정보
         Review savedReview = Review.builder()
-                .book(mockBook)
                 .user(mockUser)
                 .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
                 .rating(3)
@@ -415,13 +411,11 @@ public class ReviewServiceImplementTest {
         UUID userId = UUID.randomUUID();
 
         // 가짜 객체 | 도서 및 사용자
-        Book mockBook = Book.builder().build();
         User mockUser = User.builder().build();
         ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
 
         // 삭제할 리뷰 정보
         Review savedReview = Review.builder()
-                .book(mockBook)
                 .user(mockUser)
                 .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
                 .rating(3)
