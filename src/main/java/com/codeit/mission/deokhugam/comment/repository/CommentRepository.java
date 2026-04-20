@@ -11,12 +11,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CommentRepository extends JpaRepository<Comment, UUID> {
+public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentRepositoryCustom {
 
   // 파워 유저 집계할 때 기간 별 댓글 개수를 가져오는 레포지토리 메서드
   @Query(
-      """
-      select new com.codeit.mission.deokhugam.dashboard.users.dto.UserCommentCount(
+          """
+
+                  select new com.codeit.mission.deokhugam.dashboard.users.dto.UserCommentCount(
           c.userId,
           count(c.id)
       )
@@ -28,5 +29,4 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   List<UserCommentCount> findUserCommentCounts(
       @Param("periodStart") LocalDateTime periodStart,
       @Param("periodEnd") LocalDateTime periodEnd);
-public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentRepositoryCustom {
 }
