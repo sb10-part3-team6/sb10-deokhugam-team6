@@ -11,8 +11,10 @@ import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.notification.entity.Notification;
 import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
+import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.util.Optional;
 import java.util.UUID;
@@ -150,7 +152,7 @@ public class NotificationServiceTest {
         // when & then
         assertThatThrownBy(() ->
             notificationService.createByLike(actorId, receiverId, reviewId)
-        ).isInstanceOf(RuntimeException.class);
+        ).isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
@@ -169,7 +171,7 @@ public class NotificationServiceTest {
         // when & then
         assertThatThrownBy(() ->
             notificationService.createByLike(actorId, receiverId, reviewId)
-        ).isExactlyInstanceOf(RuntimeException.class);
+        ).isExactlyInstanceOf(UserNotFoundException.class);
     }
 
     @Test
@@ -191,7 +193,7 @@ public class NotificationServiceTest {
         // when & then
         assertThatThrownBy(() ->
             notificationService.createByLike(actorId, receiverId, reviewId)
-        ).isInstanceOf(RuntimeException.class);
+        ).isInstanceOf(ReviewNotFoundException.class);
     }
 
     private User createUser(String nickname) {
