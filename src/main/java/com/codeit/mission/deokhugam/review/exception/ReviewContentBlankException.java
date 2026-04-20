@@ -13,7 +13,7 @@ public class ReviewContentBlankException extends DeokhugamException {
     public ReviewContentBlankException(String content) {
         super(
                 ErrorCode.REVIEW_CONTENT_BLANK,
-                Map.of("content", content == null ? "null" : content)
+                Map.of("contentLength", content == null ? 0 : content.length())
         );
     }
 }
