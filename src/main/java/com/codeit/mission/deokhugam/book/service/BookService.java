@@ -149,7 +149,7 @@ public class BookService {
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData("apikey", OCR_API_KEY)
                         .with("language", "eng")
-                        .with("file", image))
+                        .with("file", image.getResource()))
                 .retrieve()
                 .onStatus(
                         HttpStatusCode::is4xxClientError,
