@@ -179,7 +179,7 @@ public class BookService {
         return extractIsbn(response.ParsedResults().get(0).ParsedText());
     }
 
-    public String extractIsbn(String text) {
+    private String extractIsbn(String text) {
         // 1. ISBN 포함 라인 우선 필터링
         List<String> candidateLines = Arrays.stream(text.split("\n"))
                 .filter(line -> line.toUpperCase().contains("ISBN"))
