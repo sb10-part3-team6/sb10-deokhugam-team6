@@ -6,6 +6,7 @@ import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
@@ -169,6 +170,26 @@ public class ReviewServiceImplementTest {
     @DisplayName("리뷰 등록 실패: 특정 도서에 이미 사용자의 리뷰가 존재할 경우, DUPLICATE_REVIEW 에러 반환")
     void create_review_failure() {
         // given
+        UUID bookId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        // 생성할 리뷰 내용
+        ReviewCreateRequest createRequest = new ReviewCreateRequest(
+                bookId,
+                userId,
+                "고양이가 의젓하게 상점 운영도 하고 정말 귀엽네요",
+                4
+        );
+
+        given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(true);       // 리뷰 중복
+
+        // when & then
+        assertThrows(DuplicateReviewException.class, () -> {
+            reviewServiceImplement.create(createRequest);
+        });
+        verify(bookRepository, never()).findById(any());
+        verify(userRepository, never()).findById(any());
+        verify(reviewRepository, never()).saveAndFlush(any());
 
     }
 
