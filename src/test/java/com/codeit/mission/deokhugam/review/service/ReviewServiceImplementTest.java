@@ -339,10 +339,10 @@ public class ReviewServiceImplementTest {
     }
 
     /*
-        리뷰 삭제
+        리뷰 논리 삭제
      */
 
-    // [논리 삭제 성공]
+    // [성공]
     @Test
     @DisplayName("리뷰 논리 삭제 성공")
     void delete_review_success() {
@@ -350,7 +350,7 @@ public class ReviewServiceImplementTest {
         UUID reviewId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        // 가짜 객체 | 도서 및 사용자
+        // 가짜 객체 | 논리 삭제 요청자
         User mockUser = User.builder().build();
         ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
 
@@ -374,6 +374,42 @@ public class ReviewServiceImplementTest {
         verify(reviewRepository, never()).delete(any(Review.class));                // Repository의 delete 함수 미호출 확인
     }
 
+    // [실패] 특정 리뷰가 이미 논리적으로 삭제된 경우
+    @Test
+    @DisplayName("리뷰 논리 삭제 실패: 특정 리뷰가 이미 논리적으로 삭제된 경우, REVIEW_NOT_FOUND 예외 반환")
+    void delete_review_failure() {
+        // given
+        UUID reviewId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        // 가짜 객체 | 논리 삭제 요청자
+        User mockUser = User.builder().build();
+        ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
+
+        // 삭제할 리뷰 정보
+        Review savedReview = Review.builder()
+                .user(mockUser)
+                .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
+                .rating(3)
+                .build();
+        ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
+        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.DELETED);                         // status 강제 주입
+
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                         // savedReview 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                                // mockUser 반환
+
+        // when & then
+        assertThrows(ReviewNotFoundException.class, () -> {
+            // validateReviewActive 예외 반환 확인
+            reviewServiceImplement.delete(reviewId, userId);
+        });
+        verify(reviewRepository, never()).delete(any());                // Repository 내 delete 미호출 확인
+    }
+
+    /*
+        리뷰 물리 삭제
+     */
+
     // [물리 삭제 성공]
     @Test
     @DisplayName("리뷰 물리 삭제 성공")
@@ -382,7 +418,7 @@ public class ReviewServiceImplementTest {
         UUID reviewId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        // 가짜 객체 | 도서 및 사용자
+        // 가짜 객체 | 물리 삭제 요청자
         User mockUser = User.builder().build();
         ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
 
@@ -405,36 +441,40 @@ public class ReviewServiceImplementTest {
         verify(reviewRepository, times(1)).delete(any(Review.class));                // Repository의 delete 함수 호출 확인
     }
 
-    // [실패] 특정 리뷰가 이미 논리적으로 삭제된 경우
+
+    // [실패] 작성자 요청자 불일치
     @Test
-    @DisplayName("리뷰 논리 삭제 실패: 특정 리뷰가 이미 논리적으로 삭제된 경우, REVIEW_NOT_FOUND 예외 반환")
-    void delete_review_failure() {
+    @DisplayName("리뷰 물리 삭제 실패: 요청자와 리뷰 작성자가 불일치 할 경우, REVIEW_AUTHOR_MISMATCH 에러 반환")
+    void hard_delete_review_failure() {
         // given
         UUID reviewId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        UUID authorId = UUID.randomUUID();
+        UUID requestUserId = UUID.randomUUID();
 
-        // 가짜 객체 | 도서 및 사용자
-        User mockUser = User.builder().build();
-        ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
+        // 가짜 객체 | 리뷰 작성자 및 논리 삭제 요청자
+        User author = User.builder().build();
+        ReflectionTestUtils.setField(author, "id", authorId);                                                 // NPE 방지를 위한 id 강제 삽입
+        User requestUser = User.builder().build();
+        ReflectionTestUtils.setField(requestUser, "id", requestUserId);
 
         // 삭제할 리뷰 정보
         Review savedReview = Review.builder()
-                .user(mockUser)
+                .user(author)
                 .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
                 .rating(3)
                 .build();
         ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
-        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.DELETED);                         // status 강제 주입
+        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.ACTIVE);                          // status 강제 주입
 
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                         // savedReview 반환
-        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                                // mockUser 반환
+        given(userRepository.findById(requestUserId)).willReturn(Optional.of(requestUser));                      // requestUser 반환
 
-        // when & then
-        assertThrows(ReviewNotFoundException.class, () -> {
-            // validateReviewActive 예외 반환 확인
-            reviewServiceImplement.delete(reviewId, userId);
+        // when
+        assertThrows(ReviewAuthorMismatchException.class, () -> {
+            // validateOwner 예외 반환 확인
+            reviewServiceImplement.delete(savedReview.getId(), requestUser.getId());
         });
-        verify(reviewRepository, never()).delete(any());                // Repository 내 delete 미호출 확인
+        verify(reviewRepository, never()).delete(any(Review.class));
     }
 
     /*
