@@ -7,6 +7,7 @@ import com.codeit.mission.deokhugam.comment.entity.Comment;
 import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -33,10 +34,8 @@ public class CommentServiceTest {
     @Mock
     private CommentRepository commentRepository;
 
-    /*
     @Mock
     private ReviewRepository reviewRepository;
-     */
 
     @Mock
     private UserRepository userRepository;
@@ -79,7 +78,7 @@ public class CommentServiceTest {
     void createCommentSuccess() {
         // given
         CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "test content");
-//        given(reviewRepository.existsById(eq(reviewId))).willReturn(true);
+        given(reviewRepository.existsById(eq(reviewId))).willReturn(true);
         given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
 
         Comment savedComment = Comment.builder()
@@ -104,7 +103,7 @@ public class CommentServiceTest {
         // given
         UUID wrongReviewId = UUID.randomUUID();
         CommentCreateRequest request = new CommentCreateRequest(wrongReviewId, userId, "test content");
-//        given(reviewRepository.existsById(eq(wrongReviewId))).willReturn(false);
+        given(reviewRepository.existsById(eq(wrongReviewId))).willReturn(false);
 
         // when
 

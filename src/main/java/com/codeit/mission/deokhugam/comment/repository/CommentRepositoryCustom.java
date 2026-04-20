@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface CommentRepositoryCustom {
     List<Comment> filter(CommentFindAllRequest request);
+    int count(CommentFindAllRequest request);
+    List<Comment> exports(CommentFindAllRequest request);
 }
