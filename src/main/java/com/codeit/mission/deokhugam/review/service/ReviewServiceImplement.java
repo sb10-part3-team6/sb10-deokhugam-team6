@@ -162,7 +162,7 @@ public class ReviewServiceImplement implements ReviewService {
 
         // 3. 좋아요 생성 및 취소
         boolean isLiked;
-        // 사용자가 특정 리뷰에 좋아요를 남기지 않은 경우, 좋아요 생서
+        // 사용자가 특정 리뷰에 좋아요를 남기지 않은 경우, 좋아요 추가
         if (!isReviewLiked(targetReview.getId(), requestUser.getId())) {
             targetReview.incrementLikesCount(requestUser);
             isLiked = true;
