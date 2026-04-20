@@ -65,7 +65,7 @@ public class NotificationService {
 
     public CursorPageResponseNotificationDto findByUserId(UUID userId,
         NotificationRequestQuery query) {
-        
+
         Slice<Notification> slice =
             notificationRepository.findByUserWithCursor(userId, query);
 
@@ -96,8 +96,6 @@ public class NotificationService {
             .totalElements(totalCount)
             .hasNext(slice.hasNext())
             .build();
-
-//        return List.of();
 
     }
 
