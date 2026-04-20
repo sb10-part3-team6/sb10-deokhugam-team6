@@ -162,7 +162,7 @@ public class BookService {
                 .bodyToMono(OcrResponse.class)
                 .block();
 
-        if(response == null || response.ParsedResults() == null) {
+        if(response == null || response.ParsedResults() == null || response.ParsedResults().isEmpty()) {
             throw new ExternalApiErrorException();
         }
 
