@@ -145,7 +145,7 @@ public class ReviewServiceImplement implements ReviewService {
         // 2. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
         validateOwner(targetReview, requestUser);
 
-        // 3. 리뷰 논리 삭제
+        // 3. 리뷰 물리 삭제
         reviewRepository.delete(targetReview);
     }
 
@@ -206,7 +206,7 @@ public class ReviewServiceImplement implements ReviewService {
     }
 
     // 유효성 검증 (권한 확인): 요청자와 리뷰 작성자가 다를 경우, 예외 발생
-    private void validateOwner (Review targetReview, User requestUser) {
+    private void validateOwner(Review targetReview, User requestUser) {
         boolean isOwner = targetReview.getUser().getId().equals(requestUser.getId());
 
         if (!isOwner) {
@@ -215,14 +215,14 @@ public class ReviewServiceImplement implements ReviewService {
     }
 
     // 유효성 검증 (논리 삭제 여부 확인): 이미 논리적으로 삭제된 리뷰일 경우, 예외 발생
-    private void validateReviewActive (Review targetReview) {
+    private void validateReviewActive(Review targetReview) {
          if (targetReview.getStatus() == ReviewStatus.DELETED) {
             throw  new ReviewNotFoundException(targetReview.getId());
         }
     }
 
     // 특정 사용자의 리뷰 좋아요 여부 확인
-    private boolean isReviewLiked (UUID reviewId, UUID userId) {
+    private boolean isReviewLiked(UUID reviewId, UUID userId) {
         return reviewRepository.existsLikedByIdAndUserId(reviewId, userId);
     }
 
