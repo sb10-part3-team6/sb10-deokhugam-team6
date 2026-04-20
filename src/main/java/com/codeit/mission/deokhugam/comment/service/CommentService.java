@@ -1,8 +1,10 @@
 package com.codeit.mission.deokhugam.comment.service;
 
 import com.codeit.mission.deokhugam.comment.dto.request.CommentCreateRequest;
+import com.codeit.mission.deokhugam.comment.dto.request.CommentFindAllRequest;
 import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
+import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
 import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
@@ -63,6 +65,13 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
         User user = userRepository.findById(comment.getUserId()).orElseThrow(EntityNotFoundException::new);
         return commentMapper.toDto(comment, user.getNickname());
+    }
+
+    // 댓글 목록 조회
+    public CursorPageResponseCommentDto findAllComments(CommentFindAllRequest request) {
+
+
+        return null;
     }
 
     // 리뷰가 존재하는지 검증

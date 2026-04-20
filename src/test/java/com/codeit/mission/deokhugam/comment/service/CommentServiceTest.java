@@ -33,7 +33,6 @@ public class CommentServiceTest {
     @Mock
     private CommentRepository commentRepository;
 
-    // 리뷰 구현되면 제거
 //    @Mock
 //    private ReviewRepository reviewRepository;
 
