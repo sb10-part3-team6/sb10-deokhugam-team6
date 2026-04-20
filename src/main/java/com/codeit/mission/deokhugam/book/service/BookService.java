@@ -170,7 +170,13 @@ public class BookService {
             throw new OcrFailedException();
         }
 
-        return extractIsbn(response.ParsedResults().get(0).ParsedText());
+        String parsedText = response.ParsedResults().get(0).ParsedText();
+
+        if(parsedText == null || parsedText.isBlank()) {
+            throw new OcrFailedException();
+        }
+
+        return extractIsbn(parsedText);
     }
 
     private String extractIsbn(String text) {
