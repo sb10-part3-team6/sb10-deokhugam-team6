@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.review.controller;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
+import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -68,5 +69,12 @@ public class ReviewController {
         return ResponseEntity.noContent().build();
     }
 
-    // 리뷰 좋아요
+    // 리뷰 좋아요 추가 및 취소
+    @PostMapping("/{reviewId}/like")
+    public ResponseEntity<ReviewLikeDto> toggleLike(@PathVariable UUID reviewId,
+                                                    @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+        ReviewLikeDto response = reviewService.toggleLike(reviewId, requestUserId);
+
+        return ResponseEntity.ok(response);
+    }
 }
