@@ -9,6 +9,7 @@ import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
+import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
@@ -555,5 +556,45 @@ public class ReviewServiceImplementTest {
         assertFalse(result.liked());                                         // 실행 결과 확인
         assertEquals(0, savedReview.getLikeCount());                // 특정 리뷰에 추가된 좋아요 개수 확인
         assertFalse(savedReview.getLikedUsers().contains(mockUser));         // 좋아요를 누른 사용자 리스트 내 좋아요 요청자 포함 여부
+    }
+
+    // [실패] 좋아요 추가 및 취소 로직이 완료되기 전 동일한 사용자로부터 같은 요청을 받은 경우, 동시성 문제 발생
+    @Test
+    @DisplayName("좋아요 추가 실패: 동일한 사용자로부터 똑같은 요청을 연속으로 받아 동시성 이슈가 발생한 경우, DUPLICATE_REVIEW_LIKE_REQUEST 에러 반환")
+    void add_review_like_failure() {
+        // given
+        UUID reviewId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        // 가짜 객체 | 도서 및 사용자
+        User mockUser = User.builder().build();
+        ReflectionTestUtils.setField(mockUser, "id", userId);                                              // NPE 방지를 위한 id 강제 삽입
+
+        // 좋아요를 추가할 리뷰 정보
+        Review savedReview = Review.builder()
+                .user(mockUser)
+                .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
+                .rating(3)
+                .build();
+        ReflectionTestUtils.setField(savedReview, "id", reviewId);                                         // NPE 방지를 위한 id 강제 주입
+        ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.ACTIVE);                          // status 강제 주입
+
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                         // savedReview 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                                // mockUser 반환
+        given(reviewRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(false);              // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
+
+        // saveAndFlush 시점에 데이터베이스 제약 위반 예외 발생
+        DataIntegrityViolationException exception = mock(DataIntegrityViolationException.class);
+        Throwable cause = mock(Throwable.class);
+
+        given(exception.getMostSpecificCause()).willReturn(cause);
+        given(cause.getMessage()).willReturn("Unique index or primary key violation: uk_review_user_like");        // 발생한 제약 위반 예외 = 중복 리뷰 예외
+        given(reviewRepository.saveAndFlush(any(Review.class))).willThrow(exception);                                    // exception 반환
+
+        // when & then
+        assertThrows(DuplicateReviewLikeRequestException.class, () -> {
+            // try-catch 구문 예외 반환 확인
+            reviewServiceImplement.toggleLike(savedReview.getId(), mockUser.getId());
+        });
     }
 }
