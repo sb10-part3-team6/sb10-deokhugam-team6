@@ -6,6 +6,7 @@ import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
+import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
@@ -106,6 +107,35 @@ public class ReviewServiceImplement implements ReviewService {
 
         // 5. 리뷰 응답 DTO 반환 및 변환
         return reviewMapper.toDto(targetReview, isLiked);
+    }
+
+    // 리뷰 논리 삭제
+    @Override
+    @Transactional
+    public void delete(UUID id, UUID requestUserId) {
+        // 1. 삭제할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+        Review targetReview = getReviewEntityOrThrow(id);
+        User requestUser = getUserEntityOrThrow(requestUserId);
+
+        // 2. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
+        validateOwner(targetReview, requestUser);
+
+        // 3. 리뷰 논리 삭제
+        targetReview.delete();
+    }
+
+    // 리뷰 물리 삭제
+    @Override
+    @Transactional
+    public void hardDelete(UUID id, UUID requestUserId) {
+
+    }
+
+    // 리뷰 좋아요 생성
+    @Override
+    @Transactional
+    public ReviewLikeDto createReviewLike(UUID id, UUID requestUserId) {
+        return null;
     }
 
     // Review 엔티티 반환
