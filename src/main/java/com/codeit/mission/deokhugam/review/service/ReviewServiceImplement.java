@@ -16,6 +16,7 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,21 +60,27 @@ public class ReviewServiceImplement implements ReviewService {
         // 1. 중복 검사
         validateDuplicateReview(reviewCreateRequest.bookId(), reviewCreateRequest.userId());
 
-        // 2. Book / User 엔티티 조회
-        //Book book = getBookEntityOrThrow(reviewCreateRequest.bookId());
-        User user = getUserEntityOrThrow(reviewCreateRequest.userId());
+        // 2. 같은 사용자로부터 두 번 이상 생성 요청이 들어온 경우, 동시성 문제 발생 가능
+        try {
+            // 3. Book / User 엔티티 조회
+            //Book book = getBookEntityOrThrow(reviewCreateRequest.bookId());
+            User user = getUserEntityOrThrow(reviewCreateRequest.userId());
 
-        // 3. 리뷰 생성
-        Review newReview = Review.builder()
-                //.book(book)
-                .user(user)
-                .content(reviewCreateRequest.content())
-                .rating(reviewCreateRequest.rating())
-                .build();
-        reviewRepository.save(newReview);
+            // 4. 리뷰 생성
+            Review newReview = Review.builder()
+                    //.book(book)
+                    .user(user)
+                    .content(reviewCreateRequest.content())
+                    .rating(reviewCreateRequest.rating())
+                    .build();
+            reviewRepository.save(newReview);
 
-        // 4. 리뷰 응답 DTO 변환 및 반환
-        return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0
+            // 5. 리뷰 응답 DTO 변환 및 반환
+            return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0
+          // 만약 동시에 똑같은 요청이 들어와서, DB 유니크 제약 (uk_book_user)가 발생한다면 커스텀 중복 예외 발생
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateReviewException(reviewCreateRequest.bookId(), reviewCreateRequest.userId());
+        }
     }
 
     // 리뷰 수정
