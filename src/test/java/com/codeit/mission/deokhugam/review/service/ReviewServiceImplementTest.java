@@ -138,7 +138,7 @@ public class ReviewServiceImplementTest {
 
         // 가짜 객체 | 도서 및 사용자
         Book mockBook = Book.builder().build();
-        ReflectionTestUtils.setField(mockBook, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+        ReflectionTestUtils.setField(mockBook, "id", bookId);               // NPE 방지를 위한 id 강제 삽입
         User mockUser = User.builder().build();
         ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
 
@@ -216,7 +216,7 @@ public class ReviewServiceImplementTest {
 
         // 가짜 객체 | 도서 및 사용자
         Book mockBook = Book.builder().build();
-        ReflectionTestUtils.setField(mockBook, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+        ReflectionTestUtils.setField(mockBook, "id", bookId);               // NPE 방지를 위한 id 강제 삽입
         User mockUser = User.builder().build();
         ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
 
