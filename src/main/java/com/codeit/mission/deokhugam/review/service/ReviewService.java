@@ -18,13 +18,4 @@ public interface ReviewService {
 
     // 리뷰 수정
     ReviewDto update(UUID id, UUID requestUserId, ReviewUpdateRequest reviewUpdateRequest);
-
-    // 리뷰 논리 삭제
-    void logicalDelete(UUID id, UUID requestUserId);
-
-    // 리뷰 물리 삭제
-    void physicalDelete(UUID id, UUID requestUserId);
-
-    // 리뷰 좋아요
-    ReviewLikeDto createLike(UUID id, UUID requestUserId);
 }
