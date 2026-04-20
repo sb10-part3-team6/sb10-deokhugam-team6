@@ -16,6 +16,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -103,7 +104,7 @@ public class BookService {
                         res -> Mono.error(new ExternalApiErrorException())
                 )
                 .bodyToMono(NaverResponseDto.class)
-                .block();
+                .block(Duration.ofSeconds(5));
 
         //응답값이 없으면 예외 처리
         if(response == null ||  response.items() == null || response.items().isEmpty()) {
@@ -134,7 +135,7 @@ public class BookService {
                     .uri(imageUrl)
                     .retrieve()
                     .bodyToMono(byte[].class)
-                    .block();
+                    .block(Duration.ofSeconds(5));
         }catch (Exception e){
             //이미지 로딩 실패시 null
             return null;
@@ -159,7 +160,7 @@ public class BookService {
                         res -> Mono.error(new ExternalApiErrorException())
                 )
                 .bodyToMono(OcrResponse.class)
-                .block();
+                .block(Duration.ofSeconds(5));
 
         if(response == null || response.parsedResults() == null || response.parsedResults().isEmpty()) {
             throw new ExternalApiErrorException();
