@@ -151,7 +151,7 @@ public class ReviewServiceImplementTest {
 
         // 응답 DTO
         ReviewDto expectedDto = ReviewDto.builder()
-                .content(request.content())
+                .content(createRequest.content())
                 .build();
 
         // when
