@@ -72,12 +72,20 @@ public class ReviewServiceImplement implements ReviewService {
                     .content(reviewCreateRequest.content())
                     .rating(reviewCreateRequest.rating())
                     .build();
-            reviewRepository.save(newReview);
 
-            // 5. 리뷰 응답 DTO 변환 및 반환
+            // 5. 리뷰 저장 및 즉시 반영하여, try-catch 블록 내에서 제약 조건 위반 예외 포착
+            reviewRepository.saveAndFlush(newReview);
+
+            // 6. 리뷰 응답 DTO 변환 및 반환
             return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0
+
           // 만약 동시에 똑같은 요청이 들어와서, DB 유니크 제약 (uk_book_user)가 발생한다면 커스텀 중복 예외 발생
         } catch (DataIntegrityViolationException e) {
+            // 동시 요청으로 인한 중복 데이터 삽입 시 발생하는 특정 제약 조건 위반인지 확인
+            if (!isDuplicateReviewConstraintViolation(e)){
+                // 중복 리뷰가 아닌 다른 무결성 제약 위반 에러
+                throw e;
+            }
             throw new DuplicateReviewException(reviewCreateRequest.bookId(), reviewCreateRequest.userId());
         }
     }
@@ -135,5 +143,12 @@ public class ReviewServiceImplement implements ReviewService {
         if (!isOwner) {
             throw  new ReviewAuthorMismatchException(targetReview.getUser().getId(), requestUser.getId());
         }
+    }
+
+    // 유니크 제약 조건 (uk_book_user) 위반 확인: 발생한 예외가 중복 리뷰 예외에 해당하는지 확인
+    private boolean isDuplicateReviewConstraintViolation(DataIntegrityViolationException e) {
+        Throwable cause = e.getMostSpecificCause();
+
+        return cause != null && cause.getMessage() != null && cause.getMessage().contains("uk_book_user");
     }
 }
