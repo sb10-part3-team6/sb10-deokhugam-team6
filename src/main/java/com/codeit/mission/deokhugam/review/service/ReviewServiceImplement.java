@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.review.service;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
@@ -111,8 +112,7 @@ public class ReviewServiceImplement implements ReviewService {
     // Book 엔티티 반환
     private Book getBookEntityOrThrow(UUID bookId) {
         return bookRepository.findById(bookId)
-                // 헤딩 커스텀 예외 클래스 구현 시, 적용 예정
-                .orElseThrow();
+                .orElseThrow(BookNotFoundException::new);
     }
 
     // User 엔티티 반환
