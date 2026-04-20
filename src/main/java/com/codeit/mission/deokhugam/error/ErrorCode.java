@@ -38,6 +38,9 @@ public enum ErrorCode {
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "Book not found"),
     EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 API 요청 오류");
 
+    // 댓글
+    FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "댓글 수정 권한이 없습니다.");
+
     private final HttpStatus httpStatus;
     private final String message;
 }
