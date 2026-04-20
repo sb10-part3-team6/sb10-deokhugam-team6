@@ -32,7 +32,10 @@ public enum ErrorCode {
 
     //도서
     WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),
-    S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed");
+    S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed"),
+
+    // 댓글
+    FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "댓글 수정 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
