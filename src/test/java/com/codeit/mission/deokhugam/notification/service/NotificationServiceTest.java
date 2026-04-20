@@ -161,12 +161,15 @@ public class NotificationServiceTest {
         UUID receiverId = UUID.randomUUID();
         UUID reviewId = UUID.randomUUID();
 
+        User actor = createUser("actor");
+
+        given(userRepository.findById(actorId)).willReturn(Optional.of(actor));
         given(userRepository.findById(receiverId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() ->
             notificationService.createByLike(actorId, receiverId, reviewId)
-        ).isInstanceOf(RuntimeException.class);
+        ).isExactlyInstanceOf(RuntimeException.class);
     }
 
     @Test
