@@ -2,6 +2,7 @@ package com.codeit.mission.deokhugam.dashboard.users.service;
 
 import static java.lang.Double.NaN;
 
+import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.users.dto.UserStat;
 import com.codeit.mission.deokhugam.dashboard.users.entity.PowerUser;
@@ -24,7 +25,7 @@ public class PowerUserAggregateService {
   private static final double COMMENT_COUNT_WEIGHT = 0.3d;
 
   // private final ReviewRepository reviewRepository; <- 추후 구현 시 주석 제거
-  // private final CommentRepository commentRepository;
+  private final CommentRepository commentRepository;
   // private final LikeRepository likeRepository <- 좋아요도 레포가 존재한다는 가정 하에 설계함
   private final PowerUserRepository powerUserRepository;
 
@@ -35,7 +36,7 @@ public class PowerUserAggregateService {
     LocalDateTime periodEnd = periodType.calculateEnd(aggregatedAt);
 
     // 집계 날짜 범위 안에 작성한 댓글의 개수를 가져온다.
-    long commentCount = commentRepository.countByUserIdAndPeriod(userId, periodStart, periodEnd);
+    long commentCount = commentRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId,periodStart);
 
     // 집계 날짜 범위 안에 작성한 리뷰들을 추출하고, 점수를 sum up.
     double reviewScoreSum = reviewRepository.sumRatingByUserIdAndPeriod(userId, periodStart, periodEnd);
