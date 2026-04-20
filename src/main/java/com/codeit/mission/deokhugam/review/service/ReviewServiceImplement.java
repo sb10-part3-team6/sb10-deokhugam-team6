@@ -24,9 +24,6 @@ import java.util.UUID;
 
 /*
     리뷰 서비스
-    ----------
-    도서 (Book)과 관련된 코드 주석 처리
-    관련 내용 병합 이후, 제거 및 테스트 예정
  */
 @Service
 @RequiredArgsConstructor

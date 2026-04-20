@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.review.service;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
+import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 
 import java.util.UUID;
 
@@ -19,6 +20,11 @@ public interface ReviewService {
     ReviewDto update(UUID id, UUID requestUserId, ReviewUpdateRequest reviewUpdateRequest);
 
     // 리뷰 논리 삭제
+    void logicalDelete(UUID id, UUID requestUserId);
+
     // 리뷰 물리 삭제
+    void physicalDelete(UUID id, UUID requestUserId);
+
     // 리뷰 좋아요
+    ReviewLikeDto createLike(UUID id, UUID requestUserId);
 }
