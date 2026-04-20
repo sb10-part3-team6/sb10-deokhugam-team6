@@ -62,4 +62,12 @@ public class UserService {
     user.updateNickname(request.nickname());
     return userMapper.toDto(user);
   }
+
+  @Transactional
+  public void deleteUser(UUID id) {
+    User user = userRepository.findById(id)
+        .orElseThrow(() -> new UserNotFoundException(id));
+
+    userRepository.delete(user);
+  }
 }

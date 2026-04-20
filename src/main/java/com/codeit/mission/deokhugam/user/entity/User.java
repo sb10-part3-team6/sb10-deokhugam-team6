@@ -11,10 +11,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "users")
+@SQLDelete(sql = "UPDATE users SET status = 'DELETED' WHERE id = ?")
+@SQLRestriction("status != 'DELETED'")
 public class User extends BaseEntity {
 
   @Column(nullable = false, unique = true)
@@ -41,5 +46,9 @@ public class User extends BaseEntity {
 
   public void updateNickname(String nickname) {
     this.nickname = nickname;
+  }
+
+  public void delete() {
+    this.status = UserStatus.DELETED;
   }
 }
