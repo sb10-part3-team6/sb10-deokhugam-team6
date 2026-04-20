@@ -23,12 +23,12 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
 
     // 리뷰
-    INVALID_REVIEW_RATING_RANGE(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5"),                      // 평점 범위(1~5) 이탈
-    REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank"),                             // 평점 내용 공백
-    DUPLICATE_REVIEWS(HttpStatus.CONFLICT, "Review with BookId and UserId already exists"),                     // 사용의 특정 도서 리뷰 중복
-    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "Review with Id not found"),                                         // 특정 리뷰 조회 실패
-    REVIEW_AUTHOR_MISMATCH(HttpStatus.FORBIDDEN, "Review author mismatch with requestUserId"),                  // 요청자와 리뷰 작성자 불일치
-    DUPLICATE_REVIEW_LIKE_REQUEST(HttpStatus.INTERNAL_SERVER_ERROR, "Review like request already exists"),      // 특정 도서에 대한 좋아요 추가 생성 요청 존재
+    INVALID_REVIEW_RATING_RANGE(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5"),          // 평점 범위(1~5) 이탈
+    REVIEW_CONTENT_BLANK(HttpStatus.BAD_REQUEST, "Review content cannot be blank"),                 // 평점 내용 공백
+    DUPLICATE_REVIEWS(HttpStatus.CONFLICT, "Review with BookId and UserId already exists"),         // 사용의 특정 도서 리뷰 중복
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "Review with Id not found"),                             // 특정 리뷰 조회 실패
+    REVIEW_AUTHOR_MISMATCH(HttpStatus.FORBIDDEN, "Review author mismatch with requestUserId"),      // 요청자와 리뷰 작성자 불일치
+    DUPLICATE_REVIEW_LIKE_REQUEST(HttpStatus.CONFLICT, "Review like request already exists"),       // 특정 도서에 대한 좋아요 추가 생성 요청 존재
 
     // 파워 유저 집계 및 조회
     CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
