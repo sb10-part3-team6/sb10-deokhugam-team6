@@ -33,6 +33,10 @@ public enum ErrorCode {
     //도서
     WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),
     S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed"),
+    INVALID_ISBN(HttpStatus.BAD_REQUEST, "Invalid ISBN"),
+    DUPLICATE_ISBN(HttpStatus.CONFLICT, "Duplicate ISBN"),
+    BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "Book not found"),
+    EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 API 요청 오류");
 
     // 댓글
     FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "댓글 수정 권한이 없습니다.");
