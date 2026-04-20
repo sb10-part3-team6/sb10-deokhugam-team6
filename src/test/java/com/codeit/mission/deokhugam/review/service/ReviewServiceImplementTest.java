@@ -18,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -103,11 +102,10 @@ public class ReviewServiceImplementTest {
         given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
 
         // when & then
-        ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class,
-                () -> {
+        assertThrows(ReviewNotFoundException.class, () -> {
                     // validateOwner 예외 반환 확인
                     reviewServiceImplement.findById(reviewId, requestUserId);
-                });
+        });
         verify(reviewRepository, never()).existsLikedByIdAndUserId(any(), any());        // Repository의 유효성 검증 (중복 검사) 미호출 확인
         verify(reviewMapper, never()).toDto(any(), anyBoolean());                        // Mapper의 toDto 미호출 확인
     }
@@ -119,7 +117,7 @@ public class ReviewServiceImplementTest {
     // [성공]
     @Test
     @DisplayName("리뷰 생성 완료")
-    void create_review_success() throws Exception {
+    void create_review_success() {
         // given
         UUID bookId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -166,6 +164,14 @@ public class ReviewServiceImplementTest {
         assertEquals(expectedDto.rating(), result.rating());
     }
 
+    // [실패]
+    @Test
+    @DisplayName("리뷰 등록 실패: 특정 도서에 이미 사용자의 리뷰가 존재할 경우, DUPLICATE_REVIEW 에러 반환")
+    void create_review_failure() {
+        // given
+
+    }
+
     /*
         리뷰 수정
      */
@@ -173,7 +179,7 @@ public class ReviewServiceImplementTest {
     // [성공]
     @Test
     @DisplayName("리뷰 수정 완료")
-    void update_review_success() throws Exception {
+    void update_review_success() {
         // given
         UUID reviewId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -224,7 +230,7 @@ public class ReviewServiceImplementTest {
     // [실패] 요청자와 리뷰 작성자 불일치
     @Test
     @DisplayName("리뷰 수정 실패: 요청자와 리뷰 작성자가 불일치 할 경우, REVIEW_AUTHOR_MISMACHT 에러 반환")
-    void update_review_failure() throws Exception {
+    void update_review_failure() {
         // given
         UUID reviewId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
