@@ -41,7 +41,7 @@ public class BookService {
     private String NAVER_CLIENT_SECRET;
     @Value("${ocr.url}")
     private String OCR_URL;
-    @Value("${ocr.api-key}")
+    @Value("${ocr.apikey}")
     private String OCR_API_KEY;
 
     //도서 생성 메서드
