@@ -512,9 +512,11 @@ public class ReviewServiceImplementTest {
 
         // then
         assertNotNull(result);
-        assertTrue(result.liked());                                          // 실행 결과 확인
-        assertEquals(1, savedReview.getLikeCount());                // 특정 리뷰에 추가된 좋아요 개수 확인
-        assertTrue(savedReview.getLikedUsers().contains(mockUser));          // 좋아요를 누른 사용자 리스트 내 좋아요 요청자 포함 여부
+        assertTrue(result.liked());                                                                 // 실행 결과 확인
+        assertEquals(reviewId, result.reviewId());                                                  // 요청 DTO 검증
+        assertEquals(userId, result.userId());
+        assertTrue(savedReview.getLikedUsers().contains(mockUser));                                 // 좋아요를 누른 사용자 리스트 내 좋아요 요청자 포함 여부
+        verify(reviewRepository, times(1)).incrementLikes(reviewId);
     }
 
     // [성공]
@@ -553,9 +555,11 @@ public class ReviewServiceImplementTest {
 
         // then
         assertNotNull(result);
-        assertFalse(result.liked());                                         // 실행 결과 확인
-        assertEquals(0, savedReview.getLikeCount());                // 특정 리뷰에 추가된 좋아요 개수 확인
-        assertFalse(savedReview.getLikedUsers().contains(mockUser));         // 좋아요를 누른 사용자 리스트 내 좋아요 요청자 포함 여부
+        assertFalse(result.liked());                                                            // 실행 결과 확인
+        assertEquals(reviewId, result.reviewId());                                              // 요청 DTO 검증
+        assertEquals(userId, result.userId());
+        assertFalse(savedReview.getLikedUsers().contains(mockUser));                            // 좋아요를 누른 사용자 리스트 내 좋아요 요청자 포함 여부
+        verify(reviewRepository, times(1)).decrementLikes(reviewId);
     }
 
     // [실패] 좋아요 추가 및 취소 로직이 완료되기 전 동일한 사용자로부터 같은 요청을 받은 경우, 동시성 문제 발생
