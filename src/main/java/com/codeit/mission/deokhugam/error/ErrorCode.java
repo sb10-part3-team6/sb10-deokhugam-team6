@@ -29,9 +29,12 @@ public enum ErrorCode {
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "Review with Id not found"),                             // 특정 리뷰 조회 실패
     REVIEW_AUTHOR_MISMATCH(HttpStatus.FORBIDDEN, "Review author mismatch with requestUserId"),      // 요청자와 리뷰 작성자 불일치
 
-    // 파워 유저 조회
+    // 파워 유저 집계 및 조회
     CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
     CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST,"Invalid cursor or after format"),
+    POWER_AGGREGATION_BATCH_JOB_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PowerUser Aggregation Batch job Failed"),
+    SNAPSHOT_NOT_FOUND(HttpStatus.NOT_FOUND, "Snapshot is not found"),
+    INVALID_JOB_PARAMETER(HttpStatus.BAD_REQUEST, "Batch Job Parameter is Invalid"),
 
     //도서
     WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),
@@ -39,7 +42,7 @@ public enum ErrorCode {
     INVALID_ISBN(HttpStatus.BAD_REQUEST, "Invalid ISBN"),
     DUPLICATE_ISBN(HttpStatus.CONFLICT, "Duplicate ISBN"),
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "Book not found"),
-    EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 API 요청 오류");
+    EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 API 요청 오류"),
 
     // 댓글
     FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "댓글 수정 권한이 없습니다.");

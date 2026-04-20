@@ -4,12 +4,8 @@ import com.codeit.mission.deokhugam.base.BaseEntity;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -19,8 +15,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Entity
@@ -29,7 +23,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     name = "power_users",
     // 정렬에 최적화된 인덱스 (기준 시간과 rank를 인덱스화)
     indexes = {
-        @Index(name = "idx_power_users_period_start_rank", columnList = "period_type, period_start, rank")
+        @Index(name = "idx_power_users_period_start_rank", columnList = "period_type, period_start, rank"),
+        @Index(name = "idx_power_users_snapshot_rank", columnList = "snapshot_id, rank")
     },
     uniqueConstraints = {
       @UniqueConstraint(
@@ -37,7 +32,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
           columnNames = {"user_id", "period_type", "period_start", "period_end"})
     })
 public class PowerUser extends BaseEntity {
-
+  // PowerUser는 배치성 집계 데이터라 연관관계 매핑을 하면 더 복잡해지기만 한다고 하네요
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
@@ -69,6 +64,9 @@ public class PowerUser extends BaseEntity {
   @Column(name = "aggregated_at", nullable = false)
   private LocalDateTime aggregatedAt;
 
+  @Column(name = "snapshot_id", nullable = false)
+  private UUID snapshotId;
+
   @Builder
   public PowerUser(
       UUID userId,
@@ -80,7 +78,8 @@ public class PowerUser extends BaseEntity {
       double reviewScoreSum,
       long likeCount,
       long commentCount,
-      LocalDateTime aggregatedAt) {
+      LocalDateTime aggregatedAt,
+      UUID snapshotId) {
     this.userId = userId;
     this.periodType = periodType;
     this.periodStart = periodStart;
@@ -91,5 +90,10 @@ public class PowerUser extends BaseEntity {
     this.likeCount = likeCount;
     this.commentCount = commentCount;
     this.aggregatedAt = aggregatedAt;
+    this.snapshotId = snapshotId;
+  }
+
+  public void updateRank(long rank){
+    this.rank = rank;
   }
 }
