@@ -127,7 +127,6 @@ public class Review extends BaseEntity {
         // 특정 리뷰에 대한 사용자의 좋아요 중복 방지
         if (!this.likedUsers.contains(user)) {
             this.likedUsers.add(user);
-            this.likeCount += 1;
         }
     }
 
@@ -135,7 +134,6 @@ public class Review extends BaseEntity {
     public void decrementLikesCount(User user) {
         if (this.likeCount > 0 && this.likedUsers.contains(user)) {
             this.likedUsers.remove(user);
-            this.likeCount -= 1;
         }
     }
 

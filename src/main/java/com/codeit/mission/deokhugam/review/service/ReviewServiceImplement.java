@@ -167,12 +167,13 @@ public class ReviewServiceImplement implements ReviewService {
         try {
             // 사용자가 특정 리뷰에 좋아요를 남기지 않은 경우, 좋아요 추가
             if (!isReviewLiked(targetReview.getId(), requestUser.getId())) {
+                reviewRepository.incrementLikes(targetReview.getId());
                 targetReview.incrementLikesCount(requestUser);
-                // 동시성 문제 해결을 위한 DB 반영 로직
                 reviewRepository.saveAndFlush(targetReview);
                 isLiked = true;
             } else {
                 // 이미 사용자가 특정 리뷰에 좋아요를 남긴 경우, 좋아요 취소
+                reviewRepository.decrementLikes(targetReview.getId());
                 targetReview.decrementLikesCount(requestUser);
                 reviewRepository.saveAndFlush(targetReview);
                 isLiked = false;
