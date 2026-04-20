@@ -10,7 +10,10 @@ public class InvalidReviewRatingRangeException extends DeokhugamException {
         super(errorCode);
     }
 
-    public InvalidReviewRatingRangeException(ErrorCode errorCode, Map<String, Object> details){
-        super(errorCode, details);
+    public InvalidReviewRatingRangeException(int rating){
+        super(
+                ErrorCode.INVALID_REVIEW_RATING_RANGE,
+                Map.of("rating", rating)
+        );
     }
 }
