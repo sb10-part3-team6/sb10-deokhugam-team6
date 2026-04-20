@@ -8,6 +8,7 @@ import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
@@ -43,10 +44,13 @@ public class ReviewServiceImplement implements ReviewService {
         Review targetReview = getReviewEntityOrThrow(id);
         User requestUser = getUserEntityOrThrow(requestUserId);
 
-        // 2. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
+        // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+        validateReviewActive(targetReview);
+
+        // 3. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
         boolean isLiked = reviewRepository.existsLikedByIdAndUserId(targetReview.getId(), requestUser.getId());
 
-        // 3. 응답 DTO 변환 및 반환
+        // 4. 응답 DTO 변환 및 반환
         return reviewMapper.toDto(targetReview, isLiked);
     }
 
@@ -96,16 +100,19 @@ public class ReviewServiceImplement implements ReviewService {
         Review targetReview = getReviewEntityOrThrow(id);
         User requestUser = getUserEntityOrThrow(requestUserId);
 
-        // 2. 권한 확인: 본인이 작성한 리뷰에 대해서만 수정 가능
+        // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+        validateReviewActive(targetReview);
+
+        // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 수정 가능
         validateOwner(targetReview, requestUser);
 
-        // 3. 리뷰 수정
+        // 4. 리뷰 수정
         targetReview.updateContentAndRating(reviewUpdateRequest.content(), reviewUpdateRequest.rating());
 
-        // 4. 특정 리뷰에 대한 작성자의 좋아요 여부 확인
+        // 5. 특정 리뷰에 대한 작성자의 좋아요 여부 확인
         boolean isLiked = reviewRepository.existsLikedByIdAndUserId(targetReview.getId(), requestUser.getId());
 
-        // 5. 리뷰 응답 DTO 반환 및 변환
+        // 6. 리뷰 응답 DTO 반환 및 변환
         return reviewMapper.toDto(targetReview, isLiked);
     }
 
@@ -117,10 +124,13 @@ public class ReviewServiceImplement implements ReviewService {
         Review targetReview = getReviewEntityOrThrow(id);
         User requestUser = getUserEntityOrThrow(requestUserId);
 
-        // 2. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
+        // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+        validateReviewActive(targetReview);
+
+        // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
         validateOwner(targetReview, requestUser);
 
-        // 3. 리뷰 논리 삭제
+        // 4. 리뷰 논리 삭제
         targetReview.delete();
     }
 
@@ -169,6 +179,13 @@ public class ReviewServiceImplement implements ReviewService {
 
         if (!isOwner) {
             throw  new ReviewAuthorMismatchException(targetReview.getUser().getId(), requestUser.getId());
+        }
+    }
+
+    // 유효성 검증 (논리 삭제 여부 확인): 이미 논리적으로 삭제된 리뷰일 경우, 예외 발생
+    private void validateReviewActive (Review targetReview) {
+         if (targetReview.getStatus() == ReviewStatus.DELETED) {
+            throw  new ReviewNotFoundException(targetReview.getId());
         }
     }
 
