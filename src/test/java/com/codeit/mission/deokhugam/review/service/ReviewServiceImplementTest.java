@@ -71,8 +71,8 @@ public class ReviewServiceImplementTest {
         ReflectionTestUtils.setField(savedReview, "id", reviewId);
 
         // 내부 로직 흐름 설정
-        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                    // savedReview 반환
-        given(userRepository.findById(requestUserId)).willReturn(Optional.of(requestUser));                 // requestUser 반환
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                         // savedReview 반환
+        given(userRepository.findById(requestUserId)).willReturn(Optional.of(requestUser));                      // requestUser 반환
         given(reviewRepository.existsLikedByIdAndUserId(reviewId, requestUserId)).willReturn(true);        // 특정 리뷰에 대한 사용자의 좋아요 여부
 
         // 응답 DTO 객체
@@ -109,7 +109,7 @@ public class ReviewServiceImplementTest {
                     reviewServiceImplement.findById(reviewId, requestUserId);
                 });
         verify(reviewRepository, never()).existsLikedByIdAndUserId(any(), any());        // Repository의 유효성 검증 (중복 검사) 미호출 확인
-        verify(reviewMapper, never()).toDto(any(), anyBoolean());                   // Mapper의 toDto 미호출 확인
+        verify(reviewMapper, never()).toDto(any(), anyBoolean());                        // Mapper의 toDto 미호출 확인
     }
 
     /*
@@ -170,16 +170,26 @@ public class ReviewServiceImplementTest {
         );
 
         // 내부 로직 흐름 설정
-        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));            // savedReview 반환
-        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                   // mockUser 반환
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));                 // savedReview 반환
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));                        // mockUser 반환
         given(reviewRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(false);      // 특정 리뷰에 대한 사용자의 좋아요 여부
 
+        // 응답 DTO 객체
+        ReviewDto expectedDto = ReviewDto.builder()
+                .content(updateRequest.content())
+                .rating(updateRequest.rating())
+                .likedByMe(false)
+                .build();
+        given(reviewMapper.toDto(any(Review.class), anyBoolean())).willReturn(expectedDto);             // expectedDto 반환
+
         // when
-        reviewServiceImplement.update(reviewId, userId, updateRequest);
+        ReviewDto result = reviewServiceImplement.update(reviewId, userId, updateRequest);
 
         // then
-        assertEquals(savedReview.getContent(), updateRequest.content());            // 리뷰 내용 변경 확인
-        assertEquals(savedReview.getRating(), updateRequest.rating());              // 평점 변경 확인
+        assertNotNull(result);
+        assertEquals(updateRequest.content(), result.content());                    // 리뷰 내용 변경 확인
+        assertEquals(updateRequest.rating(), result.rating());                      // 평점 변경 확인
+        verify((reviewMapper)).toDto(savedReview, false);
     }
 
     // [실패] 요청자와 리뷰 작성자 불일치
