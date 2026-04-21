@@ -7,10 +7,12 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.util.UUID;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
+@Getter
 @RequiredArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Table( // 추후 schema.sql을 통해 테이블을 인식할 수 있도록 해야 할듯 싶습니다.
