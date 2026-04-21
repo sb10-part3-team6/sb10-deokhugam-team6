@@ -8,14 +8,14 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /*
     Review
@@ -114,17 +114,19 @@ public class Review extends BaseEntity {
   }
 
   // 좋아요 수 증가
-  public void incrementLikesCount(User user) {
+  public void addReviewLike(ReviewLike reviewLike) {
     // 특정 리뷰에 대한 사용자의 좋아요 중복 방지
-    if (!this.likedUsers.contains(user)) {
-      this.likedUsers.add(user);
+    if (!this.likes.contains(reviewLike)) {
+      this.likes.add(reviewLike);
+      this.likeCount = this.likes.size();
     }
   }
 
   // 좋아요 수 감소
-  public void decrementLikesCount(User user) {
-    if (this.likeCount > 0 && this.likedUsers.contains(user)) {
-      this.likedUsers.remove(user);
+  public void removeReviewLike(ReviewLike reviewLike) {
+    // 특정 리뷰에 대한 사용자의 좋아요를 삭제한 경우에만 likeCount 감소
+    if (this.likes.remove(reviewLike)) {
+      this.likeCount = this.likes.size();
     }
   }
 
