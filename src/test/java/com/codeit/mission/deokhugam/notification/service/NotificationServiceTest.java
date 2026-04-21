@@ -30,11 +30,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -52,8 +50,8 @@ public class NotificationServiceTest {
     @Mock
     private ReviewRepository reviewRepository;
 
-    @Spy
-    private NotificationMapper notificationMapper = Mappers.getMapper(NotificationMapper.class);
+    @Mock
+    private NotificationMapper notificationMapper; // = Mappers.getMapper(NotificationMapper.class);
 
     @InjectMocks
     private NotificationService notificationService;
