@@ -18,7 +18,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "users")
-@SQLDelete(sql = "UPDATE users SET status = 'DELETED' WHERE id = ?")
+@SQLDelete(sql = "UPDATE users SET status = 'DELETED', updated_at = NOW() WHERE id = ?")
 @SQLRestriction("status != 'DELETED'")
 public class User extends BaseEntity {
 
@@ -46,9 +46,5 @@ public class User extends BaseEntity {
 
   public void updateNickname(String nickname) {
     this.nickname = nickname;
-  }
-
-  public void delete() {
-    this.status = UserStatus.DELETED;
   }
 }
