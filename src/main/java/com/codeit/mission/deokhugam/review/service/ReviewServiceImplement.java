@@ -15,6 +15,7 @@ import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
+import com.codeit.mission.deokhugam.review.exception.ReviewLikeNotFoundException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
@@ -320,7 +321,8 @@ public class ReviewServiceImplement implements ReviewService {
 
   // ReviewLike 엔티티 반환
   private ReviewLike getReviewLikeEntityOrThrow(UUID reviewId, UUID userId) {
-    return reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId);
+    return reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId)
+        .orElseThrow(() -> new ReviewLikeNotFoundException(reviewId, userId));
   }
 
   // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
