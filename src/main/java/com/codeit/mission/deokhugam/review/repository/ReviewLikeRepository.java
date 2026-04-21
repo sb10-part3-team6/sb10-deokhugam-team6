@@ -8,7 +8,9 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ReviewLikeRepository extends JpaRepository<ReviewLike, UUID> {
   @Query(
       """
@@ -19,7 +21,7 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, UUID> {
       from ReviewLike rl
       where rl.review.status = com.codeit.mission.deokhugam.review.entity.ReviewStatus.ACTIVE
             and rl.likedAt >= :periodStart
-                  and ReviewLike.likedAt < :periodEnd
+            and rl.likedAt < :periodEnd
       group by rl.user.id
       """
   )
