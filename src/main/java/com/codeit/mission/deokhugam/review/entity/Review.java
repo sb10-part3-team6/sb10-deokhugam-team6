@@ -35,117 +35,108 @@ import java.util.List;
     }
 )
 public class Review extends BaseEntity {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;                                          // 리뷰 대상 도서
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;                                          // 리뷰 작성자
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "book_id", nullable = false)
+  private Book book;                                          // 리뷰 대상 도서
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;                                     // 리뷰 내용
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;                                           // 리뷰 작성자
 
-    @Column(nullable = false)
-    @Min(1) @Max(5)
-    private int rating;                                         // 리뷰 평점
+  @Column(nullable = false, columnDefinition = "TEXT")
+  private String content;                                      // 리뷰 내용
 
-    @Column(nullable = false)
-    private int likeCount = 0;                                  // 리뷰의 좋아요 수 (기본값: 0)
+  @Column(nullable = false)
+  @Min(1)
+  @Max(5)
+  private int rating;                                          // 리뷰 평점
 
-    @ManyToMany
-    @JoinTable(
-        name = "review_likes",
-        joinColumns = @JoinColumn(name = "review_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id"),
-            uniqueConstraints = {
-                    @UniqueConstraint(
-                            name = "uk_review_user_like",
-                            columnNames = {"review_id", "user_id"}
-                    )
-            }
-    )
-    private List<User> likedUsers = new ArrayList<>();           // 특정 리뷰에 좋아요를 누른 사용자 목록
+  @Column(nullable = false)
+  private int likeCount = 0;                                   // 리뷰의 좋아요 수 (기본값: 0)
 
-    @Column(nullable = false)
-    private int commentCount = 0;                                // 리뷰의 댓글 수 (기본값: 0)
+  @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ReviewLike> likes = new ArrayList<>();          // 특정 리뷰에 좋아요 목록
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ReviewStatus status = ReviewStatus.ACTIVE;           // 리뷰 상태 (기본값: 활성)
+  @Column(nullable = false)
+  private int commentCount = 0;                                // 리뷰의 댓글 수 (기본값: 0)
 
-    private LocalDateTime deletedAt;                             // 리뷰 논리 삭제 시점
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private ReviewStatus status = ReviewStatus.ACTIVE;           // 리뷰 상태 (기본값: 활성)
 
-    // 생성자: 빌더 패턴을 통해 객체 생성 시, 유효성 검증 강제 수행
-    @Builder
-    public Review(Book book, User user, String content, int rating) {
-        validateContent(content);                           // 내용 검증
-        validateRating(rating);                             // 평점 검증
+  private LocalDateTime deletedAt;                             // 리뷰 논리 삭제 시점
 
-        this.book = book;
-        this.user = user;
-        this.content = content;
-        this.rating = rating;
+  // 생성자: 빌더 패턴을 통해 객체 생성 시, 유효성 검증 강제 수행
+  @Builder
+  public Review(Book book, User user, String content, int rating) {
+    validateContent(content);                           // 내용 검증
+    validateRating(rating);                             // 평점 검증
+
+    this.book = book;
+    this.user = user;
+    this.content = content;
+    this.rating = rating;
+  }
+
+  // 리뷰 수정
+  public void updateContentAndRating(String content, int rating) {
+    validateContent(content);
+    validateRating(rating);
+
+    this.content = content;
+    this.rating = rating;
+  }
+
+  // 유효성 검증 (평점): 평점 범위(0~5)를 벗어날 경우, 예외 발생
+  private void validateRating(int rating) {
+    if (rating < 1 || rating > 5) {
+      throw new InvalidReviewRatingRangeException(rating);
+    }
+  }
+
+  // 유효성 검증 (내용): 내용이 비어있을 경우 예외 발생
+  private void validateContent(String content) {
+    if (content == null || content.isBlank()) {
+      throw new ReviewContentBlankException(content);
+    }
+  }
+
+  // 리뷰 논리 삭제: 리뷰 상태 변경 및 삭제 시간 기록
+  public void delete() {
+    // 최초 삭제 시점 보존을 위한 중복 삭제 방지
+    if (this.status == ReviewStatus.DELETED) {
+      return;
     }
 
-    // 리뷰 수정
-    public void updateContentAndRating(String content, int rating) {
-        validateContent(content);
-        validateRating(rating);
+    this.status = ReviewStatus.DELETED;
+    this.deletedAt = LocalDateTime.now();
+  }
 
-        this.content = content;
-        this.rating = rating;
+  // 좋아요 수 증가
+  public void incrementLikesCount(User user) {
+    // 특정 리뷰에 대한 사용자의 좋아요 중복 방지
+    if (!this.likedUsers.contains(user)) {
+      this.likedUsers.add(user);
     }
+  }
 
-    // 유효성 검증 (평점): 평점 범위(0~5)를 벗어날 경우, 예외 발생
-    private void validateRating(int rating) {
-        if (rating < 1 || rating > 5) {
-            throw new InvalidReviewRatingRangeException(rating);
-        }
+  // 좋아요 수 감소
+  public void decrementLikesCount(User user) {
+    if (this.likeCount > 0 && this.likedUsers.contains(user)) {
+      this.likedUsers.remove(user);
     }
+  }
 
-    // 유효성 검증 (내용): 내용이 비어있을 경우 예외 발생
-    private void validateContent(String content) {
-        if (content == null || content.isBlank()) {
-            throw new ReviewContentBlankException(content);
-        }
+  // 댓글 수 증가
+  public void incrementCommentsCount() {
+    this.commentCount += 1;
+  }
+
+  // 댓글 수 감소
+  public void decrementCommentsCount() {
+    if (this.commentCount > 0) {
+      this.commentCount -= 1;
     }
-
-    // 리뷰 논리 삭제: 리뷰 상태 변경 및 삭제 시간 기록
-    public void delete() {
-        // 최초 삭제 시점 보존을 위한 중복 삭제 방지
-        if (this.status == ReviewStatus.DELETED) {
-            return;
-        }
-
-        this.status = ReviewStatus.DELETED;
-        this.deletedAt = LocalDateTime.now();
-    }
-
-    // 좋아요 수 증가
-    public void incrementLikesCount(User user) {
-        // 특정 리뷰에 대한 사용자의 좋아요 중복 방지
-        if (!this.likedUsers.contains(user)) {
-            this.likedUsers.add(user);
-        }
-    }
-
-    // 좋아요 수 감소
-    public void decrementLikesCount(User user) {
-        if (this.likeCount > 0 && this.likedUsers.contains(user)) {
-            this.likedUsers.remove(user);
-        }
-    }
-
-    // 댓글 수 증가
-    public void incrementCommentsCount() {
-        this.commentCount += 1;
-    }
-
-    // 댓글 수 감소
-    public void decrementCommentsCount() {
-        if (this.commentCount > 0) {
-            this.commentCount -= 1;
-        }
-    }
+  }
 }
