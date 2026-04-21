@@ -37,9 +37,9 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   @Query(value = "DELETE FROM comments WHERE user_id IN :userIds", nativeQuery = true)
   void deleteByUserIds(@Param("userIds") List<UUID> userIds);
 
-  // 삭제 대상 리뷰 ID들에 달린 모든 댓글 일괄 삭제
+  // 삭제 대상 유저들이 작성한 리뷰에 달린 모든 댓글 일괄 삭제 (서브쿼리 활용)
   @Modifying
   @Transactional
-  @Query(value = "DELETE FROM comments WHERE review_id IN :reviewIds", nativeQuery = true)
-  void deleteByReviewIds(@Param("reviewIds") List<UUID> reviewIds);
+  @Query(value = "DELETE FROM comments WHERE review_id IN (SELECT id FROM reviews WHERE user_id IN :userIds)", nativeQuery = true)
+  void deleteByReviewUserIds(@Param("userIds") List<UUID> userIds);
 }
