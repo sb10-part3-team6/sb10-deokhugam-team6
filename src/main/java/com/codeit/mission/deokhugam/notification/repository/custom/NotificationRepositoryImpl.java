@@ -67,7 +67,13 @@ public class NotificationRepositoryImpl implements NotificationRepositoryCustom 
 
     @Override
     public long countByUserId(UUID userId) {
-        return 0;
+        Long count = queryFactory
+            .select(notification.count())
+            .from(notification)
+            .where(notification.user.id.eq(userId))
+            .fetchOne();
+
+        return count == null ? 0L : count;
     }
 
     private boolean isDesc(NotificationRequestQuery query) {
