@@ -19,6 +19,7 @@ import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -41,161 +42,6 @@ public class NotificationServiceTest {
     @InjectMocks
     private NotificationService notificationService;
 
-
-    @Test
-    @DisplayName("좋아요에 의한 알림 생성 테스트")
-    void createNotificationByLike() {
-        // given
-        UUID actorId = UUID.randomUUID();
-        UUID receiverId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
-
-        User actor = createUser("좋아요 유저");
-        User receiver = createUser("작성자");
-        Review review = createReview(receiver);
-
-        given(userRepository.findById(actorId)).willReturn(Optional.of(actor));
-        given(userRepository.findById(receiverId)).willReturn(Optional.of(receiver));
-        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
-
-        // when
-        notificationService.createByLike(actorId, receiverId, reviewId);
-
-        // then
-        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-        verify(notificationRepository, times(1)).save(captor.capture());
-        verifyNoMoreInteractions(notificationRepository);
-
-        Notification saved = captor.getValue();
-
-        assertThat(saved.getUser()).isSameAs(receiver);   // 동일 객체인지
-        assertThat(saved.getReview()).isSameAs(review);
-        assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");
-        assertThat(saved.isConfirmed()).isFalse();
-        assertThat(saved.getMessage())
-            .isEqualTo("[" + actor.getNickname() + "]님이 나의 리뷰를 좋아합니다.");
-    }
-
-    @Test
-    @DisplayName("댓글에 의한 알림 생성 테스트")
-    void createNotificationByComment() {
-        // given
-        UUID actorId = UUID.randomUUID();
-        UUID receiverId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
-
-        User actor = createUser("댓글 유저");
-        User receiver = createUser("작성자");
-        Review review = createReview(receiver);
-
-        given(userRepository.findById(actorId)).willReturn(Optional.of(actor));
-        given(userRepository.findById(receiverId)).willReturn(Optional.of(receiver));
-        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
-
-        // when
-        notificationService.createByComment(actorId, receiverId, reviewId);
-
-        // then
-        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-        verify(notificationRepository).save(captor.capture());
-
-        Notification saved = captor.getValue();
-
-        assertThat(saved.getUser()).isSameAs(receiver);   // 동일 객체인지
-        assertThat(saved.getReview()).isSameAs(review);
-        assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");
-        assertThat(saved.isConfirmed()).isFalse();
-        assertThat(saved.getMessage())
-            .isEqualTo("[" + actor.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.");
-    }
-
-    @Test
-    @DisplayName("리뷰 랭킹 선정에 의한 알림 생성 테스트")
-    void createNotificationByReviewRanked() {
-        // given
-        UUID receiverId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
-
-        User receiver = createUser("작성자");
-        Review review = createReview(receiver);
-
-        given(userRepository.findById(receiverId)).willReturn(Optional.of(receiver));
-        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
-
-        // when
-        notificationService.createByReviewRanked(receiverId, reviewId);
-
-        // then
-        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-        verify(notificationRepository).save(captor.capture());
-
-        Notification saved = captor.getValue();
-
-        assertThat(saved.getUser()).isSameAs(receiver);   // 동일 객체인지
-        assertThat(saved.getReview()).isSameAs(review);
-        assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");
-        assertThat(saved.isConfirmed()).isFalse();
-        assertThat(saved.getMessage())
-            .isEqualTo("나의 리뷰가 인기 리뷰로 등록되었습니다.");
-    }
-
-    @Test
-    @DisplayName("actor 유저 정보 없음 실패")
-    void createNotificationActorUserNotFound() {
-        // given
-        UUID actorId = UUID.randomUUID();
-        UUID receiverId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
-
-        given(userRepository.findById(actorId)).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() ->
-            notificationService.createByLike(actorId, receiverId, reviewId)
-        ).isInstanceOf(UserNotFoundException.class);
-    }
-
-    @Test
-    @DisplayName("receiver 유저 정보 없음 실패")
-    void createNotificationReceiverUserNotFound() {
-        // given
-        UUID actorId = UUID.randomUUID();
-        UUID receiverId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
-
-        User actor = createUser("actor");
-
-        given(userRepository.findById(actorId)).willReturn(Optional.of(actor));
-        given(userRepository.findById(receiverId)).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() ->
-            notificationService.createByLike(actorId, receiverId, reviewId)
-        ).isExactlyInstanceOf(UserNotFoundException.class);
-    }
-
-    @Test
-    @DisplayName("리뷰 정보 없음 실패")
-    void createNotificationReviewNotFound() {
-        // given
-        UUID actorId = UUID.randomUUID();
-        UUID receiverId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
-
-        User actor = createUser("작성자");
-        User receiver = createUser("작성자");
-        Review review = createReview(receiver);
-
-        given(userRepository.findById(actorId)).willReturn(Optional.of(actor));
-        given(userRepository.findById(receiverId)).willReturn(Optional.of(receiver));
-        given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() ->
-            notificationService.createByLike(actorId, receiverId, reviewId)
-        ).isInstanceOf(ReviewNotFoundException.class);
-    }
-
     private User createUser(String nickname) {
         return User.builder()
             .nickname(nickname)
@@ -215,4 +61,164 @@ public class NotificationServiceTest {
             .rating(5)
             .build();
     }
+
+    @Nested
+    @DisplayName("알림 등록")
+    class RegistNotificationTest {
+
+        @Test
+        @DisplayName("좋아요에 의한 알림 생성 테스트")
+        void createNotificationByLike() {
+            // given
+            UUID actorId = UUID.randomUUID();
+            UUID receiverId = UUID.randomUUID();
+            UUID reviewId = UUID.randomUUID();
+
+            User actor = createUser("좋아요 유저");
+            User receiver = createUser("작성자");
+            Review review = createReview(receiver);
+
+            given(userRepository.findById(actorId)).willReturn(Optional.of(actor));
+            given(userRepository.findById(receiverId)).willReturn(Optional.of(receiver));
+            given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
+
+            // when
+            notificationService.createByLike(actorId, receiverId, reviewId);
+
+            // then
+            ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+            verify(notificationRepository, times(1)).save(captor.capture());
+            verifyNoMoreInteractions(notificationRepository);
+
+            Notification saved = captor.getValue();
+
+            assertThat(saved.getUser()).isSameAs(receiver);   // 동일 객체인지
+            assertThat(saved.getReview()).isSameAs(review);
+            assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");
+            assertThat(saved.isConfirmed()).isFalse();
+            assertThat(saved.getMessage())
+                .isEqualTo("[" + actor.getNickname() + "]님이 나의 리뷰를 좋아합니다.");
+        }
+
+        @Test
+        @DisplayName("댓글에 의한 알림 생성 테스트")
+        void createNotificationByComment() {
+            // given
+            UUID actorId = UUID.randomUUID();
+            UUID receiverId = UUID.randomUUID();
+            UUID reviewId = UUID.randomUUID();
+
+            User actor = createUser("댓글 유저");
+            User receiver = createUser("작성자");
+            Review review = createReview(receiver);
+
+            given(userRepository.findById(actorId)).willReturn(Optional.of(actor));
+            given(userRepository.findById(receiverId)).willReturn(Optional.of(receiver));
+            given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
+
+            // when
+            notificationService.createByComment(actorId, receiverId, reviewId);
+
+            // then
+            ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+            verify(notificationRepository).save(captor.capture());
+
+            Notification saved = captor.getValue();
+
+            assertThat(saved.getUser()).isSameAs(receiver);   // 동일 객체인지
+            assertThat(saved.getReview()).isSameAs(review);
+            assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");
+            assertThat(saved.isConfirmed()).isFalse();
+            assertThat(saved.getMessage())
+                .isEqualTo("[" + actor.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.");
+        }
+
+        @Test
+        @DisplayName("리뷰 랭킹 선정에 의한 알림 생성 테스트")
+        void createNotificationByReviewRanked() {
+            // given
+            UUID receiverId = UUID.randomUUID();
+            UUID reviewId = UUID.randomUUID();
+
+            User receiver = createUser("작성자");
+            Review review = createReview(receiver);
+
+            given(userRepository.findById(receiverId)).willReturn(Optional.of(receiver));
+            given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
+
+            // when
+            notificationService.createByReviewRanked(receiverId, reviewId);
+
+            // then
+            ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+            verify(notificationRepository).save(captor.capture());
+
+            Notification saved = captor.getValue();
+
+            assertThat(saved.getUser()).isSameAs(receiver);   // 동일 객체인지
+            assertThat(saved.getReview()).isSameAs(review);
+            assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");
+            assertThat(saved.isConfirmed()).isFalse();
+            assertThat(saved.getMessage())
+                .isEqualTo("나의 리뷰가 인기 리뷰로 등록되었습니다.");
+        }
+
+        @Test
+        @DisplayName("actor 유저 정보 없음 실패")
+        void createNotificationActorUserNotFound() {
+            // given
+            UUID actorId = UUID.randomUUID();
+            UUID receiverId = UUID.randomUUID();
+            UUID reviewId = UUID.randomUUID();
+
+            given(userRepository.findById(actorId)).willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() ->
+                notificationService.createByLike(actorId, receiverId, reviewId)
+            ).isInstanceOf(UserNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("receiver 유저 정보 없음 실패")
+        void createNotificationReceiverUserNotFound() {
+            // given
+            UUID actorId = UUID.randomUUID();
+            UUID receiverId = UUID.randomUUID();
+            UUID reviewId = UUID.randomUUID();
+
+            User actor = createUser("actor");
+
+            given(userRepository.findById(actorId)).willReturn(Optional.of(actor));
+            given(userRepository.findById(receiverId)).willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() ->
+                notificationService.createByLike(actorId, receiverId, reviewId)
+            ).isExactlyInstanceOf(UserNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("리뷰 정보 없음 실패")
+        void createNotificationReviewNotFound() {
+            // given
+            UUID actorId = UUID.randomUUID();
+            UUID receiverId = UUID.randomUUID();
+            UUID reviewId = UUID.randomUUID();
+
+            User actor = createUser("작성자");
+            User receiver = createUser("작성자");
+            Review review = createReview(receiver);
+
+            given(userRepository.findById(actorId)).willReturn(Optional.of(actor));
+            given(userRepository.findById(receiverId)).willReturn(Optional.of(receiver));
+            given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() ->
+                notificationService.createByLike(actorId, receiverId, reviewId)
+            ).isInstanceOf(ReviewNotFoundException.class);
+        }
+    }
+
 }
