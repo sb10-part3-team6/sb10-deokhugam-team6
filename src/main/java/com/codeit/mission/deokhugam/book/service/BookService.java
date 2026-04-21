@@ -261,6 +261,7 @@ public class BookService {
         return bookDtoMapper.toDto(book);
     }
 
+    //책 정보 수정 메서드
     public BookDto updateBook(UUID id, BookUpdateRequest request, MultipartFile image){
         Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
 
@@ -278,5 +279,11 @@ public class BookService {
         bookRepository.save(book);
 
         return bookDtoMapper.toDto(book);
+    }
+
+    //책 데이터 논리 삭제 메서드
+    public void deleteBook(UUID id){
+        Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+        bookRepository.delete(book);
     }
 }

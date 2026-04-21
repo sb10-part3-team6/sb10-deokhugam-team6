@@ -54,4 +54,12 @@ public class BookController {
     ){
         return ResponseEntity.ok(bookService.updateBook(bookId, bookUpdateRequest, thumbnailImage));
     }
+
+    @DeleteMapping("/{bookId}")
+    public ResponseEntity<Void> deleteBook(
+            @PathVariable UUID bookId
+    ){
+        bookService.deleteBook(bookId);
+        return ResponseEntity.status(204).build();
+    }
 }
