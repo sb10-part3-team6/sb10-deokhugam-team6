@@ -79,12 +79,12 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 3. 이전 페이지의 마지막 요소의 생성 시간 (다음 요청의 after) 및 다음 페이지 시작점 (다음 페이지의 cursor) 설정
     String nextCursor = null;
-    LocalDateTime nextIdAfter = null;
+    LocalDateTime nextAfter = null;
 
     if (!pagedReviews.isEmpty() && hasNext) {
       Review lastItem = pagedReviews.get(pagedReviews.size() - 1);
 
-      nextIdAfter = lastItem.getCreatedAt();
+      nextAfter = lastItem.getCreatedAt();
       nextCursor = "rating".equals(condition.orderBy())
           ? String.valueOf(lastItem.getRating())
           : lastItem.getId().toString();
@@ -96,30 +96,23 @@ public class ReviewServiceImplement implements ReviewService {
         .toList();
 
     // 5. 목록 조회 요청자가 좋아요를 누른 리뷰 ID 목록
-    List<UUID> reviewLikeIds = (requestUserId != null && !reviewIds.isEmpty())
-        ? reviewLikeRepository.findLikedReviewIds(requestUserId, reviewIds)
-        : Collections.emptyList();
+    List<UUID> reviewLikeIds = getReviewLikeIds(requestUserId, reviewIds);
 
     // 6. Review -> ReviewDto 변환
-    List<ReviewDto> content = pagedReviews.stream()
-        .map(review -> {
-          boolean isLiked = reviewLikeIds.contains(review.getId());
-          return reviewMapper.toDto(review, isLiked);
-        })
-        .toList();
+    List<ReviewDto> content = reviewMapper.toDtoList(pagedReviews, reviewLikeIds);
 
     // 7. 리뷰 좋아요 전체 개수 저장
     long totalElements = reviewRepository.countWithFilter(condition);
 
     // 8. 페이징 응답 DTO 생성 및 반환
-    return CursorPageResponseReviewDto.<ReviewDto>builder()
-        .content(content)
-        .nextCursor(nextCursor)
-        .nextAfter(nextIdAfter)
-        .size(condition.limit())
-        .totalElements(totalElements)
-        .hasNext(hasNext)
-        .build();
+    return reviewMapper.toCursorPageResponse(
+        content,
+        nextCursor,
+        nextAfter,
+        condition.limit(),
+        totalElements,
+        hasNext
+    );
   }
 
   // 리뷰 등록
@@ -323,6 +316,15 @@ public class ReviewServiceImplement implements ReviewService {
   private ReviewLike getReviewLikeEntityOrThrow(UUID reviewId, UUID userId) {
     return reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId)
         .orElseThrow(() -> new ReviewLikeNotFoundException(reviewId, userId));
+  }
+
+  // ReviewLike ID 목록 조회
+  private List<UUID> getReviewLikeIds(UUID userId, List<UUID> reviewIds) {
+    if (userId == null || reviewIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    return reviewLikeRepository.findLikedReviewIds(userId, reviewIds);
   }
 
   // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
