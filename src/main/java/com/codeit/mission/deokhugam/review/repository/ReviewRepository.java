@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.review.repository;
 
+import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserLikeCount;
 import com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
