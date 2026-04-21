@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -280,6 +281,8 @@ class UserControllerTest {
       mockMvc.perform(delete("/api/users/{userId}", userId))
           .andDo(print())
           .andExpect(status().isNoContent());
+
+      verify(userService).deleteUser(userId);
     }
 
     @Test
@@ -294,6 +297,8 @@ class UserControllerTest {
           .andDo(print())
           .andExpect(status().isNotFound())
           .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
+
+      verify(userService).deleteUser(userId);
     }
   }
 }

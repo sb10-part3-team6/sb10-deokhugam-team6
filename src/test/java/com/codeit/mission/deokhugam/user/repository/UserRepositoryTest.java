@@ -69,25 +69,36 @@ class UserRepositoryTest {
   @DisplayName("물리 삭제(Hard Delete) 쿼리가 대상 유저만 정확히 삭제하는지 확인")
   void hardDeleteByIds_Success() {
     // given
-    User targetUser = createUser("target@example.com", "삭제대상");
-    userRepository.save(targetUser);
+    User targetUser = createUser("target@example.com", "오래된탈퇴자");
+    User activeUser = createUser("active@example.com", "활동중유저");
+    User recentDeletedUser = createUser("recent@example.com", "최근탈퇴자");
+
+    userRepository.saveAll(List.of(targetUser, activeUser, recentDeletedUser));
     entityManager.flush();
 
     updateUserStatusAndTime(targetUser.getId(), UserStatus.DELETED,
         LocalDateTime.now().minusDays(2));
+    updateUserStatusAndTime(recentDeletedUser.getId(), UserStatus.DELETED,
+        LocalDateTime.now());
     entityManager.clear();
 
     // when
     LocalDateTime threshold = LocalDateTime.now().minusDays(1);
-    userRepository.hardDeleteByIds(List.of(targetUser.getId()), threshold);
+    userRepository.hardDeleteByIds(
+        List.of(targetUser.getId(), activeUser.getId(), recentDeletedUser.getId()), threshold);
 
     // then
+    assertThat(countById(targetUser.getId())).isZero();
+    assertThat(countById(activeUser.getId())).isEqualTo(1);
+    assertThat(countById(recentDeletedUser.getId())).isEqualTo(1);
+  }
+
+  private int countById(UUID id) {
     Number count = (Number) entityManager.createNativeQuery(
             "SELECT count(*) FROM users WHERE id = ?1")
-        .setParameter(1, targetUser.getId())
+        .setParameter(1, id)
         .getSingleResult();
-
-    assertThat(count.intValue()).isZero();
+    return count.intValue();
   }
 
   private User createUser(String email, String nickname) {
