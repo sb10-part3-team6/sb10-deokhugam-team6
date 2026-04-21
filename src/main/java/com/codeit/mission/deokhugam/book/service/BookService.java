@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -253,5 +254,10 @@ public class BookService {
         return checkDigit == (isbn.charAt(12) - '0');
     }
 
+    //책 상세 정보 조회 메서드
+    public BookDto findBook(UUID id){
+        Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
 
+        return bookDtoMapper.toDto(book);
+    }
 }

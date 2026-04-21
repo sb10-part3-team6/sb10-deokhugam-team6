@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/books")
@@ -34,5 +36,12 @@ public class BookController {
     @PostMapping("/isbn/ocr")
     public ResponseEntity<String> ocrIsbnDetect(@RequestPart("image") MultipartFile image){
         return ResponseEntity.ok(bookService.ocrIsbnDetect(image));
+    }
+
+    @GetMapping("/{bookId}")
+    public ResponseEntity<BookDto> findBook(
+            @PathVariable("bookId") UUID bookId
+    ){
+        return ResponseEntity.ok(bookService.findBook(bookId));
     }
 }
