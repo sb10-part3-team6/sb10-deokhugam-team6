@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+import java.net.URI;
 import java.time.Duration;
 import java.io.IOException;
 import java.util.UUID;
@@ -55,6 +57,17 @@ public class BookImageService {
         }
     }
 
+    public void deleteFileByUrl(String fileUrl) {
+        String key = extractKeyFromUrl(fileUrl);
+
+        s3Client.deleteObject(
+                DeleteObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(key)
+                        .build()
+        );
+    }
+
     public String generatePresignedUrl(String fileName) {
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
@@ -79,5 +92,21 @@ public class BookImageService {
         return s3Client.utilities()
                 .getUrl(GetUrlRequest.builder().bucket(bucket).key(fileName).build())
                 .toExternalForm();
+    }
+
+    private String extractKeyFromUrl(String fileUrl) {
+        try {
+            URI uri = URI.create(fileUrl);
+
+            String path = uri.getPath(); // "/images/test.jpg"
+            if (path == null || path.length() <= 1) {
+                throw new IllegalArgumentException("유효하지 않은 S3 URL");
+            }
+
+            return path.substring(1); // 앞 "/" 제거
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("S3 URL 파싱 실패: " + fileUrl, e);
+        }
     }
 }
