@@ -43,6 +43,7 @@ public class Book extends BaseEntity {
     private String isbn;
 
     @Column
+    @Setter
     private String thumbnailUrl;
 
     @Column(nullable = false)
