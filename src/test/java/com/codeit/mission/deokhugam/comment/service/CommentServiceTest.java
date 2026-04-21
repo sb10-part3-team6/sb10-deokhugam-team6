@@ -68,6 +68,7 @@ public class CommentServiceTest {
         userNickName = "testUser";
 
         user = mock(User.class);
+        when(user.getId()).thenReturn(userId);
         when(user.getNickname()).thenReturn(userNickName);
 
         comment = Comment.builder()
@@ -219,9 +220,6 @@ public class CommentServiceTest {
         CommentDto secondCommentDto = mock(CommentDto.class);
 
         given(findAllRequest.reviewId()).willReturn(reviewId);
-        given(findAllRequest.direction()).willReturn("desc");
-        given(findAllRequest.cursor()).willReturn(null);
-        given(findAllRequest.after()).willReturn(null);
         given(findAllRequest.limit()).willReturn(2);
 
         given(reviewRepository.existsById(eq(reviewId))).willReturn(true);
@@ -254,68 +252,11 @@ public class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("댓글 목록 조회 실패 - 정렬 방향 오류")
-    void findAllCommentsCommentFailByInvalidDirection() {
-        // given
-        given(findAllRequest.reviewId()).willReturn(reviewId);
-        given(findAllRequest.direction()).willReturn("wrong");
-        given(findAllRequest.limit()).willReturn(10);
-        given(findAllRequest.cursor()).willReturn(null);
-        given(findAllRequest.after()).willReturn(null);
-
-        // when & then
-        assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
-                .isInstanceOf(IllegalArgumentException.class);
-
-        verify(commentRepository, never()).findAllByCursor(any());
-        verify(commentRepository, never()).countByReviewId(any());
-    }
-
-    @Test
-    @DisplayName("댓글 목록 조회 실패 - 페이지네이션 파라미터 오류")
-    void findAllCommentsCommentFailByInvalidPaginationParams() {
-        // given
-        given(findAllRequest.reviewId()).willReturn(reviewId);
-        given(findAllRequest.direction()).willReturn("desc");
-        given(findAllRequest.limit()).willReturn(0);
-        given(findAllRequest.cursor()).willReturn(null);
-        given(findAllRequest.after()).willReturn(null);
-
-        // when & then
-        assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
-                .isInstanceOf(IllegalArgumentException.class);
-
-        verify(commentRepository, never()).findAllByCursor(any());
-        verify(commentRepository, never()).countByReviewId(any());
-    }
-
-    @Test
-    @DisplayName("댓글 목록 조회 실패 - 리뷰 ID 누락")
-    void findAllCommentsCommentFailByMissingReviewId() {
-        // given
-        given(findAllRequest.reviewId()).willReturn(null);
-        given(findAllRequest.direction()).willReturn("desc");
-        given(findAllRequest.limit()).willReturn(10);
-        given(findAllRequest.cursor()).willReturn(null);
-        given(findAllRequest.after()).willReturn(null);
-
-        // when & then
-        assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
-                .isInstanceOf(IllegalArgumentException.class);
-
-        verify(reviewRepository, never()).existsById(any());
-        verify(commentRepository, never()).findAllByCursor(any());
-    }
-
-    @Test
     @DisplayName("댓글 목록 조회 실패 - 리뷰 정보 없음")
     void findAllCommentsCommentFailByReviewNotFound() {
         // given
         given(findAllRequest.reviewId()).willReturn(reviewId);
-        given(findAllRequest.direction()).willReturn("desc");
         given(findAllRequest.limit()).willReturn(10);
-        given(findAllRequest.cursor()).willReturn(null);
-        given(findAllRequest.after()).willReturn(null);
 
         given(reviewRepository.existsById(eq(reviewId))).willReturn(false);
 

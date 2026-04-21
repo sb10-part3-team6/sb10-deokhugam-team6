@@ -45,7 +45,7 @@ public class CommentController {
 
     // 댓글 목록 조회
     @GetMapping
-    public CursorPageResponseCommentDto getComments(@Valid @ModelAttribute CommentFindAllRequest request) {
-        return commentService.findAllComments(request);
+    public ResponseEntity<CursorPageResponseCommentDto> getComments(@Valid @ModelAttribute CommentFindAllRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(commentService.findAllComments(request));
     }
 }

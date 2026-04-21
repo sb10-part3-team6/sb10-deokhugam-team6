@@ -98,7 +98,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom{
 
     private int normalizeLimit(int limit) {
         if (limit <= 0) {
-            return 10;
+            return 50;
         }
         return Math.min(limit, 100);
     }

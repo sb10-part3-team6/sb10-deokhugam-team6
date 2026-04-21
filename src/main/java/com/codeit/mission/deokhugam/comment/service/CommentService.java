@@ -127,4 +127,11 @@ public class CommentService {
             throw new EntityNotFoundException("리뷰가 존재하지 않습니다.");
         }
     }
+
+    private int normalizeLimit(int limit) {
+        if (limit <= 0) {
+            return 50;
+        }
+        return Math.min(100, limit);
+    }
 }
