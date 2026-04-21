@@ -62,4 +62,12 @@ public class BookController {
         bookService.deleteBook(bookId);
         return ResponseEntity.status(204).build();
     }
+
+    @DeleteMapping("/{bookId}/hard")
+    public ResponseEntity<Void> hardDeleteBook(
+            @PathVariable UUID bookId
+    ){
+        bookService.hardDeleteBook(bookId);
+        return ResponseEntity.status(204).build();
+    }
 }

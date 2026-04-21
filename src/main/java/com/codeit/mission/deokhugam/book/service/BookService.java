@@ -2,6 +2,7 @@ package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.dto.*;
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.exception.*;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
@@ -258,12 +260,20 @@ public class BookService {
     public BookDto findBook(UUID id){
         Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
 
+        if(isDeleted(book)){
+            throw new BookNotFoundException();
+        }
+
         return bookDtoMapper.toDto(book);
     }
 
     //책 정보 수정 메서드
     public BookDto updateBook(UUID id, BookUpdateRequest request, MultipartFile image){
         Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+
+        if(isDeleted(book)){
+            throw new BookNotFoundException();
+        }
 
         book.setTitle(request.title());
         book.setAuthor(request.author());
@@ -282,8 +292,30 @@ public class BookService {
     }
 
     //책 데이터 논리 삭제 메서드
+    @Transactional
     public void deleteBook(UUID id){
         Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+        if(isDeleted(book)){
+            throw new BookNotFoundException();
+        }
+
+        book.delete();
+        bookRepository.save(book);
+    }
+
+    //도서 데이터 물리 삭제 메서드
+    @Transactional
+    public void hardDeleteBook(UUID id){
+        Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+        if(isDeleted(book)){
+            throw new BookNotFoundException();
+        }
+
+        bookImageService.deleteFileByUrl(book.getThumbnailUrl());
         bookRepository.delete(book);
+    }
+
+    private boolean isDeleted(Book book){
+        return book.getBookStatus() == BookStatus.DELETED;
     }
 }
