@@ -1,9 +1,7 @@
 package com.codeit.mission.deokhugam.book.entity;
 
 import com.codeit.mission.deokhugam.base.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Builder;
@@ -13,6 +11,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "books")
@@ -54,6 +53,13 @@ public class Book extends BaseEntity {
     @Min(0) @Max(5)
     private double rating;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BookStatus bookStatus;
+
+    @Column(nullable = false)
+    private LocalDateTime deletedAt;
+
     //빌더 패턴 적용
     @Builder
     public Book(String title, String author, String description,
@@ -82,5 +88,11 @@ public class Book extends BaseEntity {
     public void removeReview(int review) {
         this.rating = (this.rating * this.reviewCount - review) / (this.reviewCount - 1);
         this.reviewCount--;
+    }
+
+    //논리 삭제 메서드
+    public void delete() {
+        this.bookStatus = BookStatus.DELETED;
+        this.deletedAt = LocalDateTime.now();
     }
 }
