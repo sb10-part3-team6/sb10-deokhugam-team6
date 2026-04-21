@@ -14,8 +14,6 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,7 +70,7 @@ public class CommentService {
     }
 
     // 댓글 목록 조회
-    public CursorPageResponseCommentDto findAll(CommentFindAllRequest request) {
+    public CursorPageResponseCommentDto findAllComments(CommentFindAllRequest request) {
         int limit = normalizeLimit(request.limit());
 
         List<Comment> comments = commentRepository.findAllByCursor(request);

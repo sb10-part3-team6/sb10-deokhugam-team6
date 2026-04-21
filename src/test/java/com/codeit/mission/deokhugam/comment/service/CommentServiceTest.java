@@ -1,8 +1,10 @@
 package com.codeit.mission.deokhugam.comment.service;
 
 import com.codeit.mission.deokhugam.comment.dto.request.CommentCreateRequest;
+import com.codeit.mission.deokhugam.comment.dto.request.CommentFindAllRequest;
 import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
+import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
 import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
@@ -18,7 +20,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,6 +58,7 @@ public class CommentServiceTest {
     private Comment comment;
     private User user;
     private CommentDto commentDto;
+    private CommentFindAllRequest findAllRequest;
 
     @BeforeEach
     void setup() {
@@ -71,6 +77,7 @@ public class CommentServiceTest {
                 .build();
 
         commentDto = mock(CommentDto.class);
+        findAllRequest = mock(CommentFindAllRequest.class);
     }
 
     @Test
@@ -186,5 +193,137 @@ public class CommentServiceTest {
         // then
         assertThatThrownBy(() -> commentService.findComment(commentId))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 성공")
+    void findAllCommentsCommentSuccess() {
+        // given
+        UUID secondUserId = UUID.randomUUID();
+        UUID secondCommentId = UUID.randomUUID();
+
+        User secondUser = mock(User.class);
+        when(secondUser.getId()).thenReturn(secondUserId);
+        when(secondUser.getNickname()).thenReturn("secondUser");
+
+        Comment secondComment = Comment.builder()
+                .reviewId(reviewId)
+                .userId(secondUserId)
+                .content("second content")
+                .build();
+
+        ReflectionTestUtils.setField(secondComment, "id", secondCommentId);
+        ReflectionTestUtils.setField(secondComment, "createdAt", LocalDateTime.of(2026, 4, 21, 9, 59, 0));
+
+        CommentDto firstCommentDto = mock(CommentDto.class);
+        CommentDto secondCommentDto = mock(CommentDto.class);
+
+        given(findAllRequest.reviewId()).willReturn(reviewId);
+        given(findAllRequest.direction()).willReturn("desc");
+        given(findAllRequest.cursor()).willReturn(null);
+        given(findAllRequest.after()).willReturn(null);
+        given(findAllRequest.limit()).willReturn(2);
+
+        given(reviewRepository.existsById(eq(reviewId))).willReturn(true);
+        given(commentRepository.findAllByCursor(eq(findAllRequest)))
+                .willReturn(List.of(comment, secondComment));
+        given(commentRepository.countByReviewId(eq(reviewId))).willReturn(2);
+        given(userRepository.findAllById(any()))
+                .willReturn(List.of(user, secondUser));
+
+        given(commentMapper.toDto(comment, userNickName)).willReturn(firstCommentDto);
+        given(commentMapper.toDto(secondComment, "secondUser")).willReturn(secondCommentDto);
+
+        // when
+        CursorPageResponseCommentDto result = commentService.findAllComments(findAllRequest);
+
+        // then
+        assertThat(result.content()).isEqualTo(List.of(firstCommentDto, secondCommentDto));
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.totalElements()).isEqualTo(2);
+        assertThat(result.hasNext()).isEqualTo(false);
+        assertThat(result.nextCursor()).isEqualTo(null);
+        assertThat(result.nextAfter()).isEqualTo(null);
+
+        verify(reviewRepository).existsById(reviewId);
+        verify(commentRepository).findAllByCursor(findAllRequest);
+        verify(commentRepository).countByReviewId(reviewId);
+        verify(userRepository).findAllById(any());
+        verify(commentMapper).toDto(comment, userNickName);
+        verify(commentMapper).toDto(secondComment, "secondUser");
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 실패 - 정렬 방향 오류")
+    void findAllCommentsCommentFailByInvalidDirection() {
+        // given
+        given(findAllRequest.reviewId()).willReturn(reviewId);
+        given(findAllRequest.direction()).willReturn("wrong");
+        given(findAllRequest.limit()).willReturn(10);
+        given(findAllRequest.cursor()).willReturn(null);
+        given(findAllRequest.after()).willReturn(null);
+
+        // when & then
+        assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(commentRepository, never()).findAllByCursor(any());
+        verify(commentRepository, never()).countByReviewId(any());
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 실패 - 페이지네이션 파라미터 오류")
+    void findAllCommentsCommentFailByInvalidPaginationParams() {
+        // given
+        given(findAllRequest.reviewId()).willReturn(reviewId);
+        given(findAllRequest.direction()).willReturn("desc");
+        given(findAllRequest.limit()).willReturn(0);
+        given(findAllRequest.cursor()).willReturn(null);
+        given(findAllRequest.after()).willReturn(null);
+
+        // when & then
+        assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(commentRepository, never()).findAllByCursor(any());
+        verify(commentRepository, never()).countByReviewId(any());
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 실패 - 리뷰 ID 누락")
+    void findAllCommentsCommentFailByMissingReviewId() {
+        // given
+        given(findAllRequest.reviewId()).willReturn(null);
+        given(findAllRequest.direction()).willReturn("desc");
+        given(findAllRequest.limit()).willReturn(10);
+        given(findAllRequest.cursor()).willReturn(null);
+        given(findAllRequest.after()).willReturn(null);
+
+        // when & then
+        assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(reviewRepository, never()).existsById(any());
+        verify(commentRepository, never()).findAllByCursor(any());
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 실패 - 리뷰 정보 없음")
+    void findAllCommentsCommentFailByReviewNotFound() {
+        // given
+        given(findAllRequest.reviewId()).willReturn(reviewId);
+        given(findAllRequest.direction()).willReturn("desc");
+        given(findAllRequest.limit()).willReturn(10);
+        given(findAllRequest.cursor()).willReturn(null);
+        given(findAllRequest.after()).willReturn(null);
+
+        given(reviewRepository.existsById(eq(reviewId))).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        verify(reviewRepository).existsById(reviewId);
+        verify(commentRepository, never()).findAllByCursor(any());
     }
 }
