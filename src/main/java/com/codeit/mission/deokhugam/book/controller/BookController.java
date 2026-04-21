@@ -30,4 +30,9 @@ public class BookController {
     ){
         return ResponseEntity.ok(bookService.getBookInfoFromNaverApi(isbn));
     }
+
+    @PostMapping("/isbn/ocr")
+    public ResponseEntity<String> ocrIsbnDetect(@RequestPart("image") MultipartFile image){
+        return ResponseEntity.ok(bookService.ocrIsbnDetect(image));
+    }
 }
