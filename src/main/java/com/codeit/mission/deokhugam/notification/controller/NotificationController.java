@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.notification.controller;
 import com.codeit.mission.deokhugam.notification.dto.CursorPageResponseNotificationDto;
 import com.codeit.mission.deokhugam.notification.dto.NotificationRequestQuery;
 import com.codeit.mission.deokhugam.notification.service.NotificationService;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -23,7 +24,7 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<CursorPageResponseNotificationDto> findByUserId(
         @RequestParam(name = "userId") UUID userId,
-        @ParameterObject @ModelAttribute NotificationRequestQuery query) {
+        @Valid @ParameterObject @ModelAttribute NotificationRequestQuery query) {
 
         return ResponseEntity.ok(notificationService.findByUserId(userId, query));
 
