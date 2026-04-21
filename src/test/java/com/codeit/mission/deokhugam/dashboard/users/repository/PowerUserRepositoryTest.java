@@ -162,7 +162,7 @@ class PowerUserRepositoryTest {
 
   // createdAt을 수정하는 메서드
   private void updateCreatedAt(UUID id, LocalDateTime createdAt) {
-    int updatedRows = em.createQuery("update PowerUserSnapshot p set p.createdAt = :createdAt where p.id = :id")
+    int updatedRows = em.createQuery("update PowerUser pu set pu.createdAt = :createdAt where pu.id = :id")
         .setParameter("createdAt", createdAt)
         .setParameter("id", id)
         .executeUpdate();
