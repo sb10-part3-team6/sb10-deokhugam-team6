@@ -30,8 +30,7 @@ public class CreateNewSnapshotTasklet implements Tasklet {
   private String aggregatedAtValue;
 
   @Override
-  public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
-      throws Exception {
+  public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 
     // 파싱
     PeriodType periodType = PeriodType.valueOf(periodTypeValue);

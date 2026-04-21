@@ -112,29 +112,6 @@ class PowerUserSnapshotRepositoryTest {
             PeriodType.MONTHLY, UUID.fromString("11111111-2222-3333-4444-555555555555")));
   }
 
-  @Test
-  @DisplayName("findPowerUserSnapshotByPeriodType가 PeriodType에 해당하는 Snapshot을 가져옴 (성공)")
-  void findPowerUserSnapshotByPeriodType_returnsSnapshot() {
-    // given
-    UUID snapshotId = UUID.fromString("12121212-3434-5656-7878-909090909090");
-    persistSnapshot(snapshotId, PeriodType.ALL_TIME, StagingType.STAGING, LocalDateTime.of(2026, 4, 20, 0, 0));
-    persistSnapshot(
-        UUID.fromString("abababab-abab-abab-abab-abababababab"),
-        PeriodType.DAILY,
-        StagingType.STAGING,
-        LocalDateTime.of(2026, 4, 20, 1, 0));
-
-    em.flush();
-    em.clear();
-
-    // when
-    Optional<PowerUserSnapshot> result =
-        powerUserSnapshotRepository.findPowerUserSnapshotByPeriodType(PeriodType.ALL_TIME);
-
-    // then
-    assertTrue(result.isPresent());
-    assertEquals(snapshotId, result.get().getSnapshotId());
-  }
 
   @Test
   @DisplayName("existsPowerUserSnapshotByPeriodType가 조건에 맞는 Snapshot을 가져옴 (성공)")

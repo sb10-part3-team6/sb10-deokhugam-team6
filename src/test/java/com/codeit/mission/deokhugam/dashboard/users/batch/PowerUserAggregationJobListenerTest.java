@@ -31,16 +31,38 @@ class PowerUserAggregationJobListenerTest {
   @Test
   @DisplayName("job 이 FAILED 이고 snapshotId 가 있으면 snapshot 을 FAILED 로 변경한다")
   void afterJob_failedWithSnapshotId_marksSnapshotFailed() {
+    // given
     UUID snapshotId = UUID.randomUUID();
     ExecutionContext executionContext = new ExecutionContext();
-    executionContext.putString("snapshotId", snapshotId.toString());
+    executionContext.putString("snapshotId", snapshotId.toString()); // 컨텍스트에 snapshotId를 주입한다.
 
-    when(jobExecution.getStatus()).thenReturn(BatchStatus.FAILED);
-    when(jobExecution.getExecutionContext()).thenReturn(executionContext);
+    when(jobExecution.getStatus()).thenReturn(BatchStatus.FAILED); // Batch 작업 상태는 FAILED
+    when(jobExecution.getExecutionContext()).thenReturn(executionContext); // 컨텍스트를 리턴함.
 
+    // when
     powerUserAggregationJobListener.afterJob(jobExecution);
 
     verify(powerUserSnapshotService).failSnapshot(snapshotId);
+  }
+
+  @Test
+  @DisplayName("job이 FAILED 이여도 snapshotId 가 공백이면 snapshot 상태를 변경하지 않는다.")
+  void afterJob_failed_doesNotMarkSnapshotFailed(){
+    // given
+    ExecutionContext executionContext = new ExecutionContext();
+    executionContext.putString("snapshotId", "  "); // snapshotId를 공백으로 둠
+
+    when(jobExecution.getStatus()).thenReturn(BatchStatus.FAILED); // Job 상태 -> FAILED
+    when(jobExecution.getExecutionContext()).thenReturn(executionContext);
+
+    // when
+    powerUserAggregationJobListener.afterJob(jobExecution);
+
+    // then
+    verify(powerUserSnapshotService, never()).failSnapshot(org.mockito.ArgumentMatchers.any());
+
+
+
   }
 
   @Test
