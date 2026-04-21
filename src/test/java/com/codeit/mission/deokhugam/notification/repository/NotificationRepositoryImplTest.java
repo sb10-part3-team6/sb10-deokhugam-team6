@@ -40,6 +40,9 @@ public class NotificationRepositoryImplTest {
 
     @BeforeEach
     void setUp() {
+        LocalDateTime BASE_TIME =
+            LocalDateTime.of(2026, 1, 1, 0, 0, 0);
+
         user = User.builder()
             .email("test@test.com")
             .nickname("test")
@@ -80,7 +83,7 @@ public class NotificationRepositoryImplTest {
             ReflectionTestUtils.setField(
                 notification,
                 "createdAt",
-                LocalDateTime.now().minusSeconds(i)
+                BASE_TIME.minusSeconds(i)
             );
 
             em.persist(notification);
@@ -177,5 +180,12 @@ public class NotificationRepositoryImplTest {
             assertThat(content.get(i).getCreatedAt())
                 .isBeforeOrEqualTo(content.get(i + 1).getCreatedAt());
         }
+    }
+
+    @Test
+    @DisplayName("사용자 알림 총 개수 조회 확인")
+    void countByUserIdSuccess() {
+        long count = notificationRepository.countByUserId(user.getId());
+        assertThat(count).isEqualTo(30L);
     }
 }
