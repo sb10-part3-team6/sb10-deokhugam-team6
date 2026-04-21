@@ -10,17 +10,22 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum ErrorCode {
-    // 공통
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "Invalid input value"),                             // 입력값 오류
-    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "Method not allowed"),                        // HTTP 메서드 오류
-    MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "Missing request parameter"),                 // 필수 파라미터 누락
-    METHOD_ARGUMENT_TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "Method argument type mismatch"),         // 파라미터 타입 불일치
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),               // 서버 내부 오류
+  // 공통
+  INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST,
+      "Invalid input value"),                             // 입력값 오류
+  METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED,
+      "Method not allowed"),                        // HTTP 메서드 오류
+  MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST,
+      "Missing request parameter"),                 // 필수 파라미터 누락
+  METHOD_ARGUMENT_TYPE_MISMATCH(HttpStatus.BAD_REQUEST,
+      "Method argument type mismatch"),         // 파라미터 타입 불일치
+  INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,
+      "Internal server error"),               // 서버 내부 오류
 
     // 유저 (로그인/회원가입)
-    LOGIN_INPUT_INVALID(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."),
-    EMAIL_DUPLICATION(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+    LOGIN_INPUT_INVALID(HttpStatus.UNAUTHORIZED, "Invalid email or password"),
+    EMAIL_DUPLICATION(HttpStatus.CONFLICT, "Email address already exists"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not found"),
 
     // 리뷰
     INVALID_REVIEW_RATING_RANGE(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5"),          // 평점 범위(1~5) 이탈

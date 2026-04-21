@@ -29,6 +29,7 @@ public class PowerUserSnapshotService {
     return powerUserSnapshotRepository.save(snapshot);
   }
 
+  // 스냅샷을 Fail 처리하는 메서드
   @Transactional
   public void failSnapshot(UUID snapshotId) {
     powerUserSnapshotRepository.findBySnapshotId(snapshotId)

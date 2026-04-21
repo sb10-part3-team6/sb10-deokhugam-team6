@@ -37,8 +37,7 @@ public class UserService {
   }
 
   public UserDto login(UserLoginRequest request) {
-    User user = userRepository.findByEmail(request.email())
-        .orElseThrow(LoginFailedException::new);
+    User user = findUserByEmail(request.email());
 
     // 비밀번호 체크
     if (!user.getPassword().equals(request.password())) {
@@ -49,17 +48,31 @@ public class UserService {
   }
 
   public UserDto getUser(UUID id) {
-    User user = userRepository.findById(id)
-        .orElseThrow(() -> new UserNotFoundException(id));
-    return userMapper.toDto(user);
+    return userMapper.toDto(findUserById(id));
   }
 
   @Transactional
   public UserDto updateNickname(UUID id, UserUpdateRequest request) {
-    User user = userRepository.findById(id)
-        .orElseThrow(() -> new UserNotFoundException(id));
+    User user = findUserById(id);
 
     user.updateNickname(request.nickname());
     return userMapper.toDto(user);
+  }
+
+  @Transactional
+  public void deleteUser(UUID id) {
+    User user = findUserById(id);
+
+    userRepository.delete(user);
+  }
+
+  private User findUserById(UUID id) {
+    return userRepository.findById(id)
+        .orElseThrow(() -> new UserNotFoundException(id));
+  }
+
+  private User findUserByEmail(String email) {
+    return userRepository.findByEmail(email)
+        .orElseThrow(LoginFailedException::new);
   }
 }
