@@ -22,7 +22,5 @@ public interface PowerUserSnapshotRepository extends JpaRepository<PowerUserSnap
       UUID snapshotId
   );
 
-  Optional<PowerUserSnapshot> findPowerUserSnapshotByPeriodType(PeriodType periodType);
-
   boolean existsPowerUserSnapshotByPeriodType(PeriodType periodType);
 }
