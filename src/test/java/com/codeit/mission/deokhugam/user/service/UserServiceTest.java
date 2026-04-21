@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -46,10 +47,11 @@ class UserServiceTest {
   class RegisterTest {
 
     @Test
-    @DisplayName("성공")
+    @DisplayName("성공: 유저 정보가 정상적으로 저장됨")
     void register_Success() {
       // given
-      UserRegisterRequest request = new UserRegisterRequest("test@example.com", "테스터", "Password123!");
+      UserRegisterRequest request = new UserRegisterRequest("test@example.com", "테스터",
+          "Password123!");
       given(userRepository.existsByEmail(request.email())).willReturn(false);
 
       User savedUser = User.builder()
@@ -59,20 +61,30 @@ class UserServiceTest {
           .build();
       given(userRepository.save(any(User.class))).willReturn(savedUser);
 
+      // ArgumentCaptor 설정
+      ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+
       // when
       UserDto result = userService.register(request);
 
       // then
       assertThat(result.email()).isEqualTo(request.email());
       assertThat(result.nickname()).isEqualTo(request.nickname());
-      verify(userRepository).save(any(User.class));
+
+      // save 호출 시 인자값 검증
+      verify(userRepository).save(userCaptor.capture());
+      User capturedUser = userCaptor.getValue();
+      assertThat(capturedUser.getEmail()).isEqualTo(request.email());
+      assertThat(capturedUser.getNickname()).isEqualTo(request.nickname());
+      assertThat(capturedUser.getPassword()).isEqualTo(request.password());
     }
 
     @Test
     @DisplayName("이메일 중복 실패")
     void register_Fail_EmailDuplication() {
       // given
-      UserRegisterRequest request = new UserRegisterRequest("duplicate@example.com", "테스터", "Password123!");
+      UserRegisterRequest request = new UserRegisterRequest("duplicate@example.com", "테스터",
+          "Password123!");
       given(userRepository.existsByEmail(request.email())).willReturn(true);
 
       // when & then
@@ -194,6 +206,7 @@ class UserServiceTest {
 
       // then
       assertThat(result.nickname()).isEqualTo("새닉네임");
+      assertThat(user.getNickname()).isEqualTo("새닉네임");
     }
 
     @Test
@@ -206,6 +219,41 @@ class UserServiceTest {
 
       // when & then
       assertThatThrownBy(() -> userService.updateNickname(userId, request))
+          .isInstanceOf(UserNotFoundException.class);
+    }
+  }
+
+  @Nested
+  @DisplayName("회원 탈퇴")
+  class DeleteUserTest {
+
+    @Test
+    @DisplayName("성공: 유저가 정상적으로 삭제됨")
+    void deleteUser_Success() {
+      //given
+      UUID userId = UUID.randomUUID();
+      User user = User.builder()
+          .email("test@example.com")
+          .nickname("테스터")
+          .build();
+      given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+      //when
+      userService.deleteUser(userId);
+
+      //then
+      verify(userRepository).delete(user);
+    }
+
+    @Test
+    @DisplayName("실패: 유저가 존재하지 않음")
+    void deleteUser_Fail_NotFound() {
+      //given
+      UUID userId = UUID.randomUUID();
+      given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+      //when & then
+      assertThatThrownBy(() -> userService.deleteUser(userId))
           .isInstanceOf(UserNotFoundException.class);
     }
   }
