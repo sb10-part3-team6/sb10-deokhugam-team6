@@ -155,7 +155,6 @@ public class ReviewServiceImplement implements ReviewService {
         Review targetReview = getReviewEntityOrThrow(id);
         User requestUser = getUserEntityOrThrow(requestUserId);
 
-
         // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
         validateReviewActive(targetReview);
 

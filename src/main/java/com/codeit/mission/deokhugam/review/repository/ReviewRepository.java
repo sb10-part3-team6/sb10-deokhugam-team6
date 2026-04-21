@@ -49,10 +49,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
   boolean existsLikedByIdAndUserId(@Param("reviewId") UUID reviewId,
                                    @Param("userId") UUID userId);
 
-
-
-
-
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
   @Query(
       """
