@@ -2,6 +2,7 @@ package com.codeit.mission.deokhugam.book.controller;
 
 import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.BookDto;
+import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
 import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
 import com.codeit.mission.deokhugam.book.service.BookService;
 import jakarta.validation.Valid;
@@ -40,8 +41,17 @@ public class BookController {
 
     @GetMapping("/{bookId}")
     public ResponseEntity<BookDto> findBook(
-            @PathVariable("bookId") UUID bookId
+            @PathVariable UUID bookId
     ){
         return ResponseEntity.ok(bookService.findBook(bookId));
+    }
+
+    @PatchMapping("/{bookId}")
+    public ResponseEntity<BookDto> updateBook(
+            @PathVariable UUID bookId,
+            @Valid @RequestPart BookUpdateRequest bookUpdateRequest,
+            @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+    ){
+        return ResponseEntity.ok(bookService.updateBook(bookId, bookUpdateRequest, thumbnailImage));
     }
 }

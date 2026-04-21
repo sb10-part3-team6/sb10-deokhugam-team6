@@ -260,4 +260,23 @@ public class BookService {
 
         return bookDtoMapper.toDto(book);
     }
+
+    public BookDto updateBook(UUID id, BookUpdateRequest request, MultipartFile image){
+        Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+
+        book.setTitle(request.title());
+        book.setAuthor(request.author());
+        book.setDescription(request.description());
+        book.setPublisher(request.publisher());
+        book.setPublishedDate(request.publishedDate());
+
+        if(image != null && !image.isEmpty()){
+            bookImageService.deleteFileByUrl(book.getThumbnailUrl());
+            book.setThumbnailUrl(upload(image));
+        }
+
+        bookRepository.save(book);
+
+        return bookDtoMapper.toDto(book);
+    }
 }
