@@ -78,11 +78,11 @@ public class UserHardDeleteJobConfig {
   // 빈 리스트 전달 시 SQL 에러 방지를 위해 호출 전 유효성 체크 수행
   @Bean
   public ItemWriter<UUID> userHardDeleteWriter() {
-      return chunk -> {
-          List<UUID> userIds = (List<UUID>) chunk.getItems();
-          if (userIds.isEmpty()) {
-              return;
-          }
+    return chunk -> {
+      List<UUID> userIds = (List<UUID>) chunk.getItems();
+      if (userIds.isEmpty()) {
+        return;
+      }
       log.info("[Batch] {}명의 유저 및 연관 데이터 물리 삭제 시작", userIds.size());
 
       // 1. 삭제 대상 유저들이 작성한 리뷰 ID 목록 미리 조회
@@ -102,9 +102,7 @@ public class UserHardDeleteJobConfig {
       reviewRepository.deleteByUserIds(userIds);
 
       // 4. 최종 유저 본인 삭제 (물리 삭제)
-      if (!userIds.isEmpty()) {
-        userRepository.hardDeleteByIds(userIds);
-      }
+      userRepository.hardDeleteByIds(userIds);
 
       log.info("[Batch] {}명의 물리 삭제가 완벽하게 완료되었습니다.", userIds.size());
     };
