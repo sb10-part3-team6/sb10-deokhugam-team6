@@ -71,7 +71,8 @@ public class CommentService {
 
     // 댓글 목록 조회
     public CursorPageResponseCommentDto findAllComments(CommentFindAllRequest request) {
-        int limit = normalizeLimit(request.limit());
+        validReviewExists(request.reviewId());
+        int limit = request.limit();
 
         List<Comment> comments = commentRepository.findAllByCursor(request);
 
@@ -117,13 +118,6 @@ public class CommentService {
                 totalElements,
                 hasNext
         );
-    }
-
-    private int normalizeLimit(int limit) {
-        if (limit <= 0) {
-            return 10;
-        }
-        return Math.min(limit, 100);
     }
 
     // 리뷰가 존재하는지 검증

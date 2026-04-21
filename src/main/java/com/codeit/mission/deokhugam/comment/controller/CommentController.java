@@ -22,7 +22,7 @@ public class CommentController {
 
     // 댓글 생성
     @PostMapping
-    public ResponseEntity<CommentDto> createComment(@Valid @ModelAttribute CommentCreateRequest request) {
+    public ResponseEntity<CommentDto> createComment(@Valid @RequestBody CommentCreateRequest request) {
         CommentDto commentDto = commentService.createComment(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(commentDto);
     }
@@ -31,7 +31,7 @@ public class CommentController {
     @PatchMapping(value = "/{commentId}")
     public ResponseEntity<CommentDto> updateComment(@PathVariable("commentId") UUID commentId,
                               @RequestParam UUID requestUserId,
-                              @Valid @ModelAttribute CommentUpdateRequest request){
+                              @Valid @RequestBody CommentUpdateRequest request){
         CommentDto commentDto = commentService.updateComment(commentId, requestUserId, request);
         return ResponseEntity.status(HttpStatus.OK).body(commentDto);
     }
@@ -45,7 +45,7 @@ public class CommentController {
 
     // 댓글 목록 조회
     @GetMapping
-    public CursorPageResponseCommentDto getComments(@Valid @ModelAttribute CommentFindAllRequest request) {
+    public CursorPageResponseCommentDto getComments(@Valid @RequestBody CommentFindAllRequest request) {
         return commentService.findAllComments(request);
     }
 }

@@ -16,6 +16,7 @@ import java.util.UUID;
 import static com.codeit.mission.deokhugam.comment.entity.QComment.comment;
 
 @RequiredArgsConstructor
+@Repository
 public class CommentRepositoryImpl implements CommentRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 
