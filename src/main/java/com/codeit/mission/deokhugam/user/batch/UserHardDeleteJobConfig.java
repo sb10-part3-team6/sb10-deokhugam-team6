@@ -102,7 +102,9 @@ public class UserHardDeleteJobConfig {
       reviewRepository.deleteByUserIds(userIds);
 
       // 4. 최종 유저 본인 삭제 (물리 삭제)
-      userRepository.hardDeleteByIds(userIds);
+      // TOCTOU 방지를 위해 상태와 시간을 다시 한번 검증
+      LocalDateTime threshold = LocalDateTime.now().minusDays(1);
+      userRepository.hardDeleteByIds(userIds, threshold);
 
       log.info("[Batch] {}명의 물리 삭제가 완벽하게 완료되었습니다.", userIds.size());
     };

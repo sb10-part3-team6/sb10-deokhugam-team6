@@ -30,8 +30,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   Page<UUID> findDeletedUserIdsOlderThan(@Param("threshold") LocalDateTime threshold, @Nullable Pageable pageable);
 
   // 사용자 테이블에서 해당 ID들을 영구 삭제 (물리 삭제)
+  // TOCTOU 방지를 위해 삭제 시점에 상태와 시간을 다시 한번 검증함
   @Modifying
   @Transactional
-  @Query(value = "DELETE FROM users WHERE id IN :ids", nativeQuery = true)
-  void hardDeleteByIds(@Param("ids") List<UUID> ids);
+  @Query(value = "DELETE FROM users WHERE id IN :ids AND status = 'DELETED' AND updated_at <= :threshold", nativeQuery = true)
+  void hardDeleteByIds(@Param("ids") List<UUID> ids, @Param("threshold") LocalDateTime threshold);
 }
