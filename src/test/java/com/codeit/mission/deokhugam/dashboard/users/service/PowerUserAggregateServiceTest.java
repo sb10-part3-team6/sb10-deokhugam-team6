@@ -13,7 +13,6 @@ import com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.dashboard.users.dto.UserStat;
 import com.codeit.mission.deokhugam.dashboard.users.entity.PowerUser;
 import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserRepository;
-
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
@@ -36,10 +35,10 @@ class PowerUserAggregateServiceTest {
   private CommentRepository commentRepository;
 
   @Mock
-  private ReviewRepository reviewRepository;
+  private ReviewLikeRepository reviewLikeRepository;
 
   @Mock
-  private ReviewLikeRepository reviewLikeRepository;
+  private ReviewRepository reviewRepository;
 
   @Mock
   private PowerUserRepository powerUserRepository;
@@ -124,6 +123,6 @@ class PowerUserAggregateServiceTest {
     assertEquals(4L, powerUser.getLikeCount());
     assertEquals(3L, powerUser.getCommentCount());
     assertEquals(7.7d, powerUser.getScore(), 0.0001d);
-    verifyNoInteractions(commentRepository, reviewRepository, reviewLikeRepository, powerUserRepository);
+    verifyNoInteractions(commentRepository, reviewRepository, powerUserRepository);
   }
 }

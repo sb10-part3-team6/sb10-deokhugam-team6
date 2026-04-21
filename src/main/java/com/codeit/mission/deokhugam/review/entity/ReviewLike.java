@@ -1,35 +1,56 @@
 package com.codeit.mission.deokhugam.review.entity;
 
 import com.codeit.mission.deokhugam.base.BaseEntity;
+import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@RequiredArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
-@Table( // 추후 schema.sql을 통해 테이블을 인식할 수 있도록 해야 할듯 싶습니다.
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
     name = "review_likes",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uk_reviews_likes_review_user", columnNames = {"review_id", "user_id"})
+      @UniqueConstraint(
+          name = "uk_review_user_like",
+          columnNames = {"review_id", "user_id"})
     })
 public class ReviewLike extends BaseEntity {
 
-  @Column(nullable = false)
-  private UUID userId;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "review_id", nullable = false)
+  private Review review;
 
-  @Column(nullable = false)
-  private UUID reviewId;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-  public ReviewLike(UUID userId, UUID reviewId){
-    this.reviewId = reviewId;
-    this.userId = userId;
+  @Column(name = "liked_at", nullable = false, updatable = false)
+  private LocalDateTime likedAt;
+
+  @Builder
+  public ReviewLike(Review review, User user, LocalDateTime likedAt) {
+    this.review = review;
+    this.user = user;
+    this.likedAt = likedAt;
+  }
+
+  // 리뷰 좋아요가 영속화 되는 시점마다 likedAt을 설정한다.
+  @PrePersist
+  void assignLikedAt() {
+    if (likedAt == null) {
+      likedAt = LocalDateTime.now();
+    }
   }
 }

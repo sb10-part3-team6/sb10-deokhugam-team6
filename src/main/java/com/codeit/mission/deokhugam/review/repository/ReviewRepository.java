@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.review.repository;
 
+import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserLikeCount;
 import com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
@@ -47,6 +48,10 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
           "WHERE review.id = :reviewId AND user.id = :userId")                    // 리뷰 id 및 사용자 id에 대한 완전 일치 조건
   boolean existsLikedByIdAndUserId(@Param("reviewId") UUID reviewId,
                                    @Param("userId") UUID userId);
+
+
+
+
 
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
   @Query(
