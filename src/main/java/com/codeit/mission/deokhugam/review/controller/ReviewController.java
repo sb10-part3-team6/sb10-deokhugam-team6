@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.review.controller;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
+import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +18,12 @@ import java.util.UUID;
  */
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/reviews")
 public class ReviewController {
     private final ReviewService reviewService;
 
     // 리뷰 상세 조회
-    @GetMapping("/api/reviews/{reviewId}")
+    @GetMapping("/{reviewId}")
     public ResponseEntity<ReviewDto> findById(@PathVariable UUID reviewId,
                                               @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
         ReviewDto response = reviewService.findById(reviewId, requestUserId);
@@ -32,7 +34,7 @@ public class ReviewController {
     // 리뷰 목록 조회
 
     // 리뷰 등록
-    @PostMapping("/api/reviews")
+    @PostMapping
     public ResponseEntity<ReviewDto> create(@Valid @RequestBody ReviewCreateRequest reviewCreateRequest) {
         ReviewDto response = reviewService.create(reviewCreateRequest);
 
@@ -40,7 +42,7 @@ public class ReviewController {
     }
 
     // 리뷰 수정
-    @PatchMapping("/api/reviews/{reviewId}")
+    @PatchMapping("/{reviewId}")
     public ResponseEntity<ReviewDto> update(@PathVariable UUID reviewId,
                                             @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
                                             @Valid @RequestBody ReviewUpdateRequest reviewUpdateRequest) {
@@ -50,7 +52,29 @@ public class ReviewController {
     }
 
     // 리뷰 논리 삭제
-    // 리뷰 물리 삭제
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID reviewId,
+                                       @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+        reviewService.delete(reviewId, requestUserId);
 
-    // 리뷰 좋아요
+        return ResponseEntity.noContent().build();
+    }
+
+    // 리뷰 물리 삭제
+    @DeleteMapping("/{reviewId}/hard")
+    public ResponseEntity<Void> hardDelete(@PathVariable UUID reviewId,
+                                           @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+        reviewService.hardDelete(reviewId, requestUserId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    // 리뷰 좋아요 추가 및 취소
+    @PostMapping("/{reviewId}/like")
+    public ResponseEntity<ReviewLikeDto> toggleLike(@PathVariable UUID reviewId,
+                                                    @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+        ReviewLikeDto response = reviewService.toggleLike(reviewId, requestUserId);
+
+        return ResponseEntity.ok(response);
+    }
 }
