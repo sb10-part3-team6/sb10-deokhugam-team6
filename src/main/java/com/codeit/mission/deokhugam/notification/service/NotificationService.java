@@ -78,9 +78,6 @@ public class NotificationService {
 
         if (!content.isEmpty()) {
             Notification last = content.get(content.size() - 1);
-
-            nextCursor = last.getCreatedAt().toString();
-            nextAfter = last.getCreatedAt();
         }
 
         List<NotificationDto> dtoContent = slice.getContent()
