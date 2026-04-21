@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record CursorPageResponseCommentDto(
-     List<Comment> content,
+     List<CommentDto> content,
      String nextCursor,
      LocalDateTime nextAfter,
      int size,

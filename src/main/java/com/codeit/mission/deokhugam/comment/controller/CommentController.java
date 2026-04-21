@@ -1,8 +1,10 @@
 package com.codeit.mission.deokhugam.comment.controller;
 
 import com.codeit.mission.deokhugam.comment.dto.request.CommentCreateRequest;
+import com.codeit.mission.deokhugam.comment.dto.request.CommentFindAllRequest;
 import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
+import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ public class CommentController {
 
     // 댓글 생성
     @PostMapping
-    public ResponseEntity<CommentDto> createComment(@Valid @RequestBody CommentCreateRequest request) {
+    public ResponseEntity<CommentDto> createComment(@Valid @ModelAttribute CommentCreateRequest request) {
         CommentDto commentDto = commentService.createComment(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(commentDto);
     }
@@ -29,7 +31,7 @@ public class CommentController {
     @PatchMapping(value = "/{commentId}")
     public ResponseEntity<CommentDto> updateComment(@PathVariable("commentId") UUID commentId,
                               @RequestParam UUID requestUserId,
-                              @Valid @RequestBody CommentUpdateRequest request){
+                              @Valid @ModelAttribute CommentUpdateRequest request){
         CommentDto commentDto = commentService.updateComment(commentId, requestUserId, request);
         return ResponseEntity.status(HttpStatus.OK).body(commentDto);
     }
@@ -39,5 +41,11 @@ public class CommentController {
     public ResponseEntity<CommentDto> getComment(@PathVariable("commentId") UUID commentId) {
         CommentDto commentDto = commentService.findComment(commentId);
         return ResponseEntity.status(HttpStatus.OK).body(commentDto);
+    }
+
+    // 댓글 목록 조회
+    @GetMapping
+    public CursorPageResponseCommentDto getComments(@Valid @ModelAttribute CommentFindAllRequest request) {
+        return commentService.findAll(request);
     }
 }

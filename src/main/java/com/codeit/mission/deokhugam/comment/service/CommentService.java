@@ -14,11 +14,13 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -70,10 +72,60 @@ public class CommentService {
     }
 
     // 댓글 목록 조회
-    public CursorPageResponseCommentDto findAllComments(CommentFindAllRequest request) {
-        List<Comment> comments = commentRepository;
+    public CursorPageResponseCommentDto findAll(CommentFindAllRequest request) {
+        int limit = normalizeLimit(request.limit());
 
-        return null;
+        List<Comment> comments = commentRepository.findAllByCursor(request);
+
+        boolean hasNext = comments.size() > limit;
+        if (hasNext) {
+            comments = comments.subList(0, limit);
+        }
+
+        Map<UUID, String> nicknameMap = userRepository.findAllById(
+                        comments.stream()
+                                .map(Comment::getUserId)
+                                .distinct()
+                                .toList()
+                ).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        User::getId,
+                        User::getNickname
+                ));
+
+        List<CommentDto> content = comments.stream()
+                .map(comment -> commentMapper.toDto(
+                        comment,
+                        nicknameMap.get(comment.getUserId())
+                ))
+                .toList();
+
+        String nextCursor = null;
+        LocalDateTime nextAfter = null;
+
+        if (hasNext && !comments.isEmpty()) {
+            Comment last = comments.get(comments.size() - 1);
+            nextCursor = last.getId().toString();
+            nextAfter = last.getCreatedAt();
+        }
+
+        int totalElements = commentRepository.countByReviewId(request.reviewId());
+
+        return new CursorPageResponseCommentDto(
+                content,
+                nextCursor,
+                nextAfter,
+                content.size(),
+                totalElements,
+                hasNext
+        );
+    }
+
+    private int normalizeLimit(int limit) {
+        if (limit <= 0) {
+            return 10;
+        }
+        return Math.min(limit, 100);
     }
 
     // 리뷰가 존재하는지 검증

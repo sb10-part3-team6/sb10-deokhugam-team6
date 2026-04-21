@@ -6,7 +6,5 @@ import com.codeit.mission.deokhugam.comment.entity.Comment;
 import java.util.List;
 
 public interface CommentRepositoryCustom {
-    List<Comment> filter(CommentFindAllRequest request);
-    int count(CommentFindAllRequest request);
-    List<Comment> exports(CommentFindAllRequest request);
+    List<Comment> findAllByCursor(CommentFindAllRequest request);
 }

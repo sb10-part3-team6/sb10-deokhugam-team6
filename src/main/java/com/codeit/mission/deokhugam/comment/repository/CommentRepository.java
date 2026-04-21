@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentRepositoryCustom {
+  int countByReviewId(UUID reviewId);
 
   // 파워 유저 집계할 때 기간 별 댓글 개수를 가져오는 레포지토리 메서드
   @Query(
