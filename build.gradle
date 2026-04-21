@@ -73,9 +73,6 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-    filter {
-        includeTestsMatching 'com.codeit.mission.deokhugam.dashboard.users.*'
-    }
     finalizedBy tasks.named('jacocoTestReport')
 }
 
