@@ -22,7 +22,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 @Table( // 추후 schema.sql을 통해 테이블을 인식할 수 있도록 해야 할듯 싶습니다.
-    name = "reviews_likes",
+    name = "review_likes",
     uniqueConstraints = {
       @UniqueConstraint(name = "uk_reviews_likes_review_user", columnNames = {"review_id", "user_id"})
     })

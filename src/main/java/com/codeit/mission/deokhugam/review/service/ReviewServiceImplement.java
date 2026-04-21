@@ -8,9 +8,11 @@ import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.review.entity.ReviewLike;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.*;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
+import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
@@ -30,6 +32,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class ReviewServiceImplement implements ReviewService {
     private final ReviewRepository reviewRepository;
+    private final ReviewLikeRepository reviewLikeRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
@@ -145,6 +148,9 @@ public class ReviewServiceImplement implements ReviewService {
 
         // 3. 리뷰 물리 삭제
         reviewRepository.delete(targetReview);
+
+        // 4. 리뷰 좋아요 물리 삭제
+        reviewLikeRepository.delete(reviewLikeRepository.findByUserIdAndReviewId(id, targetReview.getId()));
     }
 
     // 리뷰 좋아요 추가 및 취소
@@ -154,6 +160,7 @@ public class ReviewServiceImplement implements ReviewService {
         // 1. 좋아요를 생성할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
         Review targetReview = getReviewEntityOrThrow(id);
         User requestUser = getUserEntityOrThrow(requestUserId);
+
 
         // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
         validateReviewActive(targetReview);
@@ -213,6 +220,8 @@ public class ReviewServiceImplement implements ReviewService {
     private void processAddLike(Review review, User user) {
         // 1. 여러 사용자의 요청을 동시에 처리하기 위해 데이터베이스 직접 수정 (likeCount += 1)
         reviewRepository.incrementLikes(review.getId());
+        reviewLikeRepository.save(new ReviewLike(user.getId(), review.getId()));
+
 
         // 2. 특정 도서의 좋아요를 남긴 사용자 목록 업데이트 (추가)
         review.incrementLikesCount(user);
@@ -225,6 +234,9 @@ public class ReviewServiceImplement implements ReviewService {
     private void processRemoveLike(Review review, User user) {
         // 1. 실제 삭제된 특정 리뷰에 대한 사용자의 좋아요 수 반환
         int deletedCount = reviewRepository.deleteReviewLike(review.getId(), user.getId());
+
+        // reviewLike 메타 정보도 지움
+        reviewLikeRepository.deleteByUserIdAndReviewId(user.getId(), review.getId());
 
         // 실제 삭제된 데이터가 있을 때만, likeCount 감소
         if (deletedCount > 0) {
