@@ -23,38 +23,17 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   // 중복 검사: 특정 도서에 대한 사용자 리뷰 존재 유무
   boolean existsByBookIdAndUserId(UUID bookId, UUID userId);
 
-  // 좋아요 수 증가
-  @Modifying
-  @Query("UPDATE Review review SET review.likeCount = review.likeCount + 1 " +
-      "WHERE review.id = :id")
-  void incrementLikes(@Param("id") UUID id);
-
-  // 좋아요 수 감소
-  @Modifying
-  @Query("UPDATE Review review SET review.likeCount = review.likeCount - 1 " +
-      "WHERE review.id = :id")
-  void decrementLikes(@Param("id") UUID id);
-
-  // 좋아요 삭제
-  @Modifying
-  @Query(value = "DELETE FROM review_likes " +
-      "WHERE review_id = :reviewId AND user_id = :userId",
-      nativeQuery = true)
-  int deleteReviewLike(@Param("reviewId") UUID reviewId, @Param("userId") UUID userId);
-
   // 특정 리뷰에 대한 특정 유저의 좋아요 여부
-  @Query("SELECT COUNT(review.id) > 0 " +                       // 조건 만족 여부에 따라, true / false 반환
-      "FROM Review review " +
-      "JOIN review.likedUsers user " +                          // Review 엔티티 내부 likedUser 필드 조인
-      "WHERE review.id = :reviewId AND user.id = :userId")
+  @Query("SELECT COUNT(reviewLike.id) > 0 " +// 조건 만족 여부에 따라, true / false 반환
+      "FROM ReviewLike reviewLike " +
+      "WHERE reviewLike.review.id = :reviewId AND reviewLike.user.id = :userId")
   boolean existsLikedByIdAndUserId(@Param("reviewId") UUID reviewId,
       @Param("userId") UUID userId);
 
   // 특정 사용자가 좋아요를 누른 리뷰 목록 조회
-  @Query("SELECT review.id " +
-      "FROM Review review " +
-      "JOIN review.likedUsers user " +
-      "WHERE user.id = :userId AND review.id IN :reviewIds")
+  @Query("SELECT reviewLike.review.id " +
+      "FROM ReviewLike reviewLike " +
+      "WHERE reviewLike.user.id = :userId AND reviewLike.review.id IN :reviewIds")
   List<UUID> findLikedReviewIds(@Param("userId") UUID userId,
       @Param("reviewIds") List<UUID> reviewIds);
 
