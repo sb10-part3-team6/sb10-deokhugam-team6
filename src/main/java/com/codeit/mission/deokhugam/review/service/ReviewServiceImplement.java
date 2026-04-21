@@ -10,6 +10,7 @@ import com.codeit.mission.deokhugam.review.dto.response.CursorPageResponseReview
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.review.entity.ReviewLike;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
@@ -17,6 +18,7 @@ import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchExcepti
 import com.codeit.mission.deokhugam.review.exception.ReviewLikeNotFoundException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
+import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
@@ -39,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewServiceImplement implements ReviewService {
 
   private final ReviewRepository reviewRepository;
+  private final ReviewLikeRepository reviewLikeRepository;
   private final BookRepository bookRepository;
   private final UserRepository userRepository;
 
@@ -94,7 +97,7 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 5. 목록 조회 요청자가 좋아요를 누린 리뷰 ID 목록
     List<UUID> reviewLikeIds = (requestUserId != null && !reviewIds.isEmpty())
-        ? reviewRepository.findLikedReviewIds(requestUserId, reviewIds)
+        ? reviewLikeRepository.findLikedReviewIds(requestUserId, reviewIds)
         : Collections.emptyList();
 
     // 6. Review -> ReviewDto 변환
@@ -256,11 +259,18 @@ public class ReviewServiceImplement implements ReviewService {
         .orElseThrow(() -> new UserNotFoundException(userId));
   }
 
+  // ReviewLike 엔티티 반환
+  private ReviewLike getReviewLikeEntityOrThrow(UUID reviewId, UUID userId) {
+    return reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId);
+  }
+
   // 좋아요 추가 및 생성 동시성 문제 해결을 위한 메서드
   private boolean executeToggleWithConcurrencyHandle(Review review, User requestUser) {
     try {
+      boolean isLiked = isReviewLiked(review.getId(), requestUser.getId());
+
       // 특정 리뷰에 대한 사용자의 좋아요가 존재하지 않을 경우, 좋아요 추가
-      if (!isReviewLiked(review.getId(), requestUser.getId())) {
+      if (!isLiked) {
         processAddLike(review, requestUser);
         return true;
       } else {
@@ -278,13 +288,23 @@ public class ReviewServiceImplement implements ReviewService {
     }
   }
 
+  // 좋아요 생성
+  private ReviewLike createReviewLike(Review review, User user) {
+    return ReviewLike.builder()
+        .review(review)
+        .user(user)
+        .likedAt(LocalDateTime.now())
+        .build();
+  }
+
   // 좋아요 수 증가
   private void processAddLike(Review review, User user) {
-    // 1. 여러 사용자의 요청을 동시에 처리하기 위해 데이터베이스 직접 수정 (likeCount += 1)
-    reviewRepository.incrementLikes(review.getId());
+    // 1. 좋아요 생성
+    ReviewLike createdReviewLike = createReviewLike(review, user);
+    reviewLikeRepository.save(createdReviewLike);
 
     // 2. 특정 도서의 좋아요를 남긴 사용자 목록 업데이트 (추가)
-    review.incrementLikesCount(user);
+    review.addReviewLike(createdReviewLike);
 
     // 3. 데이터베이스 즉시 반영
     reviewRepository.saveAndFlush(review);
@@ -292,19 +312,17 @@ public class ReviewServiceImplement implements ReviewService {
 
   // 좋아요 수 감소
   private void processRemoveLike(Review review, User user) {
-    // 1. 실제 삭제된 특정 리뷰에 대한 사용자의 좋아요 수 반환
-    int deletedCount = reviewRepository.deleteReviewLike(review.getId(), user.getId());
+    // 1. 삭제할 리뷰 좋아요 조회
+    ReviewLike targetReviewLike = getReviewLikeEntityOrThrow(review.getId(), user.getId());
 
-    // 실제 삭제된 데이터가 있을 때만, likeCount 감소
-    if (deletedCount > 0) {
-      // 2. 여러 사용자의 요청을 동시에 처리하기 위해 데이터베이스 직접 수정 (likeCount -= 1)
-      reviewRepository.decrementLikes(review.getId());
-      // 3. 특정 도서의 좋아요를 남긴 사용자 목록 업데이트 (제거)
-      review.decrementLikesCount(user);
-    } else {
-      // 이미 다른 스레드가 삭제했다면 아무것도 하지 않거나 예외 처리
-      throw new ReviewLikeNotFoundException(review.getId(), user.getId());
-    }
+    // 2. 리뷰 좋아요 삭제
+    reviewLikeRepository.delete(targetReviewLike);
+
+    // 3. 특정 사용자의 리뷰 좋아요 목록에서 삭제
+    review.removeReviewLike(targetReviewLike);
+
+    // 4. 데이터베이스 즉시 반영
+    reviewRepository.saveAndFlush(review);
   }
 
   // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
@@ -332,7 +350,7 @@ public class ReviewServiceImplement implements ReviewService {
 
   // 특정 사용자의 리뷰 좋아요 여부 확인
   private boolean isReviewLiked(UUID reviewId, UUID userId) {
-    return reviewRepository.existsLikedByIdAndUserId(reviewId, userId);
+    return reviewLikeRepository.existsLikedByIdAndUserId(reviewId, userId);
   }
 
   // 유니크 제약 조건 (uk_book_user) 위반 확인: 발생한 예외가 중복 리뷰 예외에 해당하는지 확인

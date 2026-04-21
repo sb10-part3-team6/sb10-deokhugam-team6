@@ -2,7 +2,6 @@ package com.codeit.mission.deokhugam.review.repository;
 
 import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserLikeCount;
 import com.codeit.mission.deokhugam.review.entity.ReviewLike;
-import com.codeit.mission.deokhugam.user.entity.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -33,4 +32,18 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, UUID> {
 
   // 리뷰 ID 및 사용자 ID를 통한 리뷰 좋아요 조회
   ReviewLike findByReviewIdAndUserId(UUID reviewId, UUID userId);
+
+  // 특정 리뷰에 대한 특정 유저의 좋아요 여부
+  @Query("SELECT COUNT(reviewLike.id) > 0 " +
+      "FROM ReviewLike reviewLike " +
+      "WHERE reviewLike.review.id = :reviewId AND reviewLike.user.id = :userId")
+  boolean existsLikedByIdAndUserId(@Param("reviewId") UUID reviewId,
+      @Param("userId") UUID userId);
+
+  // 특정 사용자가 좋아요를 누른 리뷰 목록 조회
+  @Query("SELECT reviewLike.review.id " +
+      "FROM ReviewLike reviewLike " +
+      "WHERE reviewLike.user.id = :userId AND reviewLike.review.id IN :reviewIds")
+  List<UUID> findLikedReviewIds(@Param("userId") UUID userId,
+      @Param("reviewIds") List<UUID> reviewIds);
 }
