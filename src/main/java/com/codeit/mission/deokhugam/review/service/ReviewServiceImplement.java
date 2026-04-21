@@ -15,7 +15,6 @@ import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
-import com.codeit.mission.deokhugam.review.exception.ReviewLikeNotFoundException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
@@ -68,7 +67,7 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   public CursorPageResponseReviewDto<ReviewDto> findAllByKeyword(UUID requestUserId,
       ReviewSearchConditionDto condition) {
-    // 1. 필터링 + 정렬 + 커서 기반 페이지네이션이 적용된 연동 작업 리스트
+    // 1. 필터링 + 정렬 + 커서 기반 페이지네이션이 적용된 리뷰 좋아요 리스트
     List<Review> reviews = reviewRepository.searchReviews(condition);
 
     // 2. 다음 페이지 유무 확인 | 11개를 가져왔다면 다음 페이지가 존재하는 것
@@ -95,7 +94,7 @@ public class ReviewServiceImplement implements ReviewService {
         .map(Review::getId)
         .toList();
 
-    // 5. 목록 조회 요청자가 좋아요를 누린 리뷰 ID 목록
+    // 5. 목록 조회 요청자가 좋아요를 누른 리뷰 ID 목록
     List<UUID> reviewLikeIds = (requestUserId != null && !reviewIds.isEmpty())
         ? reviewLikeRepository.findLikedReviewIds(requestUserId, reviewIds)
         : Collections.emptyList();
@@ -108,7 +107,7 @@ public class ReviewServiceImplement implements ReviewService {
         })
         .toList();
 
-    // 7. 연동 작업 전체 개수 저장
+    // 7. 리뷰 좋아요 전체 개수 저장
     long totalElements = reviewRepository.countWithFilter(condition);
 
     // 8. 페이징 응답 DTO 생성 및 반환
@@ -241,29 +240,6 @@ public class ReviewServiceImplement implements ReviewService {
         .build();
   }
 
-  // Review 엔티티 반환
-  private Review getReviewEntityOrThrow(UUID id) {
-    return reviewRepository.findById(id)
-        .orElseThrow(() -> new ReviewNotFoundException(id));
-  }
-
-  // Book 엔티티 반환
-  private Book getBookEntityOrThrow(UUID bookId) {
-    return bookRepository.findById(bookId)
-        .orElseThrow(BookNotFoundException::new);
-  }
-
-  // User 엔티티 반환
-  private User getUserEntityOrThrow(UUID userId) {
-    return userRepository.findById(userId)
-        .orElseThrow(() -> new UserNotFoundException(userId));
-  }
-
-  // ReviewLike 엔티티 반환
-  private ReviewLike getReviewLikeEntityOrThrow(UUID reviewId, UUID userId) {
-    return reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId);
-  }
-
   // 좋아요 추가 및 생성 동시성 문제 해결을 위한 메서드
   private boolean executeToggleWithConcurrencyHandle(Review review, User requestUser) {
     try {
@@ -288,15 +264,6 @@ public class ReviewServiceImplement implements ReviewService {
     }
   }
 
-  // 좋아요 생성
-  private ReviewLike createReviewLike(Review review, User user) {
-    return ReviewLike.builder()
-        .review(review)
-        .user(user)
-        .likedAt(LocalDateTime.now())
-        .build();
-  }
-
   // 좋아요 수 증가
   private void processAddLike(Review review, User user) {
     // 1. 좋아요 생성
@@ -308,6 +275,14 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 3. 데이터베이스 즉시 반영
     reviewRepository.saveAndFlush(review);
+  }
+
+  // 리뷰 좋아요 생성
+  private ReviewLike createReviewLike(Review review, User user) {
+    return ReviewLike.builder()
+        .review(review)
+        .user(user)
+        .build();
   }
 
   // 좋아요 수 감소
@@ -323,6 +298,29 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 4. 데이터베이스 즉시 반영
     reviewRepository.saveAndFlush(review);
+  }
+
+  // Review 엔티티 반환
+  private Review getReviewEntityOrThrow(UUID id) {
+    return reviewRepository.findById(id)
+        .orElseThrow(() -> new ReviewNotFoundException(id));
+  }
+
+  // Book 엔티티 반환
+  private Book getBookEntityOrThrow(UUID bookId) {
+    return bookRepository.findById(bookId)
+        .orElseThrow(BookNotFoundException::new);
+  }
+
+  // User 엔티티 반환
+  private User getUserEntityOrThrow(UUID userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(userId));
+  }
+
+  // ReviewLike 엔티티 반환
+  private ReviewLike getReviewLikeEntityOrThrow(UUID reviewId, UUID userId) {
+    return reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId);
   }
 
   // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
