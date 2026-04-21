@@ -32,6 +32,7 @@ class UserRepositoryTest {
   @DisplayName("논리 삭제 후 1일이 지난 유저만 정확히 조회되는지 확인")
   void findDeletedUserIdsOlderThan_Success() {
     // given
+    LocalDateTime now = LocalDateTime.now();
     User oldDeletedUser = createUser("old@example.com", "오래된탈퇴자");
     User recentDeletedUser = createUser("recent@example.com", "최근탈퇴자");
     User activeUser = createUser("active@example.com", "활동중유저");
@@ -41,14 +42,14 @@ class UserRepositoryTest {
 
     // 직접 쿼리로 상태와 시간을 조작
     updateUserStatusAndTime(oldDeletedUser.getId(), UserStatus.DELETED,
-        LocalDateTime.now().minusDays(2));
+        now.minusDays(2));
     updateUserStatusAndTime(recentDeletedUser.getId(), UserStatus.DELETED,
-        LocalDateTime.now().minusHours(1));
+        now.minusHours(1));
 
     entityManager.clear();
 
     // when
-    LocalDateTime threshold = LocalDateTime.now().minusDays(1);
+    LocalDateTime threshold = now.minusDays(1);
     Page<UUID> deletedIds = userRepository.findDeletedUserIdsOlderThan(threshold,
         PageRequest.of(0, 10));
 
@@ -69,6 +70,7 @@ class UserRepositoryTest {
   @DisplayName("물리 삭제(Hard Delete) 쿼리가 대상 유저만 정확히 삭제하는지 확인")
   void hardDeleteByIds_Success() {
     // given
+    LocalDateTime now = LocalDateTime.now();
     User targetUser = createUser("target@example.com", "오래된탈퇴자");
     User activeUser = createUser("active@example.com", "활동중유저");
     User recentDeletedUser = createUser("recent@example.com", "최근탈퇴자");
@@ -77,13 +79,13 @@ class UserRepositoryTest {
     entityManager.flush();
 
     updateUserStatusAndTime(targetUser.getId(), UserStatus.DELETED,
-        LocalDateTime.now().minusDays(2));
+        now.minusDays(2));
     updateUserStatusAndTime(recentDeletedUser.getId(), UserStatus.DELETED,
-        LocalDateTime.now());
+        now);
     entityManager.clear();
 
     // when
-    LocalDateTime threshold = LocalDateTime.now().minusDays(1);
+    LocalDateTime threshold = now.minusDays(1);
     userRepository.hardDeleteByIds(
         List.of(targetUser.getId(), activeUser.getId(), recentDeletedUser.getId()), threshold);
 
