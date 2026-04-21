@@ -17,7 +17,7 @@ public class PowerUserAggregationJobListener implements JobExecutionListener {
 
   private final PowerUserSnapshotService powerUserSnapshotService;
 
-  // 배치 작업 시작 전 실행되는 메서드
+  // 배치 작업 종료 후 실행되는 메서드
   @Override
   public void afterJob(JobExecution jobExecution) { // JobExecution => 이번 배치 실행 1회분의 실행 기록 객체
     /*
@@ -52,7 +52,14 @@ public class PowerUserAggregationJobListener implements JobExecutionListener {
       return;
     }
 
+    UUID snapshotId;
     // 스냅샷 id가 존재하면 SnapshotService 계층에서 해당 Job Fail처리함.
+    try{
+      snapshotId = UUID.fromString(snapshotIdValue);
+    } catch(IllegalArgumentException e){
+      return;
+    }
+
     powerUserSnapshotService.failSnapshot(UUID.fromString(snapshotIdValue));
   }
 }
