@@ -13,9 +13,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
 
-  void deleteByPeriodTypeAndPeriodStartAndPeriodEnd(
-      PeriodType periodType, LocalDateTime periodStart, LocalDateTime periodEnd);
-
   @Query(
       """
       select new com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserDto(
