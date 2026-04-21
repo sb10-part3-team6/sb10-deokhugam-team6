@@ -22,8 +22,8 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom{
 
     @Override
     public List<Comment> findAllByCursor(CommentFindAllRequest request) {
-        String direction = normalizeDirection(request.direction());
-        int limit = normalizeLimit(request.limit());
+        String direction = request.direction();
+        int limit = request.limit();
 
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(comment.reviewId.eq(request.reviewId()));
@@ -56,7 +56,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom{
 
         BooleanBuilder builder = new BooleanBuilder();
 
-        if ("asc".equals(direction)) {
+        if ("ASC".equals(direction)) {
             builder.or(comment.createdAt.gt(after));
 
             if (cursor != null) {
@@ -80,27 +80,16 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom{
     }
     private OrderSpecifier<LocalDateTime> createdAtOrder(String direction) {
         return new OrderSpecifier<>(
-                "asc".equals(direction) ? Order.ASC : Order.DESC,
+                "ASC".equals(direction) ? Order.ASC : Order.DESC,
                 comment.createdAt
         );
     }
 
     private OrderSpecifier<UUID> idOrder(String direction) {
         return new OrderSpecifier<>(
-                "asc".equals(direction) ? Order.ASC : Order.DESC,
+                "ASC".equals(direction) ? Order.ASC : Order.DESC,
                 comment.id
         );
-    }
-
-    private String normalizeDirection(String direction) {
-        return "asc".equalsIgnoreCase(direction) ? "asc" : "desc";
-    }
-
-    private int normalizeLimit(int limit) {
-        if (limit <= 0) {
-            return 50;
-        }
-        return Math.min(limit, 100);
     }
 
     private UUID parseCursor(String cursor) {

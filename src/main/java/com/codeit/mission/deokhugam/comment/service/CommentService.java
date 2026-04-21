@@ -73,7 +73,6 @@ public class CommentService {
     public CursorPageResponseCommentDto findAllComments(CommentFindAllRequest request) {
         validReviewExists(request.reviewId());
         int limit = request.limit();
-
         List<Comment> comments = commentRepository.findAllByCursor(request);
 
         boolean hasNext = comments.size() > limit;
@@ -126,12 +125,5 @@ public class CommentService {
         if (!reviewRepository.existsById(reviewId)) {
             throw new EntityNotFoundException("리뷰가 존재하지 않습니다.");
         }
-    }
-
-    private int normalizeLimit(int limit) {
-        if (limit <= 0) {
-            return 50;
-        }
-        return Math.min(100, limit);
     }
 }
