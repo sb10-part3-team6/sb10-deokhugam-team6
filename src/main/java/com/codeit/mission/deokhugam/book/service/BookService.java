@@ -1,29 +1,28 @@
 package com.codeit.mission.deokhugam.book.service;
 
-import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
-import com.codeit.mission.deokhugam.book.dto.BookDto;
-import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
-import com.codeit.mission.deokhugam.book.dto.NaverResponseDto;
+import com.codeit.mission.deokhugam.book.dto.*;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.exception.*;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
-import com.codeit.mission.deokhugam.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
-
-import static com.codeit.mission.deokhugam.error.ErrorCode.BOOK_NOT_FOUND;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.V4RequestSigner.header;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Service
@@ -37,9 +36,13 @@ public class BookService {
     private static final String NAVER_BOOK_API_URL = "https://openapi.naver.com/v1/search/book_adv";
 
     @Value("${naverapi.client-id}")
-    private String NAVER_CLIENT_ID;
+    private String naverClientId;
     @Value("${naverapi.client-secret}")
-    private String NAVER_CLIENT_SECRET;
+    private String naverClientSecret;
+    @Value("${ocr.url}")
+    private String ocrUrl;
+    @Value("${ocr.apikey}")
+    private String ocrApiKey;
 
     //도서 생성 메서드
     @Transactional
@@ -89,8 +92,8 @@ public class BookService {
 
         NaverResponseDto response = webClient.get()
                 .uri(NAVER_BOOK_API_URL + "?d_isbn=" + isbn)
-                .header("X-Naver-Client-Id", NAVER_CLIENT_ID)
-                .header("X-Naver-Client-Secret", NAVER_CLIENT_SECRET)
+                .header("X-Naver-Client-Id", naverClientId)
+                .header("X-Naver-Client-Secret", naverClientSecret)
                 .retrieve()
                 .onStatus(
                         status -> status.is4xxClientError(),
@@ -101,7 +104,7 @@ public class BookService {
                         res -> Mono.error(new ExternalApiErrorException())
                 )
                 .bodyToMono(NaverResponseDto.class)
-                .block();
+                .block(Duration.ofSeconds(5));
 
         //응답값이 없으면 예외 처리
         if(response == null ||  response.items() == null || response.items().isEmpty()) {
@@ -132,11 +135,92 @@ public class BookService {
                     .uri(imageUrl)
                     .retrieve()
                     .bodyToMono(byte[].class)
-                    .block();
+                    .block(Duration.ofSeconds(5));
         }catch (Exception e){
             //이미지 로딩 실패시 null
             return null;
         }
+    }
+
+    //이미지 기반 ISBN 인식 로직
+    public String ocrIsbnDetect(MultipartFile image){
+        OcrResponse response = webClient.post()
+                .uri(ocrUrl)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(BodyInserters.fromMultipartData("apikey", ocrApiKey)
+                        .with("language", "eng")
+                        .with("file", image.getResource()))
+                .retrieve()
+                .onStatus(
+                        HttpStatusCode::is4xxClientError,
+                        res -> Mono.error(new ExternalApiErrorException())
+                )
+                .onStatus(
+                        HttpStatusCode::is5xxServerError,
+                        res -> Mono.error(new ExternalApiErrorException())
+                )
+                .bodyToMono(OcrResponse.class)
+                .block(Duration.ofSeconds(5));
+
+        if(response == null || response.parsedResults() == null || response.parsedResults().isEmpty()) {
+            throw new ExternalApiErrorException();
+        }
+
+        if(response.parsedResults().get(0) == null) {
+            throw new OcrFailedException();
+        }
+
+        String parsedText = response.parsedResults().get(0).parsedText();
+
+        if(parsedText == null || parsedText.isBlank()) {
+            throw new OcrFailedException();
+        }
+
+        return extractIsbn(parsedText);
+    }
+
+    private String extractIsbn(String text) {
+
+        // 1. 라인 분리
+        List<String> lines = Arrays.asList(text.split("\n"));
+
+        // 2. ISBN 포함 라인 필터링
+        List<String> candidateLines = lines.stream()
+                .filter(line -> line.toUpperCase().contains("ISBN"))
+                .toList();
+
+        // fallback: 없으면 전체 라인 사용
+        if (candidateLines.isEmpty()) {
+            candidateLines = lines;
+        }
+
+        // 3. 정규식
+        Pattern pattern = Pattern.compile("(97[89][- ]?\\d{1,5}[- ]?\\d+[- ]?\\d+[- ]?\\d)");
+
+        for (String line : candidateLines) {
+
+            // 4. 라인 단위 OCR 보정
+            String normalizedLine = line
+                    .replace("O", "0").replace("o", "0")
+                    .replace("I", "1").replace("i", "1")
+                    .replace("S", "5").replace("s", "5");
+
+            Matcher matcher = pattern.matcher(normalizedLine);
+
+            while (matcher.find()) {
+                String raw = matcher.group();
+
+                // 5. 숫자만 남기기
+                String isbn = raw.replaceAll("[^0-9X]", "");
+
+                // 6. 검증
+                if (isbn.length() == 13 && isValidIsbn13(isbn)) {
+                    return isbn;
+                }
+            }
+        }
+
+        throw new OcrFailedException();
     }
 
     //유효한지 여부 확인하고 예외 던지는 메서드

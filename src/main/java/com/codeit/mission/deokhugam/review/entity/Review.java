@@ -2,7 +2,6 @@ package com.codeit.mission.deokhugam.review.entity;
 
 import com.codeit.mission.deokhugam.base.BaseEntity;
 import com.codeit.mission.deokhugam.book.entity.Book;
-import com.codeit.mission.deokhugam.error.ErrorCode;
 import com.codeit.mission.deokhugam.review.exception.InvalidReviewRatingRangeException;
 import com.codeit.mission.deokhugam.review.exception.ReviewContentBlankException;
 import com.codeit.mission.deokhugam.user.entity.User;
@@ -17,7 +16,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /*
     Review
@@ -59,7 +57,13 @@ public class Review extends BaseEntity {
     @JoinTable(
         name = "review_likes",
         joinColumns = @JoinColumn(name = "review_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
+        inverseJoinColumns = @JoinColumn(name = "user_id"),
+            uniqueConstraints = {
+                    @UniqueConstraint(
+                            name = "uk_review_user_like",
+                            columnNames = {"review_id", "user_id"}
+                    )
+            }
     )
     private List<User> likedUsers = new ArrayList<>();           // 특정 리뷰에 좋아요를 누른 사용자 목록
 
@@ -123,7 +127,6 @@ public class Review extends BaseEntity {
         // 특정 리뷰에 대한 사용자의 좋아요 중복 방지
         if (!this.likedUsers.contains(user)) {
             this.likedUsers.add(user);
-            this.likeCount += 1;
         }
     }
 
@@ -131,7 +134,6 @@ public class Review extends BaseEntity {
     public void decrementLikesCount(User user) {
         if (this.likeCount > 0 && this.likedUsers.contains(user)) {
             this.likedUsers.remove(user);
-            this.likeCount -= 1;
         }
     }
 
