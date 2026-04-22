@@ -7,13 +7,14 @@ import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
 import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
 import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
+import com.codeit.mission.deokhugam.comment.exception.CommentNotFoundException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -119,7 +120,7 @@ public class CommentServiceTest {
 
         // then
         assertThatThrownBy(() -> commentService.createComment(request))
-                .isInstanceOf(EntityNotFoundException.class);
+                .isInstanceOf(ReviewNotFoundException.class);
     }
 
     @Test
@@ -151,7 +152,7 @@ public class CommentServiceTest {
 
         // then
         assertThatThrownBy(() -> commentService.updateComment(commentId, userId, request))
-                .isInstanceOf(EntityNotFoundException.class);
+                .isInstanceOf(CommentNotFoundException.class);
     }
 
     @Test
@@ -195,7 +196,7 @@ public class CommentServiceTest {
 
         // then
         assertThatThrownBy(() -> commentService.findComment(commentId))
-                .isInstanceOf(EntityNotFoundException.class);
+                .isInstanceOf(CommentNotFoundException.class);
     }
 
     @Test
@@ -264,7 +265,7 @@ public class CommentServiceTest {
 
         // when & then
         assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
-                .isInstanceOf(EntityNotFoundException.class);
+                .isInstanceOf(ReviewNotFoundException.class);
 
         verify(reviewRepository).existsById(reviewId);
         verify(commentRepository, never()).findAllByCursor(any());
@@ -296,7 +297,6 @@ public class CommentServiceTest {
 
         User otherUser = mock(User.class);
         when(otherUser.getId()).thenReturn(otherUserId);
-        when(otherUser.getNickname()).thenReturn("otherUser");
 
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
         given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));
@@ -337,7 +337,6 @@ public class CommentServiceTest {
 
         User otherUser = mock(User.class);
         when(otherUser.getId()).thenReturn(otherUserId);
-        when(otherUser.getNickname()).thenReturn("otherUser");
 
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
         given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));

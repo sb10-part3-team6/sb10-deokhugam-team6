@@ -49,6 +49,7 @@ public class CommentService {
                 .reviewId(request.reviewId())
                 .userId(request.userId())
                 .content(request.content())
+                .status(CommentStatus.ACTIVE)
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
@@ -71,6 +72,7 @@ public class CommentService {
     }
 
     // 댓글 조회
+    @Transactional(readOnly = true)
     public CommentDto findComment(UUID commentId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
         User user = userRepository.findById(comment.getUserId()).orElseThrow(EntityNotFoundException::new);
@@ -78,6 +80,7 @@ public class CommentService {
     }
 
     // 댓글 목록 조회
+    @Transactional(readOnly = true)
     public CursorPageResponseCommentDto findAllComments(CommentFindAllRequest request) {
         validReviewExists(request.reviewId());
         int limit = request.limit();
@@ -128,9 +131,10 @@ public class CommentService {
     }
 
     // 댓글 논리 삭제
+    @Transactional
     public void softDelete(UUID commentId, UUID requestUserId) {
         Comment comment = validCommentExists(commentId);
-        User requestUser = validUserExists(requestUserId);
+        validUserExists(requestUserId);
         if (!comment.getUserId().equals(requestUserId)) {
             throw new CommentAuthorException();
         }
@@ -138,9 +142,10 @@ public class CommentService {
     }
 
     // 댓글 물리 삭제
+    @Transactional
     public void hardDelete(UUID commentId, UUID requestUserId) {
         Comment comment = validCommentExists(commentId);
-        User requestUser = validUserExists(requestUserId);
+        validUserExists(requestUserId);
         if (!comment.getUserId().equals(requestUserId)) {
             throw new CommentAuthorException();
         }

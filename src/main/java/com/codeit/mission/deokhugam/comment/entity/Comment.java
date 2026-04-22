@@ -40,7 +40,7 @@ public class Comment extends BaseEntity {
         this.userId = Objects.requireNonNull(userId);
         validateContent(content);
         this.content = content;
-        this.status = status;
+        this.status = Objects.requireNonNull(status);
     }
 
     // 댓글 수정
@@ -51,6 +51,7 @@ public class Comment extends BaseEntity {
 
     // 댓글 상태 변경
     public void updateStatus(CommentStatus status) {
+        Objects.requireNonNull(status);
         this.status = status;
     }
 
