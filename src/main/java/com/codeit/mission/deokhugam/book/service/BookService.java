@@ -268,6 +268,7 @@ public class BookService {
     }
 
     //책 정보 수정 메서드
+    @Transactional
     public BookDto updateBook(UUID id, BookUpdateRequest request, MultipartFile image){
         Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
 
