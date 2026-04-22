@@ -290,15 +290,16 @@ public class ReviewServiceImplement implements ReviewService {
 
   // 좋아요 수 감소
   private void processRemoveLike(Review review, User user) {
-    // 1. 삭제할 리뷰 좋아요 조회
-    ReviewLike targetReviewLike = getReviewLikeEntityOrThrow(review.getId(), user.getId());
+    // 1. 삭제할 리뷰 좋아요 조회: 해당 리뷰가 존재할 때만 삭제 로직 수행
+    reviewLikeRepository.findByReviewIdAndUserId(review.getId(), user.getId())
+        .ifPresent(targetReviewLike -> {
+          // 2. 리뷰 좋아요 삭제
+          reviewLikeRepository.delete(targetReviewLike);
+          reviewLikeRepository.flush();
 
-    // 2. 리뷰 좋아요 삭제
-    reviewLikeRepository.delete(targetReviewLike);
-    reviewLikeRepository.flush();
-
-    // 3. 특정 리뷰의 좋아요 수 감소
-    reviewRepository.decrementLikeCount(review.getId());
+          // 3. 좋아요 수 감소
+          reviewRepository.decrementLikeCount(review.getId());
+        });
   }
 
   // Review 엔티티 반환
@@ -317,12 +318,6 @@ public class ReviewServiceImplement implements ReviewService {
   private User getUserEntityOrThrow(UUID userId) {
     return userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException(userId));
-  }
-
-  // ReviewLike 엔티티 반환
-  private ReviewLike getReviewLikeEntityOrThrow(UUID reviewId, UUID userId) {
-    return reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId)
-        .orElseThrow(() -> new ReviewLikeNotFoundException(reviewId, userId));
   }
 
   // ReviewLike ID 목록 조회
