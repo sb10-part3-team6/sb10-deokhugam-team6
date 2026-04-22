@@ -32,6 +32,16 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   @Query("UPDATE Review review SET review.likeCount = review.likeCount - 1 WHERE review.id = :reviewId AND review.likeCount > 0")
   void decrementLikeCount(@Param("reviewId") UUID reviewId);
 
+  // 댓글 수 증가
+  @Modifying(clearAutomatically = true)
+  @Query("UPDATE Review  review SET review.commentCount = review.commentCount + 1 WHERE review.id = :reviewId")
+  void incrementCommentCount(@Param("reviewId") UUID reviewId);
+
+  // 댓글 수 감소
+  @Modifying(clearAutomatically = true)
+  @Query("UPDATE Review  review SET review.commentCount = review.commentCount - 1 WHERE review.id = :reviewId")
+  void decrementCommentCount(@Param("reviewId") UUID reviewId);
+
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
   @Query(
       """
@@ -66,14 +76,4 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   @Transactional
   @Query(value = "DELETE FROM reviews WHERE user_id IN :userIds", nativeQuery = true)
   void deleteByUserIds(@Param("userIds") List<UUID> userIds);
-
-  // 댓글 수 증가
-  @Modifying
-  @Query("UPDATE Review  review SET review.commentCount = review.commentCount + 1 WHERE review.id = :reviewId")
-  void incrementCommentCount(@Param("reviewId") UUID reviewId);
-
-  // 댓글 수 감소
-  @Modifying
-  @Query("UPDATE Review  review SET review.commentCount = review.commentCount - 1 WHERE review.id = :reviewId")
-  void decrementCommentCount(@Param("reviewId") UUID reviewId);
 }
