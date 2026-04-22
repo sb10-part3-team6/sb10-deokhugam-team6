@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import static com.codeit.mission.deokhugam.review.entity.QReview.review;
 
 @RequiredArgsConstructor
-public class ReviewRepositoryCustomImplement implements ReviewRepositoryCustom {
+public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
 
   private final JPAQueryFactory jpaQueryFactory;
 
