@@ -239,19 +239,22 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
     }
 
     // 5. [부분 일치 조건]: 키워드 필터
-    if (condition.keyword() != null && !condition.keyword().isBlank()) {
-      // 키워드 검색을 위한 빌더 객체 생성
-      BooleanBuilder keywordBuilder = new BooleanBuilder();
-
-      // 리뷰 내용, 작성자 닉네임, 도서 제목 중 하나라도 부분 일치하면 검색
-      keywordBuilder.or(review.content.contains(condition.keyword()));
-      keywordBuilder.or(review.user.nickname.contains(condition.keyword()));
-      keywordBuilder.or(review.book.title.contains(condition.keyword()));
-
-      // 키워드 빌더 객체를 WHERE 빌더 객체에 AND로 결합
-      filterBuilder.and(keywordBuilder);
-    }
+    filterBuilder.and(containsKeyword(condition.keyword()));
 
     return filterBuilder;
+  }
+
+  // 키워드 필터 빌더 객체 생성
+  private BooleanBuilder containsKeyword(String keyword) {
+    // 1. 키워드가 없으면 빈 빌더 객체 반환
+    if (!StringUtils.hasText(keyword)) {
+      return new BooleanBuilder();
+    }
+
+    // 2. 키워드가 있을 때만 OR 조건 조립
+    return new BooleanBuilder()
+        .or(review.content.contains(keyword))
+        .or(review.user.nickname.contains(keyword))
+        .or(review.book.title.contains(keyword));
   }
 }
