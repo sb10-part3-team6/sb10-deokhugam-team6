@@ -3,11 +3,13 @@ package com.codeit.mission.deokhugam.book.service;
 import com.codeit.mission.deokhugam.book.dto.*;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.BookStatus;
+import com.codeit.mission.deokhugam.book.event.BookDeletedEvent;
 import com.codeit.mission.deokhugam.book.exception.*;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ public class BookService {
     private final BookImageService bookImageService;
     private final BookDtoMapper bookDtoMapper;
     private final WebClient webClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final String NAVER_BOOK_API_URL = "https://openapi.naver.com/v1/search/book_adv";
 
@@ -312,8 +315,11 @@ public class BookService {
             throw new BookNotFoundException();
         }
 
-        bookImageService.deleteFileByUrl(book.getThumbnailUrl());
         bookRepository.delete(book);
+
+        eventPublisher.publishEvent(
+                new BookDeletedEvent(book.getThumbnailUrl())
+        );
     }
 
     private boolean isDeleted(Book book){
