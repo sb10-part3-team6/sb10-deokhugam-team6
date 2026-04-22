@@ -8,6 +8,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,21 +32,23 @@ public class NotificationRepositoryImpl implements NotificationRepositoryCustom 
 
         // after (createdAt 기준 커서)
         if (query.after() != null) {
+            LocalDateTime afterTime = LocalDateTime.ofInstant(query.after(), ZoneOffset.UTC);
+
             if (isDesc(query)) {
-                builder.and(notification.createdAt.lt(query.after()));
+                builder.and(notification.createdAt.lt(afterTime));
             } else {
-                builder.and(notification.createdAt.gt(query.after()));
+                builder.and(notification.createdAt.gt(afterTime));
             }
         }
 
         // cursor
         if (query.cursor() != null) {
-            LocalDateTime cursorTime = LocalDateTime.parse(query.cursor());
+            LocalDateTime cursorTime = LocalDateTime.ofInstant(query.cursor(), ZoneOffset.UTC);
 
             if (isDesc(query)) {
-                builder.and(notification.createdAt.lt(cursorTime));
+                builder.and(notification.createdAt.lt(LocalDateTime.from(cursorTime)));
             } else {
-                builder.and(notification.createdAt.gt(cursorTime));
+                builder.and(notification.createdAt.gt(LocalDateTime.from(cursorTime)));
             }
         }
 

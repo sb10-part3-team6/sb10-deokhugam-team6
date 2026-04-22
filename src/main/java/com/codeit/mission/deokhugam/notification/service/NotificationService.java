@@ -12,7 +12,7 @@ import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +66,9 @@ public class NotificationService {
     public CursorPageResponseNotificationDto findByUserId(UUID userId,
         NotificationRequestQuery query) {
 
+        List<NotificationDto> allContent = notificationRepository.findAll().stream()
+            .map(notificationMapper::toDto).toList();
+
         Slice<Notification> slice =
             notificationRepository.findByUserWithCursor(userId, query);
 
@@ -74,7 +77,7 @@ public class NotificationService {
         List<Notification> content = slice.getContent();
 
         String nextCursor = null;
-        LocalDateTime nextAfter = null;
+        Instant nextAfter = null;
 
         if (!content.isEmpty()) {
             Notification last = content.get(content.size() - 1);
@@ -86,7 +89,7 @@ public class NotificationService {
             .toList();
 
         return CursorPageResponseNotificationDto.builder()
-            .content(dtoContent)
+            .content(allContent)
             .nextCursor(nextCursor)
             .nextAfter(nextAfter)
             .size(content.size())
