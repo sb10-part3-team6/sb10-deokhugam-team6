@@ -67,6 +67,7 @@ public class NotificationService {
         );
     }
 
+    // todo: @Transactional(readOnly = true)
     public CursorPageResponseNotificationDto findByUserId(UUID userId,
         NotificationRequestQuery query) {
 
@@ -122,9 +123,11 @@ public class NotificationService {
     }
 
     public void updateByUserId(UUID userId) {
-        User user = getUser(userId);
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException(userId);
+        }
 
-        notificationRepository.updateAllAsConfirmed(user.getId());
+        notificationRepository.updateAllAsConfirmed(userId);
     }
 
     private Notification createNotification(
