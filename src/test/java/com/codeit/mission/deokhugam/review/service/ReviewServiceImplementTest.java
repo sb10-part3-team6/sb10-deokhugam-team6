@@ -159,32 +159,43 @@ public class ReviewServiceImplementTest {
         2
     );
 
+    // 페이징을 위한 정보
+    LocalDateTime sameTime = LocalDateTime.of(2026, 4, 22, 15, 0, 0);
+    UUID review1Id = UUID.randomUUID();
+    UUID review2Id = UUID.randomUUID();
+    UUID review3Id = UUID.randomUUID();
+
     // 가짜 객체 | 리뷰
     Review review1 = Review.builder()
         .rating(5)
         .content("에로스")
         .build();
-    ReflectionTestUtils.setField(review1, "id", UUID.randomUUID());
-    ReflectionTestUtils.setField(review1, "createdAt", LocalDateTime.now().minusDays(1));
+    ReflectionTestUtils.setField(review1, "id", review1Id);
+    ReflectionTestUtils.setField(review1, "createdAt", sameTime);
 
     Review review2 = Review.builder()
-        .rating(4)
+        .rating(5)
         .content("안테로스")
         .build();
-    ReflectionTestUtils.setField(review2, "id", UUID.randomUUID());
-    ReflectionTestUtils.setField(review2, "createdAt", LocalDateTime.now().minusDays(2));
+    ReflectionTestUtils.setField(review2, "id", review2Id);
+    ReflectionTestUtils.setField(review2, "createdAt", sameTime);
 
     Review review3 = Review.builder()
-        .rating(3)
+        .rating(5)
         .content("외계인 고양이")
         .build();
-    ReflectionTestUtils.setField(review3, "id", UUID.randomUUID());
-    ReflectionTestUtils.setField(review3, "createdAt", LocalDateTime.now().minusDays(3));
+    ReflectionTestUtils.setField(review3, "id", review3Id);
+    ReflectionTestUtils.setField(review3, "createdAt", sameTime);
 
     List<Review> mockReviews = List.of(review1, review2, review3);
+    given(reviewRepository.searchReviews(condition)).willReturn(mockReviews);
+
+    // 서비스 로직에서 limit(2)만큼 잘라낸 결과물
     List<Review> pagedReviews = List.of(review1, review2);
     List<UUID> reviewIds = List.of(review1.getId(), review2.getId());
     List<UUID> reviewLikeIds = List.of(review1.getId());
+    given(reviewLikeRepository.findReviewIdsByUserIdAndReviewIdIn(requestUserId, reviewIds))
+        .willReturn(reviewLikeIds);
 
     // 가짜 객체 | 응답 DTO
     ReviewDto dto1 = ReviewDto.builder().
@@ -198,22 +209,27 @@ public class ReviewServiceImplementTest {
         .likedByMe(false)
         .build();
     List<ReviewDto> dtoList = List.of(dto1, dto2);
+    given(reviewMapper.toDtoList(pagedReviews, reviewLikeIds)).willReturn(dtoList);
 
     // 페이지 응답 DTO
+    // 서비스가 계산해야 하는 커서 값
+    String expectedNextCursor = "5_" + review2Id.toString();
+    LocalDateTime expectedNextAfter = sameTime;
+
     CursorPageResponseReviewDto<ReviewDto> expectedResponse = CursorPageResponseReviewDto.<ReviewDto>builder()
         .content(dtoList)
         .hasNext(true)
+        .nextCursor(expectedNextCursor)
+        .nextAfter(expectedNextAfter)
         .build();
-
-    given(reviewRepository.searchReviews(condition)).willReturn(mockReviews);
-    given(reviewLikeRepository.findReviewIdsByUserIdAndReviewIdIn(requestUserId,
-        reviewIds)).willReturn(
-        reviewLikeIds);
-    given(reviewMapper.toDtoList(pagedReviews, reviewLikeIds)).willReturn(dtoList);
     given(reviewRepository.countWithFilter(condition)).willReturn(15L);
-    given(
-        reviewMapper.toCursorPageResponse(eq(dtoList), anyString(), any(LocalDateTime.class), eq(2),
-            eq(15L), eq(true)))
+    given(reviewMapper.toCursorPageResponse(
+        eq(dtoList),
+        eq(expectedNextCursor),
+        eq(expectedNextAfter),
+        eq(2),
+        eq(15L),
+        eq(true)))
         .willReturn(expectedResponse);
 
     // when
@@ -224,6 +240,8 @@ public class ReviewServiceImplementTest {
     assertNotNull(result);
     assertTrue(result.hasNext());                                                   // 다음 페이지 존재 여부
     assertEquals(2, result.content().size());                              // 페이지된 리뷰 개수 확인
+    assertEquals(expectedNextCursor, result.nextCursor());
+    assertEquals(expectedNextAfter, result.nextAfter());
     verify(reviewRepository).searchReviews(condition);
     verify(reviewLikeRepository).findReviewIdsByUserIdAndReviewIdIn(requestUserId, reviewIds);
   }
