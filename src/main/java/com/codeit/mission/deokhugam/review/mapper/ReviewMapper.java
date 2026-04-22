@@ -5,7 +5,9 @@ import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -33,9 +35,15 @@ public interface ReviewMapper {
       return Collections.emptyList();
     }
 
+    // 성능 개선을 위해 Set 자료 구조 활용
+    Set<UUID> likedSet = likedReviewIds != null
+        ? new HashSet<>(likedReviewIds)
+        : Collections.emptySet();
+
     return reviews.stream()
-        .map(review -> toDto(review,
-            likedReviewIds != null && likedReviewIds.contains(review.getId())))
+        .map(review -> toDto(
+            review,
+            likedSet.contains(review.getId())))
         .toList();
   }
 
