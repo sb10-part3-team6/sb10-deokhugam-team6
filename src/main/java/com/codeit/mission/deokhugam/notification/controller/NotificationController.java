@@ -48,6 +48,13 @@ public class NotificationController {
                 requestDto));
     }
 
+    // 모든 알림 읽음 처리
+    @PatchMapping("/read-all")
+    public ResponseEntity<Void> updateById(
+        @RequestHeader("Deokhugam-Request-User-ID") UUID userId) {
+
+        notificationService.updateByUserId(userId);
+        return ResponseEntity.noContent().build();
     }
 
 }
