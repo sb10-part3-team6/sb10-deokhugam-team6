@@ -27,4 +27,9 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     void deleteByReviewUserIds(@Param("userIds") List<UUID> userIds);
 
     List<Notification> findByUserId(UUID userId);
+
+    // 알림 상태를 읽음으로 벌크 업데이트
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Notification n SET n.confirmed = true WHERE n.user.id = :userId AND n.confirmed = false")
+    void updateAllAsConfirmed(@Param("userId") UUID userId);
 }
