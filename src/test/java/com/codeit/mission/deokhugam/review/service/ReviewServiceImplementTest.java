@@ -228,7 +228,7 @@ public class ReviewServiceImplementTest {
     verify(reviewLikeRepository).findReviewIdsByUserIdAndReviewIdIn(requestUserId, reviewIds);
   }
 
-  // [성공]
+  // [성공] 검색 결과가 존재하지 않는 경우
   @Test
   @DisplayName("검색 결과가 없는 리뷰 목록 조회 완료")
   void find_all_by_keyword_success_empty() {
@@ -715,8 +715,6 @@ public class ReviewServiceImplementTest {
         reviewId);                                                // NPE 방지를 위한 id 강제 주입
     ReflectionTestUtils.setField(savedReview, "status",
         ReviewStatus.ACTIVE);                                     // status 강제 주입
-    ReflectionTestUtils.setField(savedReview, "likes",
-        new ArrayList<>());                                       // likes 강제 주입
 
     given(reviewRepository.findById(reviewId)).willReturn(
         Optional.of(savedReview));                                // savedReview 반환
@@ -740,9 +738,6 @@ public class ReviewServiceImplementTest {
     verify(reviewLikeRepository, times(1)).
         save(
             any(ReviewLike.class));                                                      // 리뷰 좋아요 저장 함수 호출 확인
-    verify(reviewRepository, times(1))
-        .saveAndFlush(
-            savedReview);                                                       // 리뷰 좋아요 저장 함수 호출 확인
   }
 
   // [성공]
@@ -777,11 +772,6 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(savedReview, "status",
         ReviewStatus.ACTIVE);                                       // status 강제 주입
 
-    // 특정 리뷰의 좋아요 목록
-    List<ReviewLike> likes = new ArrayList<>();
-    likes.add(savedLike);
-    ReflectionTestUtils.setField(savedReview, "likes", likes);
-
     given(reviewRepository.findById(reviewId)).willReturn(
         Optional.of(savedReview));                                  // savedReview 반환
     given(userRepository.findById(userId)).willReturn(
@@ -803,7 +793,6 @@ public class ReviewServiceImplementTest {
     assertEquals(userId, result.userId());
     assertEquals(0, savedReview.getLikeCount());
     verify(reviewLikeRepository, times(1)).delete(savedLike);
-    verify(reviewRepository, times(1)).saveAndFlush(savedReview);
   }
 
   // [실패] 좋아요 추가 및 취소 로직이 완료되기 전 동일한 사용자로부터 같은 요청을 받은 경우, 동시성 문제 발생
@@ -829,8 +818,6 @@ public class ReviewServiceImplementTest {
         reviewId);                                                     // NPE 방지를 위한 id 강제 주입
     ReflectionTestUtils.setField(savedReview, "status",
         ReviewStatus.ACTIVE);                                          // status 강제 주입
-    ReflectionTestUtils.setField(savedReview, "likes",
-        new ArrayList<>());
 
     given(reviewRepository.findById(reviewId)).willReturn(
         Optional.of(savedReview));                                    // savedReview 반환
@@ -846,8 +833,7 @@ public class ReviewServiceImplementTest {
     given(exception.getMostSpecificCause()).willReturn(cause);
     given(cause.getMessage()).willReturn(
         "Unique index or primary key violation: uk_review_user_like");        // 발생한 제약 위반 예외 = 중복 리뷰 예외
-    given(reviewRepository.saveAndFlush(any(Review.class))).willThrow(
-        exception);                                    // exception 반환
+    given(reviewLikeRepository.save(any(ReviewLike.class))).willThrow(exception);
 
     // when & then
     assertThrows(DuplicateReviewLikeRequestException.class, () -> {
