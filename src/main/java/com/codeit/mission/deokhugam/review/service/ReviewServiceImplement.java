@@ -86,7 +86,7 @@ public class ReviewServiceImplement implements ReviewService {
 
       nextAfter = lastItem.getCreatedAt();
       nextCursor = "rating".equals(condition.orderBy())
-          ? String.valueOf(lastItem.getRating())
+          ? lastItem.getRating() + "_" + lastItem.getId().toString()
           : lastItem.getId().toString();
     }
 

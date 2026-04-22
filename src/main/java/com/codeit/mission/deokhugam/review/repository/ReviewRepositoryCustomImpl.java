@@ -39,33 +39,39 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       // 보조 커서 (after) 이전 페이지의 마지막 요소 생성 시점
       LocalDateTime after = condition.after();
 
+      // 커서 (cursor): 이전 페이지의 마지막 요소 ID
+      UUID cursorId;
+
       // 정렬 기준 필드 = 평점(rating)
       if (isRatingOrder) {
         // 커서 (cursor): 이전 페이지의 마지막 요소 평점
         int cursorRating;
 
         try {
-          cursorRating = Integer.parseInt(condition.cursor());
+          String[] parts = condition.cursor().split("_");
+          cursorRating = Integer.parseInt(parts[0]);
+          cursorId = UUID.fromString(parts[1]);
         } catch (NumberFormatException e) {
           // 숫자가 아닌 값이 평점 값으로 들어온 경우
           throw new InvalidCursorFormatException();
         }
 
         if (isAsc) {
-          // 마지막 요소의 평점보다 높은 요소와 평점은 같지만 생성 시간이 최근인 요소
+          // 마지막 요소의 평점보다 높은 요소, 평점은 같지만 생성 시간이 최근인 요소, 평점과 생성 시간이 같지만 ID 값이 큰 요소
           cursorBuilder.or(review.rating.gt(cursorRating));
           cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.gt(after)));
+          cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.eq(after))
+              .and(review.id.gt(cursorId)));
         } else {
-          // 마지막 요소의 평점보다 낮은 요소와 평점은 같지만 생성 시간이 오래된 요소
+          // 마지막 요소의 평점보다 낮은 요소, 평점은 같지만 생성 시간이 오래된 요소, 평점과 생성 시간이 같지만 ID 값이 작은 요소
           cursorBuilder.or(review.rating.lt(cursorRating));
           cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.lt(after)));
+          cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.eq(after))
+              .and(review.id.lt(cursorId)));
         }
       }
       // 기본 정렬 기준 필드 = 생성 시간(createdAt)
       else {
-        // 커서 (cursor): 이전 페이지의 마지막 요소 ID
-        UUID cursorId;
-
         try {
           cursorId = UUID.fromString(condition.cursor());
         } catch (IllegalArgumentException e) {
