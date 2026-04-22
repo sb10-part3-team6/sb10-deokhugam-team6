@@ -21,6 +21,7 @@ import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -204,7 +205,6 @@ public class ReviewServiceImplementTest {
         .hasNext(true)
         .build();
 
-    // 내부 로직 흐름 모킹
     given(reviewRepository.searchReviews(condition)).willReturn(mockReviews);
     given(reviewLikeRepository.findLikedReviewIds(requestUserId, reviewIds)).willReturn(
         reviewLikeIds);
@@ -225,6 +225,56 @@ public class ReviewServiceImplementTest {
     assertEquals(2, result.content().size());                              // 페이지된 리뷰 개수 확인
     verify(reviewRepository).searchReviews(condition);
     verify(reviewLikeRepository).findLikedReviewIds(requestUserId, reviewIds);
+  }
+
+  // [성공]
+  @Test
+  @DisplayName("검색 결과가 없는 리뷰 목록 조회 완료")
+  void find_all_by_keyword_success_empty() {
+    // given
+    UUID requestUserId = UUID.randomUUID();
+
+    // 조회할 리뷰 목록 정보
+    ReviewSearchConditionDto condition = new ReviewSearchConditionDto(
+        null,
+        null,
+        "Noting",
+        "createdAt",
+        "desc",
+        null,
+        null,
+        10
+    );
+
+    // 빈 결과 리스트 반환 모킹
+    given(reviewRepository.searchReviews(condition)).willReturn(Collections.emptyList());
+    given(reviewMapper.toDtoList(Collections.emptyList(), Collections.emptyList())).willReturn(
+        Collections.emptyList());
+    given(reviewRepository.countWithFilter(condition)).willReturn(0L);
+
+    // 페이지 응답 DTO
+    CursorPageResponseReviewDto<ReviewDto> expectedResponse = CursorPageResponseReviewDto.<ReviewDto>builder()
+        .content(Collections.emptyList())
+        .hasNext(false)
+        .totalElements(0L)
+        .build();
+
+    // 매퍼 호출 매칭 (데이터가 없으니 nextCursor, nextAfter는 null로 들어감)
+    given(reviewMapper.toCursorPageResponse(Collections.emptyList(), null, null, 10, 0L, false))
+        .willReturn(expectedResponse);
+
+    // when
+    CursorPageResponseReviewDto<ReviewDto> result = reviewServiceImplement.findAllByKeyword(
+        requestUserId, condition);
+
+    // then
+    assertNotNull(result);
+    assertFalse(result.hasNext());                                                // 다음 페이지 존재 여부
+    assertTrue(
+        result.content().isEmpty());                                       // 검색 결과가 빈 내용인지 확인
+    assertEquals(0L, result.totalElements());
+    verify(reviewRepository).searchReviews(condition);
+    verify(reviewLikeRepository, never()).findLikedReviewIds(any(), any());
   }
 
   /*
