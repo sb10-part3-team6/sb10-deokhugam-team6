@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.notification.dto.CursorPageResponseNotificationDto;
 import com.codeit.mission.deokhugam.notification.dto.NotificationDto;
 import com.codeit.mission.deokhugam.notification.dto.NotificationRequestQuery;
@@ -21,7 +22,9 @@ import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -247,7 +250,8 @@ public class NotificationServiceTest {
             userId = UUID.randomUUID();
 
             query = NotificationRequestQuery.builder()
-                .limit(2)
+                .limit(1)
+                .direction(DirectionEnum.DESC)
                 .build();
         }
 
@@ -261,36 +265,35 @@ public class NotificationServiceTest {
             LocalDateTime time1 = LocalDateTime.now();
             LocalDateTime time2 = time1.minusSeconds(10);
 
-            given(n2.getCreatedAt()).willReturn(time2);
+            given(n1.getCreatedAt()).willReturn(time1);
 
-            List<Notification> notifications = List.of(n1, n2);
+            List<Notification> notifications = List.of(n1);
 
             Slice<Notification> slice =
-                new SliceImpl<>(notifications, PageRequest.of(0, 2), true);
+                new SliceImpl<>(notifications, PageRequest.of(0, 1), true);
 
             given(notificationRepository.findByUserWithCursor(userId, query))
                 .willReturn(slice);
 
             given(notificationRepository.countByUserId(userId))
-                .willReturn(10L);
+                .willReturn(2L);
 
             NotificationDto dto1 = mock(NotificationDto.class);
             NotificationDto dto2 = mock(NotificationDto.class);
 
             given(notificationMapper.toDto(n1)).willReturn(dto1);
-            given(notificationMapper.toDto(n2)).willReturn(dto2);
 
             // when
             CursorPageResponseNotificationDto result =
                 notificationService.findByUserId(userId, query);
 
             // then
-            assertThat(result.content()).hasSize(2);
-            assertThat(result.size()).isEqualTo(2);
-            assertThat(result.totalElements()).isEqualTo(10);
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.size()).isEqualTo(1);
+            assertThat(result.totalElements()).isEqualTo(2);
             assertThat(result.hasNext()).isTrue();
-            assertThat(result.nextCursor()).isEqualTo(time2.toString());
-            assertThat(result.nextAfter()).isEqualTo(time2);
+            assertThat(result.nextCursor()).isEqualTo(time1.toInstant(ZoneOffset.UTC).toString());
+            assertThat(result.nextAfter()).isEqualTo(time1.toInstant(ZoneOffset.UTC));
         }
 
         @Test
