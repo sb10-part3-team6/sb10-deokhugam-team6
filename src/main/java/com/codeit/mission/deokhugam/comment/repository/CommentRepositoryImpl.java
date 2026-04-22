@@ -96,6 +96,10 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom{
         if (cursor == null || cursor.isBlank()) {
             return null;
         }
-        return UUID.fromString(cursor);
+        try {
+            return UUID.fromString(cursor);
+        } catch (IllegalArgumentException e) {
+            return null; // 잘못된 cursor는 무시하고 첫 페이지부터 시작
+        }
     }
 }
