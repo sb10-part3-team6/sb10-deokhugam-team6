@@ -867,8 +867,6 @@ public class ReviewServiceImplementTest {
         .review(savedReview)
         .user(mockUser)
         .build();
-    ReflectionTestUtils.setField(savedReview, "likeCount",
-        1);                                                   // likeCount 강제 주입
     ReflectionTestUtils.setField(savedReview, "status",
         ReviewStatus.ACTIVE);                                       // status 강제 주입
 
