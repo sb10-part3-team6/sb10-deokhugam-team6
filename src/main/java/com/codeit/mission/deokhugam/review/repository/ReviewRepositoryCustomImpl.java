@@ -22,39 +22,55 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   // 필터링 + 내림차순 정렬 + 커서 기반 페이지네이션이 적용된 연동 목록 조회
   @Override
   public List<Review> searchReviews(ReviewSearchConditionDto condition) {
-    // 1. 동적 쿼리 내 WHERE 절에 추가될 빌더 객체 생성
+    // 1. 키워드 검색 조건
     BooleanBuilder filterBuilder = builderFilterCondition(condition);
+    // 2. 커서 기반 페이지네이션 조건
 
-    // 2. 사용자가 요청한 정렬 조건 (orderBy): 기본값이 생성 시점이므로 평점만 비교
-    boolean isRatingOrder = "rating".equals(condition.orderBy());
+    // 사용자가 요청한 정렬 조건 (orderBy): 기본값이 생성 시점이므로 평점만 비교
+    boolean isRatingOrder = "rating".equals(
+        condition.orderBy());
 
-    // 3. 사용자가 요청한 정렬 방향 (direction): 기본값은 내림차순 (desc)
-    boolean isAsc = "asc".equalsIgnoreCase(condition.direction());
+    // 사용자가 요청한 정렬 방향 (direction): 기본값은 내림차순 (desc)
+    boolean isAsc = "asc".equalsIgnoreCase(
+        condition.direction());
 
-    // 4. 커서 기반 페이지네이션: 커서와 보조 커서 (after)가 모두 있을 때만 다음 페이지 조회
-    if (condition.cursor() != null && condition.after() != null) {
-      // 페이지네이션 조건을 담을 빌더 객체 생성
-      BooleanBuilder cursorBuilder = new BooleanBuilder();
+    BooleanBuilder cursorBuilder = buildCountCondition(condition, isRatingOrder, isAsc);
+    filterBuilder.and(cursorBuilder);
 
-      // 보조 커서 (after) 이전 페이지의 마지막 요소 생성 시점
-      LocalDateTime after = condition.after();
+    // 3. 정렬 조건
+    OrderSpecifier<?>[] orderSpecifiers = buildOrderSpecifiers(condition, isRatingOrder, isAsc);
 
-      // 커서 (cursor): 이전 페이지의 마지막 요소 ID
-      UUID cursorId;
+    // 6. 동적 쿼리 실행
+    return jpaQueryFactory
+        .selectFrom(review)
+        // 성능 최적화: N + 1 문제 방지
+        .leftJoin(review.book).fetchJoin()
+        .leftJoin(review.user).fetchJoin()
+        .where(filterBuilder)
+        // 평점 -> 생성 시간 -> id 내림차순 적용
+        .orderBy(orderSpecifiers)
+        .limit(condition.limit() + 1)
+        .fetch();
+  }
 
+  // 페이지네이션의 커서 조건을 정의하는 메서드
+  private BooleanBuilder buildCountCondition(ReviewSearchConditionDto condition,
+      boolean isRatingOrder, boolean isAsc) {
+    if (condition.limit() != null && condition.limit() > 0) {
+      BooleanBuilder filterBuilder = new BooleanBuilder();
+    }
+    BooleanBuilder cursorBuilder = new BooleanBuilder();
+
+    LocalDateTime after = condition.after();                          // 보조 커서 (after) 이전 페이지의 마지막 요소 생성 시점
+    UUID cursorId;                                                    // 커서 (cursor): 이전 페이지의 마지막 요소 ID
+    int cursorRating;                                                 // 커서 (cursor): 이전 페이지의 마지막 요소 평점
+
+    try {
       // 정렬 기준 필드 = 평점(rating)
       if (isRatingOrder) {
-        // 커서 (cursor): 이전 페이지의 마지막 요소 평점
-        int cursorRating;
-
-        try {
-          String[] parts = condition.cursor().split("_");
-          cursorRating = Integer.parseInt(parts[0]);
-          cursorId = UUID.fromString(parts[1]);
-        } catch (NumberFormatException e) {
-          // 숫자가 아닌 값이 평점 값으로 들어온 경우
-          throw new InvalidCursorFormatException();
-        }
+        String[] parts = condition.cursor().split("_");
+        cursorRating = Integer.parseInt(parts[0]);
+        cursorId = UUID.fromString(parts[1]);
 
         if (isAsc) {
           // 마지막 요소의 평점보다 높은 요소, 평점은 같지만 생성 시간이 최근인 요소, 평점과 생성 시간이 같지만 ID 값이 큰 요소
@@ -72,12 +88,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       }
       // 기본 정렬 기준 필드 = 생성 시간(createdAt)
       else {
-        try {
-          cursorId = UUID.fromString(condition.cursor());
-        } catch (IllegalArgumentException e) {
-          // UUID 형식이 아닌 값이 ID 값으로 들어온 경우
-          throw new InvalidCursorFormatException();
-        }
+        cursorId = UUID.fromString(condition.cursor());
 
         if (isAsc) {
           // 마지막 요소의 생성 시간보다 최근인 요소와 생성 시간은 같지만 ID 값이 큰 요소
@@ -89,34 +100,25 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
           cursorBuilder.or(review.createdAt.eq(after).and(review.id.lt(cursorId)));
         }
       }
-      // 페이지네이션 빌더 객체를 WHERE 빌더 객체에 AND로 결합
-      filterBuilder.and(cursorBuilder);
+    } catch (RuntimeException e) {
+      throw new InvalidCursorFormatException();
     }
+    return cursorBuilder;
+  }
 
-    // 4. 정렬 조건 설정
-    OrderSpecifier<?>[] orderSpecifiers;
+  // 정렬 조건을 정의하는 메서드
+  private OrderSpecifier<?>[] buildOrderSpecifiers(ReviewSearchConditionDto condition,
+      boolean isRatingOrder, boolean isAsc) {
     if (isRatingOrder) {
-      orderSpecifiers = isAsc
+      return isAsc
           ? new OrderSpecifier<?>[]{review.rating.asc(), review.createdAt.asc(), review.id.asc()}
           : new OrderSpecifier<?>[]{review.rating.desc(), review.createdAt.desc(),
               review.id.desc()};
     } else {
-      orderSpecifiers = isAsc
+      return isAsc
           ? new OrderSpecifier<?>[]{review.createdAt.asc(), review.id.asc()}
           : new OrderSpecifier<?>[]{review.createdAt.desc(), review.id.desc()};
     }
-
-    // 6. 동적 쿼리 실행
-    return jpaQueryFactory
-        .selectFrom(review)
-        // 성능 최적화: N + 1 문제 방지
-        .leftJoin(review.book).fetchJoin()
-        .leftJoin(review.user).fetchJoin()
-        .where(filterBuilder)
-        // 평점 -> 생성 시간 -> id 내림차순 적용
-        .orderBy(orderSpecifiers)
-        .limit(condition.limit() + 1)
-        .fetch();
   }
 
   // 필터링 조건이 적용된 연동 목록의 전체 개수 조회
