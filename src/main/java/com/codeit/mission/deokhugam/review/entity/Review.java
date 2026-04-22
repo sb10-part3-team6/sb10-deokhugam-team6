@@ -109,29 +109,4 @@ public class Review extends BaseEntity {
     this.status = ReviewStatus.DELETED;
     this.deletedAt = LocalDateTime.now();
   }
-
-  // 좋아요 수 증가
-  public void addReviewLike(ReviewLike reviewLike) {
-    this.likeCount += 1;
-  }
-
-  // 좋아요 수 감소
-  public void removeReviewLike(ReviewLike reviewLike) {
-    // 특정 리뷰에 대한 사용자의 좋아요를 삭제한 경우에만 likeCount 감소
-    if (this.likeCount > 0) {
-      this.likeCount -= 1;
-    }
-  }
-
-  // 댓글 수 증가
-  public void incrementCommentsCount() {
-    this.commentCount += 1;
-  }
-
-  // 댓글 수 감소
-  public void decrementCommentsCount() {
-    if (this.commentCount > 0) {
-      this.commentCount -= 1;
-    }
-  }
 }

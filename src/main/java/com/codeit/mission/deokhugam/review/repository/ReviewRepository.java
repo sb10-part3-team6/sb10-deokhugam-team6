@@ -22,6 +22,16 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   // 중복 검사: 특정 도서에 대한 사용자 리뷰 존재 유무
   boolean existsByBookIdAndUserId(UUID bookId, UUID userId);
 
+  // 좋아요 수 증가
+  @Modifying(clearAutomatically = true)
+  @Query("UPDATE Review review SET review.likeCount = review.likeCount + 1 WHERE review.id = :reviewId")
+  void incrementLikeCount(@Param("reviewId") UUID reviewId);
+
+  // 좋아요 수 감소
+  @Modifying(clearAutomatically = true)
+  @Query("UPDATE Review review SET review.likeCount = review.likeCount - 1 WHERE review.id = :reviewId AND review.likeCount > 0")
+  void decrementLikeCount(@Param("reviewId") UUID reviewId);
+
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
   @Query(
       """

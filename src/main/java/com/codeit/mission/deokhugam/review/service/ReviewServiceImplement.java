@@ -274,10 +274,10 @@ public class ReviewServiceImplement implements ReviewService {
   private void processAddLike(Review review, User user) {
     // 1. 좋아요 생성
     ReviewLike createdReviewLike = createReviewLike(review, user);
-    reviewLikeRepository.save(createdReviewLike);
+    reviewLikeRepository.saveAndFlush(createdReviewLike);
 
     // 2. 특정 리뷰의 좋아요 수 증가
-    review.addReviewLike(createdReviewLike);
+    reviewRepository.incrementLikeCount(review.getId());
   }
 
   // 리뷰 좋아요 생성
@@ -295,9 +295,10 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 2. 리뷰 좋아요 삭제
     reviewLikeRepository.delete(targetReviewLike);
+    reviewLikeRepository.flush();
 
     // 3. 특정 리뷰의 좋아요 수 감소
-    review.removeReviewLike(targetReviewLike);
+    reviewRepository.decrementLikeCount(review.getId());
   }
 
   // Review 엔티티 반환
