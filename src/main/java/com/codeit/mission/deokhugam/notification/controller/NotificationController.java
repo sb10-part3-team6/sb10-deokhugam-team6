@@ -38,7 +38,7 @@ public class NotificationController {
 
     // 알림 읽음 상태 업데이트
     @PatchMapping("/{notificationId}")
-    public ResponseEntity<NotificationDto> updateById(
+    public ResponseEntity<NotificationDto> updateAllAsRead(
         @PathVariable UUID notificationId,
         @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
         @Valid @RequestBody NotificationUpdateRequest requestDto) {
@@ -50,7 +50,7 @@ public class NotificationController {
 
     // 모든 알림 읽음 처리
     @PatchMapping("/read-all")
-    public ResponseEntity<Void> updateById(
+    public ResponseEntity<Void> updateAllAsRead(
         @RequestHeader("Deokhugam-Request-User-ID") UUID userId) {
 
         notificationService.updateByUserId(userId);
