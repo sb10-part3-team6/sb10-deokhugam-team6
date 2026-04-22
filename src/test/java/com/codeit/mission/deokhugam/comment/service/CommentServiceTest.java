@@ -267,4 +267,28 @@ public class CommentServiceTest {
         verify(reviewRepository).existsById(reviewId);
         verify(commentRepository, never()).findAllByCursor(any());
     }
+
+    @Test
+    @DisplayName("댓글 논리 삭제 성공")
+    void softDeleteCommentSuccess() {
+
+    }
+
+    @Test
+    @DisplayName("댓글 논리 삭제 실패")
+    void softDeleteCommentFail() {
+
+    }
+
+    @Test
+    @DisplayName("댓글 물리 삭제 성공")
+    void hardDeleteCommentSuccess() {
+
+    }
+
+    @Test
+    @DisplayName("댓글 물리 삭제 실패")
+    void hardDeleteCommentFail() {
+
+    }
 }
