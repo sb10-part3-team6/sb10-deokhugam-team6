@@ -16,18 +16,18 @@ public class PopularUserController {
 
   PopularReviewAggregateService popularReviewAggregateService;
 
-//  @GetMapping
-//  ResponseEntity<CursorPageResponsePopularReviewDto> getPopularReviews(
-//      @RequestParam("period") PeriodType periodType,
-//      @RequestParam("direction") DirectionEnum direction,
-//      @RequestParam("cursor") String cursor,
-//      @RequestParam("after") String after,
-//      @RequestParam("limit") int limit
-//  ){
-//
-//    return ResponseEntity.ok(popularReviewAggregateService.getReviews(periodType, direction,
-//        cursor, after, limit));
-//
-//  }
+  @GetMapping
+  ResponseEntity<CursorPageResponsePopularReviewDto> getPopularReviews(
+      @RequestParam("period") PeriodType periodType,
+      @RequestParam("direction") DirectionEnum direction,
+      @RequestParam("cursor") String cursor,
+      @RequestParam("after") String after,
+      @RequestParam("limit") int limit
+  ){
+
+    return ResponseEntity.ok(popularReviewAggregateService.getReviews(periodType, direction,
+        cursor, after, limit));
+
+  }
 
 }

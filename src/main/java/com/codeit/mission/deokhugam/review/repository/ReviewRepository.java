@@ -1,6 +1,5 @@
 package com.codeit.mission.deokhugam.review.repository;
 
-import com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewCommentCount;
 import com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewLikeCount;
 import com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
@@ -50,22 +49,22 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
       // Review 엔티티 내부 likedUser 필드 조인
       "WHERE review.id = :reviewId AND user.id = :userId")
   // 리뷰 id 및 사용자 id에 대한 완전 일치 조건
-  boolean existsLikedByIdAndUserId(@Param("reviewId") UUID reviewId,
+  boolean existsLikedByIdAndUserId(
+      @Param("reviewId") UUID reviewId,
       @Param("userId") UUID userId);
 
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
-  @Query(
-      """
-          select new com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate(
-              r.user.id,
-              coalesce(sum(r.rating), 0.0)
-          )
-          from Review r
-          where r.createdAt >= :periodStart
-            and r.createdAt < :periodEnd
-            and r.status = :status
-          group by r.user.id
-          """)
+  @Query("""
+      select new com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate(
+          r.user.id,
+          coalesce(sum(r.rating), 0.0)
+      )
+      from Review r
+      where r.createdAt >= :periodStart
+        and r.createdAt < :periodEnd
+        and r.status = :status
+      group by r.user.id
+      """)
   List<UserReviewAggregate> findUserReviewAggregates(
       @Param("periodStart") LocalDateTime periodStart,
       @Param("periodEnd") LocalDateTime periodEnd,
@@ -90,13 +89,17 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
   // 리뷰 당 받은 좋아요 수를 뽑는 쿼리
   @Query("""
-    select
-    r.id, r.likeCount
-    from Review r
-    where r.createdAt >= :periodStart
-    group by r.id
-""")
-  public List<ReviewLikeCount> countReviewLikes(@Param("periodStart") LocalDateTime periodStart);
-
-
+      select new com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewLikeCount(
+          r.id,
+          r.likeCount
+      )
+      from Review r
+      where r.createdAt >= :periodStart
+        and r.createdAt < :periodEnd
+        and r.status = :status
+      """)
+  List<ReviewLikeCount> countReviewLikes(
+      @Param("periodStart") LocalDateTime periodStart,
+      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("status") ReviewStatus status);
 }

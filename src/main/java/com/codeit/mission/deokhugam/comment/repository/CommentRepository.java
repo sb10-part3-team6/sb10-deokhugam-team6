@@ -34,15 +34,14 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   // 파워 유저 집계할 때 기간 별 댓글 개수를 가져오는 레포지토리 메서드
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.users.dto.UserCommentCount(
-              r.id,
+          select new com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewCommentCount(
+              c.reviewId,
               count(c.id)
           )
-          from Review r
-                    join Comment c on r.id = c.reviewId
+          from Comment c
           where c.createdAt >= :periodStart
             and c.createdAt < :periodEnd
-          group by c.userId
+          group by c.reviewId
           """)
   List<ReviewCommentCount> findReviewCommentCounts(
       @Param("periodStart") LocalDateTime periodStart,
