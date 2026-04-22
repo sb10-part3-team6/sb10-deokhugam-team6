@@ -1,8 +1,10 @@
 package com.codeit.mission.deokhugam.comment.controller;
 
 import com.codeit.mission.deokhugam.comment.dto.request.CommentCreateRequest;
+import com.codeit.mission.deokhugam.comment.dto.request.CommentFindAllRequest;
 import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
+import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,5 +41,11 @@ public class CommentController {
     public ResponseEntity<CommentDto> getComment(@PathVariable("commentId") UUID commentId) {
         CommentDto commentDto = commentService.findComment(commentId);
         return ResponseEntity.status(HttpStatus.OK).body(commentDto);
+    }
+
+    // 댓글 목록 조회
+    @GetMapping
+    public ResponseEntity<CursorPageResponseCommentDto> getComments(@Valid @ModelAttribute CommentFindAllRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(commentService.findAllComments(request));
     }
 }
