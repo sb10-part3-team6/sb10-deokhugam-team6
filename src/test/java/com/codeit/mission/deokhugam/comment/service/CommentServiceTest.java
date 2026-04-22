@@ -11,6 +11,7 @@ import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
+import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +71,7 @@ public class CommentServiceTest {
         user = mock(User.class);
         when(user.getId()).thenReturn(userId);
         when(user.getNickname()).thenReturn(userNickName);
+        when(user.getStatus()).thenReturn(UserStatus.ACTIVE);
 
         comment = Comment.builder()
                 .reviewId(reviewId)
@@ -271,24 +273,84 @@ public class CommentServiceTest {
     @Test
     @DisplayName("댓글 논리 삭제 성공")
     void softDeleteCommentSuccess() {
+        // given
+        given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+        given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
+        given(commentRepository.save(any(Comment.class))).willReturn(comment);
+
+        // when
+        commentService.softDelete(commentId, userId);
+
+        // then
+        verify(commentRepository).findById(commentId);
+        verify(userRepository).findById(userId);
+        verify(commentRepository).save(comment);
 
     }
 
     @Test
     @DisplayName("댓글 논리 삭제 실패")
     void softDeleteCommentFail() {
+        // given
+        UUID otherUserId = UUID.randomUUID();
+
+        User otherUser = mock(User.class);
+        when(otherUser.getId()).thenReturn(otherUserId);
+        when(otherUser.getNickname()).thenReturn("otherUser");
+
+        given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+        given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));
+
+        // when
+
+        // then
+        assertThatThrownBy(() -> commentService.softDelete(commentId, otherUserId))
+                .isInstanceOf(CommentAuthorException.class);
+
+        verify(commentRepository).findById(commentId);
+        verify(userRepository).findById(otherUserId);
+        verify(commentRepository, never()).save(any(Comment.class));
 
     }
 
     @Test
     @DisplayName("댓글 물리 삭제 성공")
     void hardDeleteCommentSuccess() {
+        // given
+        given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+        given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
 
+        // when
+        commentService.hardDelete(commentId, userId);
+
+        // then
+        verify(commentRepository).findById(commentId);
+        verify(userRepository).findById(userId);
+        verify(commentRepository).deleteById(commentId);
     }
 
     @Test
     @DisplayName("댓글 물리 삭제 실패")
     void hardDeleteCommentFail() {
+        // given
+        UUID otherUserId = UUID.randomUUID();
+
+        User otherUser = mock(User.class);
+        when(otherUser.getId()).thenReturn(otherUserId);
+        when(otherUser.getNickname()).thenReturn("otherUser");
+
+        given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+        given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));
+
+        // when
+
+        // then
+        assertThatThrownBy(() -> commentService.hardDelete(commentId, otherUserId))
+                .isInstanceOf(CommentAuthorException.class);
+
+        verify(commentRepository).findById(commentId);
+        verify(userRepository).findById(otherUserId);
+        verify(commentRepository, never()).deleteById(any(UUID.class));
 
     }
 }
