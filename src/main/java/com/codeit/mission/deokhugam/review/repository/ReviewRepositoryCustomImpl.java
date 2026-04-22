@@ -77,6 +77,9 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       if (StringUtils.hasText(condition.keyword())) {
         String[] parts = cursorStr.split("_", 2);
         cursorRank = Integer.parseInt(parts[0]);
+        if (cursorRank != 1 && cursorRank != 2) {
+          throw new InvalidCursorFormatException();
+        }
         cursorStr = parts[1];                             // 남은 커서 부분
       }
 
@@ -98,7 +101,10 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   private BooleanBuilder createRatingCursorBuilder(String remainingCursor, LocalDateTime after,
       boolean isAsc) {
     // 1. 커서로부터 평점과 마지막 요소 ID 분리
-    String[] parts = remainingCursor.split("_");
+    String[] parts = remainingCursor.split("_", 2);
+    if (parts.length != 2) {
+      throw new InvalidCursorFormatException();
+    }
     int cursorRating = Integer.parseInt(parts[0]);
     UUID cursorId = UUID.fromString(parts[1]);
 
