@@ -42,6 +42,8 @@ public enum ErrorCode {
       "Review like request already exists"),                   // 특정 도서에 대한 좋아요 추가 생성 요청 존재
   REVIEW_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND,
       "Review like with Id not found"),                        // 특정 도서에 대한 사용자의 좋아요 조회 실패
+  REQUEST_USER_MISMATCH(HttpStatus.BAD_REQUEST,
+      "Parameter and Header requestUserId mismatch"),          // 쿼리문 요청자와 헤더 내 요청자 불일치
 
   // 파워 유저 집계 및 조회
   CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST,
@@ -61,8 +63,8 @@ public enum ErrorCode {
   EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "external api error"),
   OCR_DETECT_FAILED(HttpStatus.BAD_REQUEST, "OCR detection failed"),
 
-    // 댓글
-    FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "Permission denied to edit this comment");
+  // 댓글
+  FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "Permission denied to edit this comment");
 
   private final HttpStatus httpStatus;
   private final String message;
