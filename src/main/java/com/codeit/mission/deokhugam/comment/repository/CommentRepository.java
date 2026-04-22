@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.comment.repository;
 
 import com.codeit.mission.deokhugam.comment.entity.Comment;
+import com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewCommentCount;
 import com.codeit.mission.deokhugam.dashboard.users.dto.UserCommentCount;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +31,23 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   List<UserCommentCount> findUserCommentCounts(
       @Param("periodStart") LocalDateTime periodStart,
       @Param("periodEnd") LocalDateTime periodEnd);
+  // 파워 유저 집계할 때 기간 별 댓글 개수를 가져오는 레포지토리 메서드
+  @Query(
+      """
+          select new com.codeit.mission.deokhugam.dashboard.users.dto.UserCommentCount(
+              r.id,
+              count(c.id)
+          )
+          from Review r
+                    join Comment c on r.id = c.reviewId
+          where c.createdAt >= :periodStart
+            and c.createdAt < :periodEnd
+          group by c.userId
+          """)
+  List<ReviewCommentCount> findReviewCommentCounts(
+      @Param("periodStart") LocalDateTime periodStart,
+      @Param("periodEnd") LocalDateTime periodEnd);
+
 
   // 사용자가 작성한 댓글들을 일괄 삭제
   @Modifying

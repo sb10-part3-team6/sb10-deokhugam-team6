@@ -1,5 +1,7 @@
 package com.codeit.mission.deokhugam.review.repository;
 
+import com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewCommentCount;
+import com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewLikeCount;
 import com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
@@ -85,4 +87,16 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
   @Transactional
   @Query(value = "DELETE FROM reviews WHERE user_id IN :userIds", nativeQuery = true)
   void deleteByUserIds(@Param("userIds") List<UUID> userIds);
+
+  // 리뷰 당 받은 좋아요 수를 뽑는 쿼리
+  @Query("""
+    select
+    r.id, r.likeCount
+    from Review r
+    where r.createdAt >= :periodStart
+    group by r.id
+""")
+  public List<ReviewLikeCount> countReviewLikes(@Param("periodStart") LocalDateTime periodStart);
+
+
 }
