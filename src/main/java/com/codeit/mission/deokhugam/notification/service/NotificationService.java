@@ -112,7 +112,7 @@ public class NotificationService {
 
     Notification notification = getNotificationOrThrow(notificationId);
 
-    validateNotificationOwnerOrThrow(notification, requestUserId);
+    validateNotificationOwner(notification, requestUserId);
 
     notification.updateConfirmed(requestDto.confirmed());
 
@@ -120,7 +120,7 @@ public class NotificationService {
   }
 
   public void updateByUserId(UUID userId) {
-    checkUserExistsOrThrow(userId);
+    validateUserExists(userId);
     notificationRepository.updateAllAsConfirmed(userId);
   }
 
@@ -139,9 +139,16 @@ public class NotificationService {
   }
 
   // 요청자의 id와 알림을 받은 사람의 id를 대조
-  private void validateNotificationOwnerOrThrow(Notification notification, UUID requestUserId) {
+  private void validateNotificationOwner(Notification notification, UUID requestUserId) {
     if (!requestUserId.equals(notification.getUser().getId())) {
       throw new NotificationNotOwnedException();
+    }
+  }
+
+  // 실제로 존재하는 유저 id인지 확인
+  private void validateUserExists(UUID userId) {
+    if (!userRepository.existsById(userId)) {
+      throw new UserNotFoundException(userId);
     }
   }
 
@@ -158,11 +165,5 @@ public class NotificationService {
   private Notification getNotificationOrThrow(UUID notificationId) {
     return notificationRepository.findById(notificationId)
       .orElseThrow(() -> new NotificationNotFoundException(notificationId));
-  }
-
-  private void checkUserExistsOrThrow(UUID userId) {
-    if (!userRepository.existsById(userId)) {
-      throw new UserNotFoundException(userId);
-    }
   }
 }
