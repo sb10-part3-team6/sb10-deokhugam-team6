@@ -36,6 +36,10 @@ public enum ErrorCode {
     DUPLICATE_REVIEW_LIKE_REQUEST(HttpStatus.CONFLICT, "Review like request already exists"),       // 특정 도서에 대한 좋아요 추가 생성 요청 존재
     REVIEW_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "Review like with Id not found"),                   // 특정 도서에 대한 사용자의 좋아요 조회 실패
 
+    // 대시보드 배치 작업 관련 예외
+    JOB_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Batch Job has failed"), // 배치 Job이 실패할 시
+    JOB_LISTENER_SNAPSHOT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "Job listener has failed to change snapshot status failed"),
+
     // 파워 유저 집계 및 조회
     CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
     CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST,"Invalid cursor or after format"),

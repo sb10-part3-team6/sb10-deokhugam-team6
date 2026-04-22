@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.users.batch.tasklet;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.users.exception.InvalidJobParameterException;
+import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidJobParameterException;
 import com.codeit.mission.deokhugam.dashboard.users.service.PowerUserAggregateService;
 import java.time.LocalDateTime;
 import java.util.UUID;

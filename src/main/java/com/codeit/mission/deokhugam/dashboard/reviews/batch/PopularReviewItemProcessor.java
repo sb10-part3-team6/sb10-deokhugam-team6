@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.dashboard.reviews.batch.tasklet;
+package com.codeit.mission.deokhugam.dashboard.reviews.batch;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewStat;
@@ -32,7 +32,7 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
   void beforeStep(StepExecution stepExecution){
     this.periodType = PeriodType.valueOf(stepExecution.getJobExecution().getJobParameters().getString("periodType"));
     this.aggregatedAt = LocalDateTime.parse(stepExecution.getJobExecution().getJobParameters().getString("aggregatedAt"));
-    this.snapshotId = UUID.fromString(stepExecution.getJobExecution().getJobParameters().getString("snapshotId"));
+    this.snapshotId = UUID.fromString(stepExecution.getJobExecution().getExecutionContext().getString("snapshotId"));
     this.statsByReviewId = popularReviewAggregateService.loadReviewStat(periodType, aggregatedAt);
   }
 

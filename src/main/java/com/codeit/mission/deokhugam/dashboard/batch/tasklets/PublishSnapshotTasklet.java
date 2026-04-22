@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.dashboard.batch;
+package com.codeit.mission.deokhugam.dashboard.batch.tasklets;
 
 import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotService;

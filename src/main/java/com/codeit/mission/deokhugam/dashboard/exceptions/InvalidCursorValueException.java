@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.dashboard.users.exception;
+package com.codeit.mission.deokhugam.dashboard.exceptions;
 
 import com.codeit.mission.deokhugam.error.DeokhugamException;
 import com.codeit.mission.deokhugam.error.ErrorCode;

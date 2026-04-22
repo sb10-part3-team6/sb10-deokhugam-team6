@@ -16,5 +16,4 @@ public class PowerUserWriterConfig {
     writer.setEntityManagerFactory(emf); // 해당 객체에 EntityMangerFactory를 주입한다.
     return writer; // 객체 반환
   }
-
 }

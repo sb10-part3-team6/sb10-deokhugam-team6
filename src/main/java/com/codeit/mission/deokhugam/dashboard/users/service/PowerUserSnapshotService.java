@@ -3,7 +3,7 @@ package com.codeit.mission.deokhugam.dashboard.users.service;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
 import com.codeit.mission.deokhugam.dashboard.users.entity.PowerUserSnapshot;
-import com.codeit.mission.deokhugam.dashboard.users.exception.SnapshotNotFoundException;
+import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotFoundException;
 import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserSnapshotRepository;
 import java.time.LocalDateTime;
 import java.util.UUID;

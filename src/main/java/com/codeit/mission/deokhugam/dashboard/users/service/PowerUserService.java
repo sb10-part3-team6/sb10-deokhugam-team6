@@ -1,17 +1,18 @@
 package com.codeit.mission.deokhugam.dashboard.users.service;
 
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
+import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
+import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
+import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import com.codeit.mission.deokhugam.dashboard.users.dto.CursorPageResponsePowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.users.entity.PowerUserSnapshot;
-import com.codeit.mission.deokhugam.dashboard.users.exception.InvalidCursorValueException;
-import com.codeit.mission.deokhugam.dashboard.users.exception.SnapshotNotFoundException;
+import com.codeit.mission.deokhugam.dashboard.exceptions.CursorAfterNotProvidedTogetherException;
+import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidCursorValueException;
+import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotFoundException;
 import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserRepository;
-import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserSnapshotRepository;
-import com.codeit.mission.deokhugam.error.DeokhugamException;
-import com.codeit.mission.deokhugam.error.ErrorCode;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,13 +29,13 @@ public class PowerUserService {
   private static final int MAX_PAGE_SIZE = 100;
 
   private final PowerUserRepository powerUserRepository;
-  private final PowerUserSnapshotRepository powerUserSnapshotRepository;
+  private final AggregateSnapshotRepository aggregateSnapshotRepository;
 
   @Transactional(readOnly = true)
   public CursorPageResponsePowerUserDto getLatestRankings(
       PeriodType periodType, DirectionEnum direction, String cursor, String after, int size) {
     if ((cursor == null) != (after == null)) {
-      throw new DeokhugamException(ErrorCode.CURSOR_AFTER_NOT_PROVIDED_TOGETHER);
+      throw new CursorAfterNotProvidedTogetherException();
     }
 
     int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
@@ -85,9 +86,10 @@ public class PowerUserService {
   }
 
   private UUID getPublishedSnapshotId(PeriodType periodType) {
-    return powerUserSnapshotRepository
-        .findTopByPeriodTypeAndStagingTypeOrderByCreatedAtDesc(periodType, StagingType.PUBLISHED)
-        .map(PowerUserSnapshot::getSnapshotId)
+    return aggregateSnapshotRepository
+        .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POWER_USER, periodType, StagingType.PUBLISHED)
+        .map(AggregateSnapshot::getSnapshotId)
         .orElseThrow(SnapshotNotFoundException::new);
   }
 }
