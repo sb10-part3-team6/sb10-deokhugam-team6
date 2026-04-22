@@ -103,6 +103,22 @@ public class NotificationService {
 
     }
 
+    public NotificationDto updateById(UUID notificationId, UUID requestUserId,
+        NotificationUpdateRequest requestDto) {
+
+        User requestUser = getUser(requestUserId);
+        Notification notification = getNotification(notificationId);
+
+        // 요청자의 id와 알림을 받은 사람의 id를 대조하여 일치하는 경우애만 update
+        if (!requestUser.getId().equals(notification.getUser().getId())) {
+            throw new NotificationNotOwnedException();
+        }
+
+        notification.updateConfirmed(requestDto.confirmed());
+
+        return notificationMapper.toDto(notification);
+    }
+
     private Notification createNotification(
         User receiver,
         Review review,
