@@ -153,7 +153,7 @@ public class ReviewServiceImplementTest {
     ReviewSearchConditionDto condition = new ReviewSearchConditionDto(
         null,
         null,
-        null,
+        "에로스",
         "rating",
         "desc",
         null,
@@ -167,8 +167,14 @@ public class ReviewServiceImplementTest {
     UUID review2Id = UUID.randomUUID();
     UUID review3Id = UUID.randomUUID();
 
+    // 가짜 객체 | 도서 및 사용자
+    Book mockBook = Book.builder().title("외계인 돌덩이").build();
+    User mockUser = User.builder().nickname("다그 만두 자").build();
+
     // 가짜 객체 | 리뷰
     Review review1 = Review.builder()
+        .book(mockBook)
+        .user(mockUser)
         .rating(5)
         .content("에로스")
         .build();
@@ -176,6 +182,8 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(review1, "createdAt", sameTime);
 
     Review review2 = Review.builder()
+        .book(mockBook)
+        .user(mockUser)
         .rating(5)
         .content("안테로스")
         .build();
@@ -183,6 +191,8 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(review2, "createdAt", sameTime);
 
     Review review3 = Review.builder()
+        .book(mockBook)
+        .user(mockUser)
         .rating(5)
         .content("외계인 고양이")
         .build();
@@ -214,8 +224,9 @@ public class ReviewServiceImplementTest {
     given(reviewMapper.toDtoList(pagedReviews, reviewLikeIds)).willReturn(dtoList);
 
     // 페이지 응답 DTO
+
     // 서비스가 계산해야 하는 커서 값
-    String expectedNextCursor = "5_" + review2Id.toString();
+    String expectedNextCursor = "2_5_" + review2Id.toString();
     LocalDateTime expectedNextAfter = sameTime;
 
     CursorPageResponseReviewDto<ReviewDto> expectedResponse = CursorPageResponseReviewDto.<ReviewDto>builder()
