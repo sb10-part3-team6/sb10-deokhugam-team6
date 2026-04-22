@@ -3,8 +3,10 @@ package com.codeit.mission.deokhugam.notification.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -471,6 +473,39 @@ public class NotificationServiceTest {
       assertThrows(NotificationNotOwnedException.class, () ->
         notificationService.updateById(notificationId, requestUserId, requestDto)
       );
+    }
+
+    @Test
+    @DisplayName("알림 복수 업데이트 성공: 특정 유저의 모든 알림을 읽음으로 처리")
+    void updateAllByUserId_Success() {
+      // given
+      UUID userId = UUID.randomUUID();
+
+      given(userRepository.existsById(userId)).willReturn(true);
+
+      // when
+      notificationService.updateByUserId(userId);
+
+      // then
+      verify(userRepository).existsById(userId);
+      verify(notificationRepository).updateAllAsConfirmed(userId);
+    }
+
+    @Test
+    @DisplayName("알림 복수 업데이트 실패: 존재하지 않는 유저의 id로 요청한 경우")
+    void updateAllByUserId_Fail() {
+      // given
+      UUID userId = UUID.randomUUID();
+
+      given(userRepository.existsById(userId)).willReturn(false);
+
+      // when & then
+      assertThatThrownBy(() ->
+        notificationService.updateByUserId(userId)
+      ).isInstanceOf(UserNotFoundException.class);
+
+      // 핵심: update 쿼리는 실행되면 안 됨
+      verify(notificationRepository, never()).updateAllAsConfirmed(any());
     }
   }
 
