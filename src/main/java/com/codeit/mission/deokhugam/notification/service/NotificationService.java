@@ -125,13 +125,8 @@ public class NotificationService {
 
     public void updateByUserId(UUID userId) {
         User user = getUser(userId);
-        
-        List<Notification> notificationList = notificationRepository.findByUserId(user.getId());
 
-        notificationList.forEach(notification -> {
-
-            notification.updateConfirmed(true);
-        });
+        notificationRepository.updateAllAsConfirmed(user.getId());
     }
 
     private Notification createNotification(
