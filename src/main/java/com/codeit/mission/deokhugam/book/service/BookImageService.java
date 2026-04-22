@@ -110,7 +110,10 @@ public class BookImageService {
 
             return path.substring(1); // 앞 "/" 제거
 
-        } catch (Exception e) {
+        }catch (S3UrlParseFailureException e) {
+            throw e;
+        }
+        catch (Exception e) {
             throw new S3UrlParseFailureException();
         }
     }
