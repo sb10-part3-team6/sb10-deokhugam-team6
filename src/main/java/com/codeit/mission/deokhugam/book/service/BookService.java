@@ -2,11 +2,14 @@ package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.dto.*;
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.entity.BookStatus;
+import com.codeit.mission.deokhugam.book.event.BookDeletedEvent;
 import com.codeit.mission.deokhugam.book.exception.*;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -18,9 +21,11 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +37,7 @@ public class BookService {
     private final BookImageService bookImageService;
     private final BookDtoMapper bookDtoMapper;
     private final WebClient webClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final String NAVER_BOOK_API_URL = "https://openapi.naver.com/v1/search/book_adv";
 
@@ -253,5 +259,70 @@ public class BookService {
         return checkDigit == (isbn.charAt(12) - '0');
     }
 
+    //책 상세 정보 조회 메서드
+    public BookDto findBook(UUID id){
+        Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
 
+        if(isDeleted(book)){
+            throw new BookNotFoundException();
+        }
+
+        return bookDtoMapper.toDto(book);
+    }
+
+    //책 정보 수정 메서드
+    @Transactional
+    public BookDto updateBook(UUID id, BookUpdateRequest request, MultipartFile image){
+        Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+
+        if(isDeleted(book)){
+            throw new BookNotFoundException();
+        }
+
+        book.setTitle(request.title());
+        book.setAuthor(request.author());
+        book.setDescription(request.description());
+        book.setPublisher(request.publisher());
+        book.setPublishedDate(request.publishedDate());
+
+        if(image != null && !image.isEmpty()){
+            bookImageService.deleteFileByUrl(book.getThumbnailUrl());
+            book.setThumbnailUrl(upload(image));
+        }
+
+        bookRepository.save(book);
+
+        return bookDtoMapper.toDto(book);
+    }
+
+    //책 데이터 논리 삭제 메서드
+    @Transactional
+    public void deleteBook(UUID id){
+        Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+        if(isDeleted(book)){
+            throw new BookNotFoundException();
+        }
+
+        book.delete();
+        bookRepository.save(book);
+    }
+
+    //도서 데이터 물리 삭제 메서드
+    @Transactional
+    public void hardDeleteBook(UUID id){
+        Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+        if(isDeleted(book)){
+            throw new BookNotFoundException();
+        }
+
+        bookRepository.delete(book);
+
+        eventPublisher.publishEvent(
+                new BookDeletedEvent(book.getThumbnailUrl())
+        );
+    }
+
+    private boolean isDeleted(Book book){
+        return book.getBookStatus() == BookStatus.DELETED;
+    }
 }

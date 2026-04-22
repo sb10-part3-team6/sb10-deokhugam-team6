@@ -1,23 +1,24 @@
 package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.exception.S3UploadFailureException;
+import com.codeit.mission.deokhugam.book.exception.S3UrlParseFailureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+import java.net.URI;
 import java.time.Duration;
 import java.io.IOException;
 import java.util.UUID;
-
-import static com.codeit.mission.deokhugam.error.ErrorCode.S3_UPLOAD_FAILED;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +56,20 @@ public class BookImageService {
         }
     }
 
+    public void deleteFileByUrl(String fileUrl) {
+        if (fileUrl == null || fileUrl.isBlank()) {
+            return;
+        }
+        String key = extractKeyFromUrl(fileUrl);
+
+        s3Client.deleteObject(
+                DeleteObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(key)
+                        .build()
+        );
+    }
+
     public String generatePresignedUrl(String fileName) {
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
@@ -79,5 +94,27 @@ public class BookImageService {
         return s3Client.utilities()
                 .getUrl(GetUrlRequest.builder().bucket(bucket).key(fileName).build())
                 .toExternalForm();
+    }
+
+    private String extractKeyFromUrl(String fileUrl) {
+        if (fileUrl == null || fileUrl.isBlank()) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(fileUrl);
+
+            String path = uri.getPath(); // "/images/test.jpg"
+            if (path == null || path.length() <= 1) {
+                throw new S3UrlParseFailureException();
+            }
+
+            return path.substring(1); // 앞 "/" 제거
+
+        }catch (S3UrlParseFailureException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new S3UrlParseFailureException();
+        }
     }
 }

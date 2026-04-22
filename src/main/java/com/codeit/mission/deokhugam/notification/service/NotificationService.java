@@ -1,6 +1,10 @@
 package com.codeit.mission.deokhugam.notification.service;
 
+import com.codeit.mission.deokhugam.notification.dto.CursorPageResponseNotificationDto;
+import com.codeit.mission.deokhugam.notification.dto.NotificationDto;
+import com.codeit.mission.deokhugam.notification.dto.NotificationRequestQuery;
 import com.codeit.mission.deokhugam.notification.entity.Notification;
+import com.codeit.mission.deokhugam.notification.mapper.NotificationMapper;
 import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
@@ -8,8 +12,12 @@ import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +29,8 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+
+    private final NotificationMapper notificationMapper;
 
     public void createByLike(UUID senderId, UUID receiverId, UUID reviewId) {
         User sender = getUser(senderId);
@@ -52,6 +62,45 @@ public class NotificationService {
             // fixme: 인기 리뷰 알림 메시지 예시를 확인할 수 없어서 임시로 작성
             createNotification(user, review, "나의 리뷰가 인기 리뷰로 등록되었습니다.")
         );
+    }
+
+    public CursorPageResponseNotificationDto findByUserId(UUID userId,
+        NotificationRequestQuery query) {
+
+        Slice<Notification> slice =
+            notificationRepository.findByUserWithCursor(userId, query);
+
+        long totalCount = notificationRepository.countByUserId(userId);
+
+        List<Notification> content = slice.getContent();
+
+        String nextCursor = null;
+        Instant nextAfter = null;
+
+        if (!content.isEmpty()) {
+            Notification last = content.get(content.size() - 1);
+
+            if (slice.hasNext()) {
+                nextCursor = last.getCreatedAt().toInstant(ZoneOffset.UTC).toString();
+                nextAfter = last.getCreatedAt().toInstant(ZoneOffset.UTC);
+            }
+
+        }
+
+        List<NotificationDto> dtoContent = slice.getContent()
+            .stream()
+            .map(notificationMapper::toDto)
+            .toList();
+
+        return CursorPageResponseNotificationDto.builder()
+            .content(dtoContent)
+            .nextCursor(nextCursor)
+            .nextAfter(nextAfter)
+            .size(content.size())
+            .totalElements(totalCount)
+            .hasNext(slice.hasNext())
+            .build();
+
     }
 
     private Notification createNotification(
