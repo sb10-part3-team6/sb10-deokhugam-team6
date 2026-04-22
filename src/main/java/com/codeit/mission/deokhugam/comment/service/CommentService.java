@@ -9,8 +9,13 @@ import com.codeit.mission.deokhugam.comment.entity.Comment;
 import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
+import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
+import com.codeit.mission.deokhugam.user.entity.UserStatus;
+import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +38,10 @@ public class CommentService {
     // 댓글 등록
     @Transactional
     public CommentDto createComment(CommentCreateRequest request) {
+        // Review 검증
         validReviewExists(request.reviewId());
         // User검증 + userNickName을 가져오기 위한 user
-        User user = userRepository.findById(request.userId()).orElseThrow(EntityNotFoundException::new);
+        User user = validUserExists(request.userId());
 
         Comment comment = Comment.builder()
                 .reviewId(request.reviewId())
@@ -51,7 +57,7 @@ public class CommentService {
     @Transactional
     public CommentDto updateComment(UUID commentId, UUID requestUserId, CommentUpdateRequest request) {
         // 요청자 검증 및 userNickName을 가져오기 위한 user
-        User user = userRepository.findById(requestUserId).orElseThrow(EntityNotFoundException::new);
+        User user = validUserExists(requestUserId);
         Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
         if (!comment.getUserId().equals(requestUserId)) {
             throw new CommentAuthorException();
@@ -120,10 +126,24 @@ public class CommentService {
     }
 
     // 리뷰가 존재하는지 검증
-
     private void validReviewExists(UUID reviewId) {
-        if (!reviewRepository.existsById(reviewId)) {
-            throw new EntityNotFoundException("리뷰가 존재하지 않습니다.");
+        Review review = reviewRepository.findById(reviewId).orElseThrow(EntityNotFoundException::new);
+
+        // 리뷰 상태가 Delete면 조회 실패
+        if (review.getStatus() == ReviewStatus.DELETED) {
+            throw new ReviewNotFoundException(reviewId);
         }
+    }
+
+    // 유저가 존재하는지 검증
+    private User validUserExists(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(EntityNotFoundException::new);
+
+        // 유저 상태가 Delete면 조회 실패
+        if (user.getStatus() == UserStatus.DELETED) {
+            throw new UserNotFoundException(userId);
+        }
+
+        return user;
     }
 }
