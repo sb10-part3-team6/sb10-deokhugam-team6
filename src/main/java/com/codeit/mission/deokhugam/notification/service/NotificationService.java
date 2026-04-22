@@ -36,9 +36,9 @@ public class NotificationService {
   private final NotificationMapper notificationMapper;
 
   public void createByLike(UUID senderId, UUID receiverId, UUID reviewId) {
-    User sender = getUser(senderId);
-    User receiver = getUser(receiverId);
-    Review review = getReview(reviewId);
+    User sender = getUserEntityOrThrow(senderId);
+    User receiver = getUserEntityOrThrow(receiverId);
+    Review review = getReviewOrThrow(reviewId);
 
     notificationRepository.save(
       createNotification(receiver, review,
@@ -47,9 +47,9 @@ public class NotificationService {
   }
 
   public void createByComment(UUID senderId, UUID receiverId, UUID reviewId) {
-    User sender = getUser(senderId);
-    User receiver = getUser(receiverId);
-    Review review = getReview(reviewId);
+    User sender = getUserEntityOrThrow(senderId);
+    User receiver = getUserEntityOrThrow(receiverId);
+    Review review = getReviewOrThrow(reviewId);
 
     notificationRepository.save(
       createNotification(receiver, review,
@@ -58,8 +58,8 @@ public class NotificationService {
   }
 
   public void createByReviewRanked(UUID userId, UUID reviewId) {
-    User user = getUser(userId);
-    Review review = getReview(reviewId);
+    User user = getUserEntityOrThrow(userId);
+    Review review = getReviewOrThrow(reviewId);
 
     notificationRepository.save(
       // fixme: 인기 리뷰 알림 메시지 예시를 확인할 수 없어서 임시로 작성
@@ -110,7 +110,7 @@ public class NotificationService {
   public NotificationDto updateById(UUID notificationId, UUID requestUserId,
     NotificationUpdateRequest requestDto) {
 
-    Notification notification = getNotification(notificationId);
+    Notification notification = getNotificationOrThrow(notificationId);
 
     validateNotificationOwnerOrThrow(notification, requestUserId);
 
@@ -145,24 +145,24 @@ public class NotificationService {
     }
   }
 
-  private User getUser(UUID userId) {
+  private User getUserEntityOrThrow(UUID userId) {
     return userRepository.findById(userId)
       .orElseThrow(() -> new UserNotFoundException(userId));
+  }
+
+  private Review getReviewOrThrow(UUID reviewId) {
+    return reviewRepository.findById(reviewId)
+      .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+  }
+
+  private Notification getNotificationOrThrow(UUID notificationId) {
+    return notificationRepository.findById(notificationId)
+      .orElseThrow(() -> new NotificationNotFoundException(notificationId));
   }
 
   private void checkUserExistsOrThrow(UUID userId) {
     if (!userRepository.existsById(userId)) {
       throw new UserNotFoundException(userId);
     }
-  }
-
-  private Review getReview(UUID reviewId) {
-    return reviewRepository.findById(reviewId)
-      .orElseThrow(() -> new ReviewNotFoundException(reviewId));
-  }
-
-  private Notification getNotification(UUID notificationId) {
-    return notificationRepository.findById(notificationId)
-      .orElseThrow(() -> new NotificationNotFoundException(notificationId));
   }
 }
