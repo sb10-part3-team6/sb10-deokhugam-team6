@@ -1,9 +1,7 @@
 package com.codeit.mission.deokhugam.book.entity;
 
 import com.codeit.mission.deokhugam.base.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Builder;
@@ -13,6 +11,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "books")
@@ -43,6 +42,7 @@ public class Book extends BaseEntity {
     private String isbn;
 
     @Column
+    @Setter
     private String thumbnailUrl;
 
     @Column(nullable = false)
@@ -52,6 +52,13 @@ public class Book extends BaseEntity {
     @Column(nullable = false)
     @Min(0) @Max(5)
     private double rating;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BookStatus bookStatus;
+
+    @Column
+    private LocalDateTime deletedAt;
 
     //빌더 패턴 적용
     @Builder
@@ -69,6 +76,7 @@ public class Book extends BaseEntity {
         this.thumbnailUrl = thumbnailUrl;
         this.reviewCount = reviewCount;
         this.rating = rating;
+        this.bookStatus = BookStatus.ACTIVE;
     }
 
     //리뷰 추가
@@ -81,5 +89,11 @@ public class Book extends BaseEntity {
     public void removeReview(int review) {
         this.rating = (this.rating * this.reviewCount - review) / (this.reviewCount - 1);
         this.reviewCount--;
+    }
+
+    //논리 삭제 메서드
+    public void delete() {
+        this.bookStatus = BookStatus.DELETED;
+        this.deletedAt = LocalDateTime.now();
     }
 }
