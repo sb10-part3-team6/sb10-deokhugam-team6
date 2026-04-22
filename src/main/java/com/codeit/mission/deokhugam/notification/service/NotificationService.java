@@ -67,7 +67,6 @@ public class NotificationService {
         );
     }
 
-    // todo: @Transactional(readOnly = true)
     public CursorPageResponseNotificationDto findByUserId(UUID userId,
         NotificationRequestQuery query) {
 
