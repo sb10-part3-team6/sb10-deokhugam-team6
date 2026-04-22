@@ -28,7 +28,10 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
     // 2. 사용자가 요청한 정렬 조건 (orderBy): 기본값이 생성 시점이므로 평점만 비교
     boolean isRatingOrder = "rating".equals(condition.orderBy());
 
-    // 3. 커서 기반 페이지네이션: 커서와 보조 커서 (after)가 모두 있을 때만 다음 페이지 조회
+    // 3. 사용자가 요청한 정렬 방향 (direction): 기본값은 내림차순 (desc)
+    boolean isAsc = "asc".equalsIgnoreCase(condition.direction());
+
+    // 4. 커서 기반 페이지네이션: 커서와 보조 커서 (after)가 모두 있을 때만 다음 페이지 조회
     if (condition.cursor() != null && condition.after() != null) {
       // 페이지네이션 조건을 담을 빌더 객체 생성
       BooleanBuilder cursorBuilder = new BooleanBuilder();
@@ -48,9 +51,15 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
           throw new InvalidCursorFormatException();
         }
 
-        // 마지막 요소의 평점보다 낮은 요소와 평점은 같지만 생성 시간이 오래된 요소
-        cursorBuilder.or(review.rating.lt(cursorRating));
-        cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.lt(after)));
+        if (isAsc) {
+          // 마지막 요소의 평점보다 높은 요소와 평점은 같지만 생성 시간이 최근인 요소
+          cursorBuilder.or(review.rating.gt(cursorRating));
+          cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.gt(after)));
+        } else {
+          // 마지막 요소의 평점보다 낮은 요소와 평점은 같지만 생성 시간이 오래된 요소
+          cursorBuilder.or(review.rating.lt(cursorRating));
+          cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.lt(after)));
+        }
       }
       // 기본 정렬 기준 필드 = 생성 시간(createdAt)
       else {
@@ -64,20 +73,32 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
           throw new InvalidCursorFormatException();
         }
 
-        // 마지막 요소의 생성 시간보다 오래된 요소와 생성 시간은 같지만 ID 값이 작은 요소
-        cursorBuilder.or(review.createdAt.lt(after));
-        cursorBuilder.or(review.createdAt.eq(after).and(review.id.lt(cursorId)));
+        if (isAsc) {
+          // 마지막 요소의 생성 시간보다 최근인 요소와 생성 시간은 같지만 ID 값이 큰 요소
+          cursorBuilder.or(review.createdAt.gt(after));
+          cursorBuilder.or(review.createdAt.eq(after).and(review.id.gt(cursorId)));
+        } else {
+          // 마지막 요소의 생성 시간보다 오래된 요소와 생성 시간은 같지만 ID 값이 작은 요소
+          cursorBuilder.or(review.createdAt.lt(after));
+          cursorBuilder.or(review.createdAt.eq(after).and(review.id.lt(cursorId)));
+        }
       }
       // 페이지네이션 빌더 객체를 WHERE 빌더 객체에 AND로 결합
       filterBuilder.and(cursorBuilder);
     }
 
     // 4. 정렬 조건 설정
-    OrderSpecifier<?>[] orderSpecifiers = isRatingOrder
-        // 평점 정렬: 평점 -> 생성 시간 -> ID 내림차순
-        ? new OrderSpecifier<?>[]{review.rating.desc(), review.createdAt.desc(), review.id.desc()}
-        // 시간 정렬: 생성 시간 -> ID
-        : new OrderSpecifier<?>[]{review.createdAt.desc(), review.id.desc()};
+    OrderSpecifier<?>[] orderSpecifiers;
+    if (isRatingOrder) {
+      orderSpecifiers = isAsc
+          ? new OrderSpecifier<?>[]{review.rating.asc(), review.createdAt.asc(), review.id.asc()}
+          : new OrderSpecifier<?>[]{review.rating.desc(), review.createdAt.desc(),
+              review.id.desc()};
+    } else {
+      orderSpecifiers = isAsc
+          ? new OrderSpecifier<?>[]{review.createdAt.asc(), review.id.asc()}
+          : new OrderSpecifier<?>[]{review.createdAt.desc(), review.id.desc()};
+    }
 
     // 6. 동적 쿼리 실행
     return jpaQueryFactory
