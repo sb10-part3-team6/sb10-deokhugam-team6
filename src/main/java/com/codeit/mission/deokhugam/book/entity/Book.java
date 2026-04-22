@@ -57,7 +57,7 @@ public class Book extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private BookStatus bookStatus;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime deletedAt;
 
     //빌더 패턴 적용
@@ -76,6 +76,7 @@ public class Book extends BaseEntity {
         this.thumbnailUrl = thumbnailUrl;
         this.reviewCount = reviewCount;
         this.rating = rating;
+        this.bookStatus = BookStatus.ACTIVE;
     }
 
     //리뷰 추가
