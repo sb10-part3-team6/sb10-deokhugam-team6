@@ -58,6 +58,9 @@ public class BookImageService {
     }
 
     public void deleteFileByUrl(String fileUrl) {
+        if (fileUrl == null || fileUrl.isBlank()) {
+            return;
+        }
         String key = extractKeyFromUrl(fileUrl);
 
         s3Client.deleteObject(
@@ -95,6 +98,9 @@ public class BookImageService {
     }
 
     private String extractKeyFromUrl(String fileUrl) {
+        if (fileUrl == null || fileUrl.isBlank()) {
+            return null;
+        }
         try {
             URI uri = URI.create(fileUrl);
 
