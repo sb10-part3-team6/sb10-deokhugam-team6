@@ -11,6 +11,7 @@ import com.codeit.mission.deokhugam.dashboard.users.dto.UserStat;
 import com.codeit.mission.deokhugam.dashboard.users.entity.PowerUser;
 import com.codeit.mission.deokhugam.dashboard.users.repository.PowerUserRepository;
 import com.codeit.mission.deokhugam.dashboard.users.repository.ReviewLikeRepository;
+import com.codeit.mission.deokhugam.dashboard.util.Utils;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
@@ -44,14 +45,13 @@ public class PowerUserAggregateService {
   @Transactional(readOnly = true)
   public Map<UUID, UserStat> loadUserStats(PeriodType periodType, LocalDateTime aggregatedAt) {
     // periodType과 aggregatedAt 기준으로 산정할 기간을 측정
-    LocalDateTime periodStart = periodType.calculateStart(aggregatedAt);
-    LocalDateTime periodEnd = periodType.calculateEnd(aggregatedAt);
+    List<LocalDateTime> periods = Utils.calculatePeriod(periodType,aggregatedAt);
 
     // <유저 ID, 댓글 수> 형태의 Map
     Map<UUID, Long> commentCounts = new HashMap<>();
 
     // commentRepository에서 User별 댓글 수를 뽑아온 다음, 순회
-    for (UserCommentCount commentCount : commentRepository.findUserCommentCounts(periodStart, periodEnd)) {
+    for (UserCommentCount commentCount : commentRepository.findUserCommentCounts(periods.get(0), periods.get(1))) {
       commentCounts.put(commentCount.userId(), commentCount.commentCount()); // commentCounts 해쉬맵에 삽입
     }
 
@@ -60,7 +60,7 @@ public class PowerUserAggregateService {
 
     // reviewRepository에서 User별 리뷰 점수의 합계를 뽑아온 다음 순회함.
     for (UserReviewAggregate reviewAggregate
-        : reviewRepository.findUserReviewAggregates(periodStart, periodEnd, ReviewStatus.ACTIVE)) {
+        : reviewRepository.findUserReviewAggregates(periods.get(0), periods.get(1), ReviewStatus.ACTIVE)) {
       reviewScoreSums.put(reviewAggregate.userId(), reviewAggregate.reviewScoreSum());
     }
 
@@ -68,7 +68,7 @@ public class PowerUserAggregateService {
     // 추후 리뷰 도메인 쪽에서 좋아요 관련 기능을 보고 더 고도화 할 예정
     Map<UUID, Long> likeCounts = new HashMap<>();
     // reviewLikeRepository에서 User별 누른 좋아요 수를 뽑아온 다음 순회함.
-    for (PowerUserLikeCount likeCount : reviewLikeRepository.findUserLikeCounts(periodStart, periodEnd)) {
+    for (PowerUserLikeCount likeCount : reviewLikeRepository.findUserLikeCounts(periods.get(0), periods.get(1))) {
       likeCounts.put(likeCount.userId(), likeCount.likeCount());
     }
 
