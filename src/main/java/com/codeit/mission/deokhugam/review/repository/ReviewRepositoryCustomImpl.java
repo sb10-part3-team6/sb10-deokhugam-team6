@@ -56,9 +56,14 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   // 페이지네이션의 커서 조건을 정의하는 메서드
   private BooleanBuilder buildCountCondition(ReviewSearchConditionDto condition,
       boolean isRatingOrder, boolean isAsc) {
-    if (condition.limit() != null && condition.limit() > 0) {
-      BooleanBuilder filterBuilder = new BooleanBuilder();
+    // 첫 페이지 요청: cursor 및 after이 항상 null
+    if (condition.cursor() == null && condition.after() == null) {
+      return new BooleanBuilder();
     }
+    if (condition.cursor() == null || condition.after() == null) {
+      throw new InvalidCursorFormatException();
+    }
+
     BooleanBuilder cursorBuilder = new BooleanBuilder();
 
     LocalDateTime after = condition.after();                          // 보조 커서 (after) 이전 페이지의 마지막 요소 생성 시점
