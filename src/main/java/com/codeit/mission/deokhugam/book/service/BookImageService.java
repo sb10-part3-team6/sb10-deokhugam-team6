@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.exception.S3UploadFailureException;
-import com.codeit.mission.deokhugam.book.exception.S3UrlParshFailureException;
+import com.codeit.mission.deokhugam.book.exception.S3UrlParseFailureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,8 +19,6 @@ import java.net.URI;
 import java.time.Duration;
 import java.io.IOException;
 import java.util.UUID;
-
-import static com.codeit.mission.deokhugam.error.ErrorCode.S3_UPLOAD_FAILED;
 
 @Service
 @RequiredArgsConstructor
@@ -107,13 +105,13 @@ public class BookImageService {
 
             String path = uri.getPath(); // "/images/test.jpg"
             if (path == null || path.length() <= 1) {
-                throw new S3UrlParshFailureException();
+                throw new S3UrlParseFailureException();
             }
 
             return path.substring(1); // 앞 "/" 제거
 
         } catch (Exception e) {
-            throw new S3UrlParshFailureException();
+            throw new S3UrlParseFailureException();
         }
     }
 }
