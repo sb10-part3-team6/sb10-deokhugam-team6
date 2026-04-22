@@ -94,7 +94,7 @@ public class ReviewServiceImplementTest {
         Optional.of(savedReview));                                  // savedReview 반환
     given(userRepository.findById(requestUserId)).willReturn(
         Optional.of(requestUser));                                  // requestUser 반환
-    given(reviewLikeRepository.existsLikedByIdAndUserId(reviewId, requestUserId)).willReturn(
+    given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, requestUserId)).willReturn(
         true);                                                // 특정 리뷰에 대한 사용자의 좋아요 여부
 
     // 응답 DTO 객체
@@ -131,7 +131,7 @@ public class ReviewServiceImplementTest {
       // validateOwner 예외 반환 확인
       reviewServiceImplement.findById(reviewId, requestUserId);
     });
-    verify(reviewLikeRepository, never()).existsLikedByIdAndUserId(any(),
+    verify(reviewLikeRepository, never()).existsByReviewIdAndUserId(any(),
         any());                                    // Repository의 유효성 검증 (중복 검사) 미호출 확인
     verify(reviewMapper, never()).toDto(any(),
         anyBoolean());                             // Mapper의 toDto 미호출 확인
@@ -206,7 +206,8 @@ public class ReviewServiceImplementTest {
         .build();
 
     given(reviewRepository.searchReviews(condition)).willReturn(mockReviews);
-    given(reviewLikeRepository.findLikedReviewIds(requestUserId, reviewIds)).willReturn(
+    given(reviewLikeRepository.findReviewIdsByUserIdAndReviewIdIn(requestUserId,
+        reviewIds)).willReturn(
         reviewLikeIds);
     given(reviewMapper.toDtoList(pagedReviews, reviewLikeIds)).willReturn(dtoList);
     given(reviewRepository.countWithFilter(condition)).willReturn(15L);
@@ -224,7 +225,7 @@ public class ReviewServiceImplementTest {
     assertTrue(result.hasNext());                                                   // 다음 페이지 존재 여부
     assertEquals(2, result.content().size());                              // 페이지된 리뷰 개수 확인
     verify(reviewRepository).searchReviews(condition);
-    verify(reviewLikeRepository).findLikedReviewIds(requestUserId, reviewIds);
+    verify(reviewLikeRepository).findReviewIdsByUserIdAndReviewIdIn(requestUserId, reviewIds);
   }
 
   // [성공]
@@ -274,7 +275,7 @@ public class ReviewServiceImplementTest {
         result.content().isEmpty());                                       // 검색 결과가 빈 내용인지 확인
     assertEquals(0L, result.totalElements());
     verify(reviewRepository).searchReviews(condition);
-    verify(reviewLikeRepository, never()).findLikedReviewIds(any(), any());
+    verify(reviewLikeRepository, never()).findReviewIdsByUserIdAndReviewIdIn(any(), any());
   }
 
   /*
@@ -452,7 +453,7 @@ public class ReviewServiceImplementTest {
         Optional.of(savedReview));                                        // savedReview 반환
     given(userRepository.findById(userId)).willReturn(
         Optional.of(mockUser));                                           // mockUser 반환
-    given(reviewLikeRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(
+    given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(
         false);                                                     // 특정 리뷰에 대한 사용자의 좋아요 여부
 
     // 응답 DTO 객체
@@ -721,7 +722,7 @@ public class ReviewServiceImplementTest {
         Optional.of(savedReview));                                // savedReview 반환
     given(userRepository.findById(userId)).willReturn(
         Optional.of(mockUser));                                   // mockUser 반환
-    given(reviewLikeRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(
+    given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(
         false);                                             // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
 
     // when
@@ -785,7 +786,7 @@ public class ReviewServiceImplementTest {
         Optional.of(savedReview));                                  // savedReview 반환
     given(userRepository.findById(userId)).willReturn(
         Optional.of(mockUser));                                     // mockUser 반환
-    given(reviewLikeRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(
+    given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(
         true);                                                // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
     given(reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId))
         .willReturn(Optional.of(savedLike));                        // savedLike 반환
@@ -835,7 +836,7 @@ public class ReviewServiceImplementTest {
         Optional.of(savedReview));                                    // savedReview 반환
     given(userRepository.findById(userId)).willReturn(
         Optional.of(mockUser));                                       // mockUser 반환
-    given(reviewLikeRepository.existsLikedByIdAndUserId(reviewId, userId)).willReturn(
+    given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(
         false);                                                 // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
 
     // saveAndFlush 시점에 데이터베이스 제약 위반 예외 발생

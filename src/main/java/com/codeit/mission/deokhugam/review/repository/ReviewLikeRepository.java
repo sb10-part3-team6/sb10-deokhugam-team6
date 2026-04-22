@@ -35,16 +35,12 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, UUID> {
   Optional<ReviewLike> findByReviewIdAndUserId(UUID reviewId, UUID userId);
 
   // 특정 리뷰에 대한 특정 유저의 좋아요 여부
-  @Query("SELECT COUNT(reviewLike.id) > 0 " +
-      "FROM ReviewLike reviewLike " +
-      "WHERE reviewLike.review.id = :reviewId AND reviewLike.user.id = :userId")
-  boolean existsLikedByIdAndUserId(@Param("reviewId") UUID reviewId,
-      @Param("userId") UUID userId);
+  boolean existsByReviewIdAndUserId(UUID reviewId, UUID userId);
 
   // 특정 사용자가 좋아요를 누른 리뷰 목록 조회
   @Query("SELECT reviewLike.review.id " +
       "FROM ReviewLike reviewLike " +
       "WHERE reviewLike.user.id = :userId AND reviewLike.review.id IN :reviewIds")
-  List<UUID> findLikedReviewIds(@Param("userId") UUID userId,
+  List<UUID> findReviewIdsByUserIdAndReviewIdIn(@Param("userId") UUID userId,
       @Param("reviewIds") List<UUID> reviewIds);
 }

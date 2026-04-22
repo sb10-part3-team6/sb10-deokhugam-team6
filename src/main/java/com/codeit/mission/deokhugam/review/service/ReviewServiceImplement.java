@@ -324,7 +324,7 @@ public class ReviewServiceImplement implements ReviewService {
       return Collections.emptyList();
     }
 
-    return reviewLikeRepository.findLikedReviewIds(userId, reviewIds);
+    return reviewLikeRepository.findReviewIdsByUserIdAndReviewIdIn(userId, reviewIds);
   }
 
   // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
@@ -352,7 +352,7 @@ public class ReviewServiceImplement implements ReviewService {
 
   // 특정 사용자의 리뷰 좋아요 여부 확인
   private boolean isReviewLiked(UUID reviewId, UUID userId) {
-    return reviewLikeRepository.existsLikedByIdAndUserId(reviewId, userId);
+    return reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId);
   }
 
   // 유니크 제약 조건 (uk_book_user) 위반 확인: 발생한 예외가 중복 리뷰 예외에 해당하는지 확인
