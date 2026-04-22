@@ -44,6 +44,8 @@ public enum ErrorCode {
       "Review like with Id not found"),                        // 특정 도서에 대한 사용자의 좋아요 조회 실패
   REQUEST_USER_MISMATCH(HttpStatus.BAD_REQUEST,
       "Parameter and Header requestUserId mismatch"),          // 쿼리문 요청자와 헤더 내 요청자 불일치
+  INVALID_CURSOR_FORMAT(HttpStatus.BAD_REQUEST,
+      "cursor format is invalid"),                             // 잘못된 커서 형식
 
   // 파워 유저 집계 및 조회
   CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST,

@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.review.repository;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
+import com.codeit.mission.deokhugam.review.exception.InvalidCursorFormatException;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -38,7 +39,14 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       // 정렬 기준 필드 = 평점(rating)
       if (isRatingOrder) {
         // 커서 (cursor): 이전 페이지의 마지막 요소 평점
-        int cursorRating = Integer.parseInt(condition.cursor());
+        int cursorRating;
+
+        try {
+          cursorRating = Integer.parseInt(condition.cursor());
+        } catch (NumberFormatException e) {
+          // 숫자가 아닌 값이 평점 값으로 들어온 경우
+          throw new InvalidCursorFormatException();
+        }
 
         // 마지막 요소의 평점보다 낮은 요소와 평점은 같지만 생성 시간이 오래된 요소
         cursorBuilder.or(review.rating.lt(cursorRating));
@@ -47,7 +55,14 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       // 기본 정렬 기준 필드 = 생성 시간(createdAt)
       else {
         // 커서 (cursor): 이전 페이지의 마지막 요소 ID
-        UUID cursorId = UUID.fromString(condition.cursor());
+        UUID cursorId;
+
+        try {
+          cursorId = UUID.fromString(condition.cursor());
+        } catch (IllegalArgumentException e) {
+          // UUID 형식이 아닌 값이 ID 값으로 들어온 경우
+          throw new InvalidCursorFormatException();
+        }
 
         // 마지막 요소의 생성 시간보다 오래된 요소와 생성 시간은 같지만 ID 값이 작은 요소
         cursorBuilder.or(review.createdAt.lt(after));
