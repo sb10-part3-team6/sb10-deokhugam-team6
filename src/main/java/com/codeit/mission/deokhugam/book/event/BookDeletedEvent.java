@@ -1,5 +1,7 @@
 package com.codeit.mission.deokhugam.book.event;
 
+import lombok.Getter;
+
 @Getter
 public class BookDeletedEvent {
     private final String thumbnailUrl;
