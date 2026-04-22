@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentRepositoryCustom {
+  // 리뷰의 댓글 수
   int countByReviewId(UUID reviewId);
 
   // 파워 유저 집계할 때 기간 별 댓글 개수를 가져오는 레포지토리 메서드
