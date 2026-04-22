@@ -11,8 +11,10 @@ import com.codeit.mission.deokhugam.notification.entity.Notification;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.EntityManager;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,8 +126,9 @@ public class NotificationRepositoryImplTest {
         Slice<Notification> firstPage =
             notificationRepository.findByUserWithCursor(user.getId(), firstQuery);
 
-        LocalDateTime cursor =
-            firstPage.getContent().get(19).getCreatedAt();
+        Instant cursor = firstPage.getContent().get(19)
+            .getCreatedAt()
+            .toInstant(ZoneOffset.UTC);
 
         NotificationRequestQuery secondQuery = NotificationRequestQuery.builder()
             .direction(DirectionEnum.DESC)
@@ -139,8 +142,10 @@ public class NotificationRepositoryImplTest {
         // then
         assertThat(secondPage.getContent()).hasSize(10);
 
-        secondPage.getContent().forEach(n ->
-            assertThat(n.getCreatedAt()).isBefore(cursor)
+        secondPage.getContent().forEach(n -> {
+                Instant createdAt = n.getCreatedAt().toInstant(ZoneOffset.UTC);
+                assertThat(createdAt).isBefore(cursor);
+            }
         );
     }
 
