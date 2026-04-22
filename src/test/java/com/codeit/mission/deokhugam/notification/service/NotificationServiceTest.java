@@ -255,6 +255,7 @@ public class NotificationServiceTest {
                 .build();
         }
 
+        // limit=1로 두개의 데이터 중 하나만 조회하는 경우를 테스트합니다.
         @Test
         @DisplayName("첫번째 페이지 조회 성공")
         void findFirstPageSuccess() {
@@ -318,6 +319,60 @@ public class NotificationServiceTest {
             assertThat(result.nextCursor()).isNull();
             assertThat(result.nextAfter()).isNull();
             assertThat(result.hasNext()).isFalse();
+        }
+
+        @Test
+        @DisplayName("커서가 있는 경우 다음 페이지 조회 성공")
+        void findByUserIdWithCursor() {
+            // given
+            Instant after = Instant.parse("2026-01-01T00:00:00Z");
+
+            NotificationRequestQuery query = NotificationRequestQuery.builder()
+                .after(after)
+                .limit(2)
+                .build();
+
+            Notification n1 = mock(Notification.class);
+            Notification n2 = mock(Notification.class);
+
+            LocalDateTime t1 = LocalDateTime.of(2025, 12, 31, 23, 59, 50);
+            LocalDateTime t2 = LocalDateTime.of(2025, 12, 31, 23, 59, 40);
+
+            given(n2.getCreatedAt()).willReturn(t2);
+
+            List<Notification> notifications = List.of(n1, n2);
+
+            Slice<Notification> slice =
+                new SliceImpl<>(notifications, PageRequest.of(0, 2), true);
+
+            given(notificationRepository.findByUserWithCursor(userId, query))
+                .willReturn(slice);
+
+            given(notificationRepository.countByUserId(userId))
+                .willReturn(50L);
+
+            NotificationDto dto1 = mock(NotificationDto.class);
+            NotificationDto dto2 = mock(NotificationDto.class);
+
+            given(notificationMapper.toDto(n1)).willReturn(dto1);
+            given(notificationMapper.toDto(n2)).willReturn(dto2);
+
+            // when
+            CursorPageResponseNotificationDto result =
+                notificationService.findByUserId(userId, query);
+
+            // then
+            // Repository에 after 포함된 query 전달 확인
+            verify(notificationRepository).findByUserWithCursor(userId, query);
+
+            // nextCursor / nextAfter 계산 검증 (마지막 요소 기준)
+            assertThat(result.nextAfter()).isEqualTo(t2.toInstant(ZoneOffset.UTC));
+            assertThat(result.nextCursor()).isEqualTo(t2.toInstant(ZoneOffset.UTC).toString());
+
+            // 기타 값 검증
+            assertThat(result.content()).hasSize(2);
+            assertThat(result.totalElements()).isEqualTo(50L);
+            assertThat(result.hasNext()).isTrue();
         }
 
     }
