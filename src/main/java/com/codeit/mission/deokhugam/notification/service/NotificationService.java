@@ -3,7 +3,10 @@ package com.codeit.mission.deokhugam.notification.service;
 import com.codeit.mission.deokhugam.notification.dto.CursorPageResponseNotificationDto;
 import com.codeit.mission.deokhugam.notification.dto.NotificationDto;
 import com.codeit.mission.deokhugam.notification.dto.NotificationRequestQuery;
+import com.codeit.mission.deokhugam.notification.dto.NotificationUpdateRequest;
 import com.codeit.mission.deokhugam.notification.entity.Notification;
+import com.codeit.mission.deokhugam.notification.exception.NotificationNotFoundException;
+import com.codeit.mission.deokhugam.notification.exception.NotificationNotOwnedException;
 import com.codeit.mission.deokhugam.notification.mapper.NotificationMapper;
 import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
 import com.codeit.mission.deokhugam.review.entity.Review;
@@ -64,6 +67,7 @@ public class NotificationService {
         );
     }
 
+    // todo: @Transactional(readOnly = true)
     public CursorPageResponseNotificationDto findByUserId(UUID userId,
         NotificationRequestQuery query) {
 
@@ -119,6 +123,17 @@ public class NotificationService {
         return notificationMapper.toDto(notification);
     }
 
+    public void updateByUserId(UUID userId) {
+        User user = getUser(userId);
+        
+        List<Notification> notificationList = notificationRepository.findByUserId(user.getId());
+
+        notificationList.forEach(notification -> {
+
+            notification.updateConfirmed(true);
+        });
+    }
+
     private Notification createNotification(
         User receiver,
         Review review,
@@ -141,5 +156,10 @@ public class NotificationService {
     private Review getReview(UUID reviewId) {
         return reviewRepository.findById(reviewId)
             .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+    }
+
+    private Notification getNotification(UUID notificationId) {
+        return notificationRepository.findById(notificationId)
+            .orElseThrow(() -> new NotificationNotFoundException(notificationId));
     }
 }
