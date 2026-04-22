@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /*
     리뷰 서비스
@@ -85,9 +86,20 @@ public class ReviewServiceImplement implements ReviewService {
       Review lastItem = pagedReviews.get(pagedReviews.size() - 1);
 
       nextAfter = lastItem.getCreatedAt();
+
+      String rank = "";
+      // 키워드가 존재할 경우, 가중치 (rank) 설정
+      if (StringUtils.hasText(condition.keyword())) {
+        // 책 제목, 사용자 닉네임, 키워드 중 하나라도 일치한다면
+        boolean isExact = lastItem.getBook().getTitle().equals(condition.keyword()) ||
+            lastItem.getUser().getNickname().equals(condition.keyword()) ||
+            lastItem.getContent().equals(condition.keyword());
+
+        rank = (isExact ? "1" : "2") + "_";
+      }
       nextCursor = "rating".equals(condition.orderBy())
-          ? lastItem.getRating() + "_" + lastItem.getId().toString()
-          : lastItem.getId().toString();
+          ? rank + lastItem.getRating() + "_" + lastItem.getId().toString()
+          : rank + lastItem.getId().toString();
     }
 
     // 4. 페이징 된 리뷰 ID 목록 (최대 10개)

@@ -6,11 +6,16 @@ import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.InvalidCursorFormatException;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.StringUtils;
 
 import static com.codeit.mission.deokhugam.review.entity.QReview.review;
 
@@ -56,7 +61,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   // 페이지네이션의 커서 조건을 정의하는 메서드
   private BooleanBuilder buildCountCondition(ReviewSearchConditionDto condition,
       boolean isRatingOrder, boolean isAsc) {
-    // 첫 페이지 요청: cursor 및 after이 항상 null
+    // 1. 첫 페이지 요청: cursor 및 after이 항상 null
     if (condition.cursor() == null && condition.after() == null) {
       return new BooleanBuilder();
     }
@@ -64,66 +69,133 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       throw new InvalidCursorFormatException();
     }
 
-    BooleanBuilder cursorBuilder = new BooleanBuilder();
-
-    LocalDateTime after = condition.after();                          // 보조 커서 (after) 이전 페이지의 마지막 요소 생성 시점
-    UUID cursorId;                                                    // 커서 (cursor): 이전 페이지의 마지막 요소 ID
-    int cursorRating;                                                 // 커서 (cursor): 이전 페이지의 마지막 요소 평점
-
     try {
-      // 정렬 기준 필드 = 평점(rating)
-      if (isRatingOrder) {
-        String[] parts = condition.cursor().split("_");
-        cursorRating = Integer.parseInt(parts[0]);
-        cursorId = UUID.fromString(parts[1]);
+      String cursorStr = condition.cursor();              // 커서 문자열
+      Integer cursorRank = null;                          // 가중치: 키워드 일치 정도에 따른 가중치
 
-        if (isAsc) {
-          // 마지막 요소의 평점보다 높은 요소, 평점은 같지만 생성 시간이 최근인 요소, 평점과 생성 시간이 같지만 ID 값이 큰 요소
-          cursorBuilder.or(review.rating.gt(cursorRating));
-          cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.gt(after)));
-          cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.eq(after))
-              .and(review.id.gt(cursorId)));
-        } else {
-          // 마지막 요소의 평점보다 낮은 요소, 평점은 같지만 생성 시간이 오래된 요소, 평점과 생성 시간이 같지만 ID 값이 작은 요소
-          cursorBuilder.or(review.rating.lt(cursorRating));
-          cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.lt(after)));
-          cursorBuilder.or(review.rating.eq(cursorRating).and(review.createdAt.eq(after))
-              .and(review.id.lt(cursorId)));
-        }
+      // 2. 사용자의 정렬 조건 (평점 / 생성 시간) 중 가중치 (rank) 분리
+      if (StringUtils.hasText(condition.keyword())) {
+        String[] parts = cursorStr.split("_", 2);
+        cursorRank = Integer.parseInt(parts[0]);
+        cursorStr = parts[1];                             // 남은 커서 부분
       }
-      // 기본 정렬 기준 필드 = 생성 시간(createdAt)
-      else {
-        cursorId = UUID.fromString(condition.cursor());
 
-        if (isAsc) {
-          // 마지막 요소의 생성 시간보다 최근인 요소와 생성 시간은 같지만 ID 값이 큰 요소
-          cursorBuilder.or(review.createdAt.gt(after));
-          cursorBuilder.or(review.createdAt.eq(after).and(review.id.gt(cursorId)));
-        } else {
-          // 마지막 요소의 생성 시간보다 오래된 요소와 생성 시간은 같지만 ID 값이 작은 요소
-          cursorBuilder.or(review.createdAt.lt(after));
-          cursorBuilder.or(review.createdAt.eq(after).and(review.id.lt(cursorId)));
-        }
-      }
+      // 3. 사용자의 정렬 조건에 맞는 빌더 객체 생성
+      BooleanBuilder baseBuilder = isRatingOrder
+          ? createRatingCursorBuilder(cursorStr, condition.after(), isAsc)
+          : createTimeCursorBuilder(cursorStr, condition.after(), isAsc);
+
+      // 4. 정렬 조건에 가중치 적용
+      return applyRankCondition(baseBuilder, cursorRank, condition.keyword());
+
     } catch (RuntimeException e) {
+      // 잘못된 커서 형식 입력 시, 예외 발생
       throw new InvalidCursorFormatException();
     }
-    return cursorBuilder;
+  }
+
+  // 평점 기준 정렬 빌더 생성
+  private BooleanBuilder createRatingCursorBuilder(String remainingCursor, LocalDateTime after,
+      boolean isAsc) {
+    // 1. 커서로부터 평점과 마지막 요소 ID 분리
+    String[] parts = remainingCursor.split("_");
+    int cursorRating = Integer.parseInt(parts[0]);
+    UUID cursorId = UUID.fromString(parts[1]);
+
+    // 2. 평점을 기준 정렬로 하는 빌더 객체 생성
+    BooleanBuilder builder = new BooleanBuilder();
+
+    if (isAsc) {
+      // 마지막 요소의 평점보다 높은 요소, 평점은 같지만 생성 시간이 최근인 요소, 평점과 생성 시간이 같지만 ID 값이 큰 요소
+      builder.or(review.rating.gt(cursorRating));
+      builder.or(review.rating.eq(cursorRating).and(review.createdAt.gt(after)));
+      builder.or(review.rating.eq(cursorRating).and(review.createdAt.eq(after))
+          .and(review.id.gt(cursorId)));
+    } else {
+      // 마지막 요소의 평점보다 낮은 요소, 평점은 같지만 생성 시간이 오래된 요소, 평점과 생성 시간이 같지만 ID 값이 작은 요소
+      builder.or(review.rating.lt(cursorRating));
+      builder.or(review.rating.eq(cursorRating).and(review.createdAt.lt(after)));
+      builder.or(review.rating.eq(cursorRating).and(review.createdAt.eq(after))
+          .and(review.id.lt(cursorId)));
+    }
+
+    return builder;
+  }
+
+  // 생성 시간 기준 정렬 빌더 생성
+  private BooleanBuilder createTimeCursorBuilder(String remainingCursor, LocalDateTime after,
+      boolean isAsc) {
+    // 1. 마지막 요소의 ID
+    UUID cursorId = UUID.fromString(remainingCursor);
+
+    // 2. 생성 시간을 기준 정렬로 하는 빌더 객체 생성
+    BooleanBuilder builder = new BooleanBuilder();
+
+    if (isAsc) {
+      builder.or(review.createdAt.gt(after));
+      builder.or(review.createdAt.eq(after).and(review.id.gt(cursorId)));
+    } else {
+      builder.or(review.createdAt.lt(after));
+      builder.or(review.createdAt.eq(after).and(review.id.lt(cursorId)));
+    }
+
+    return builder;
+  }
+
+  // 가중치 결합
+  private BooleanBuilder applyRankCondition(BooleanBuilder baseBuilder, Integer cursorRank,
+      String keyword) {
+    // 1. 최종 정렬 빌더 객체
+    BooleanBuilder finalBuilder = new BooleanBuilder();
+
+    if (cursorRank != null) {
+      // 가중치를 최우선 정렬 기준으로 선정
+      finalBuilder.or(exactMatchRank(keyword).gt(cursorRank));
+      // 가중치가 같을 경우, 사용자가 요청한 정렬 기준 적용
+      finalBuilder.or(exactMatchRank(keyword).eq(cursorRank).and(baseBuilder));
+    } else {
+      // 키워드가 없을 경우, 사용자가 요청한 정렬 기준 적용
+      finalBuilder.and(baseBuilder);
+    }
+
+    return finalBuilder;
   }
 
   // 정렬 조건을 정의하는 메서드
   private OrderSpecifier<?>[] buildOrderSpecifiers(ReviewSearchConditionDto condition,
       boolean isRatingOrder, boolean isAsc) {
-    if (isRatingOrder) {
-      return isAsc
-          ? new OrderSpecifier<?>[]{review.rating.asc(), review.createdAt.asc(), review.id.asc()}
-          : new OrderSpecifier<?>[]{review.rating.desc(), review.createdAt.desc(),
-              review.id.desc()};
-    } else {
-      return isAsc
-          ? new OrderSpecifier<?>[]{review.createdAt.asc(), review.id.asc()}
-          : new OrderSpecifier<?>[]{review.createdAt.desc(), review.id.desc()};
+    List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
+
+    // 키워드가 존재할 경우, 가중치를 최우선으로 정렬
+    if (StringUtils.hasText(condition.keyword())) {
+      orderSpecifiers.add(exactMatchRank(condition.keyword()).asc());
     }
+
+    if (isRatingOrder) {
+      orderSpecifiers.add(isAsc ? review.rating.asc() : review.rating.desc());
+      orderSpecifiers.add(isAsc ? review.createdAt.asc() : review.createdAt.desc());
+      orderSpecifiers.add(isAsc ? review.id.asc() : review.id.desc());
+    } else {
+      orderSpecifiers.add(isAsc ? review.createdAt.asc() : review.createdAt.desc());
+      orderSpecifiers.add(isAsc ? review.id.asc() : review.id.desc());
+    }
+
+    return orderSpecifiers.toArray(new OrderSpecifier<?>[0]);
+  }
+
+  // 완전 일치 및 부분 일치 가중치 계산
+  private NumberExpression<Integer> exactMatchRank(String keyword) {
+    if (!StringUtils.hasText(keyword)) {
+      // 키워드가 없으면 전부 동등하게 처리
+      return Expressions.asNumber(1);
+    }
+
+    return new CaseBuilder()
+        .when(review.book.title.eq(keyword)
+            .or(review.user.nickname.eq(keyword))
+            .or(review.content.eq(keyword)))
+        .then(1)           // 완전 일치 (1순위)
+        .otherwise(2);  // 부분 일치 (2순위)
   }
 
   // 필터링 조건이 적용된 연동 목록의 전체 개수 조회
@@ -170,7 +242,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       keywordBuilder.or(review.user.nickname.contains(condition.keyword()));
       keywordBuilder.or(review.book.title.contains(condition.keyword()));
 
-      // 키워드 빌더 객체를 WHERE 빌더 객체에 AND도 결합
+      // 키워드 빌더 객체를 WHERE 빌더 객체에 AND로 결합
       filterBuilder.and(keywordBuilder);
     }
 
