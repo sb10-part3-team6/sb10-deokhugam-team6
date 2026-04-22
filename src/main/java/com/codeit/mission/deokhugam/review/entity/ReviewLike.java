@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EqualsAndHashCode(of = {"review", "user"}, callSuper = false)
+@EqualsAndHashCode(of = "id")
 @Table(
     name = "review_likes",
     uniqueConstraints = {

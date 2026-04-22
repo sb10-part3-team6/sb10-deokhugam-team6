@@ -55,9 +55,6 @@ public class Review extends BaseEntity {
   @Column(nullable = false)
   private int likeCount = 0;                                   // 리뷰의 좋아요 수 (기본값: 0)
 
-  @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ReviewLike> likes = new ArrayList<>();          // 특정 리뷰에 좋아요 목록
-
   @Column(nullable = false)
   private int commentCount = 0;                                // 리뷰의 댓글 수 (기본값: 0)
 
@@ -115,18 +112,14 @@ public class Review extends BaseEntity {
 
   // 좋아요 수 증가
   public void addReviewLike(ReviewLike reviewLike) {
-    // 특정 리뷰에 대한 사용자의 좋아요 중복 방지
-    if (!this.likes.contains(reviewLike)) {
-      this.likes.add(reviewLike);
-      this.likeCount = this.likes.size();
-    }
+    this.likeCount += 1;
   }
 
   // 좋아요 수 감소
   public void removeReviewLike(ReviewLike reviewLike) {
     // 특정 리뷰에 대한 사용자의 좋아요를 삭제한 경우에만 likeCount 감소
-    if (this.likes.remove(reviewLike)) {
-      this.likeCount = this.likes.size();
+    if (this.likeCount > 0) {
+      this.likeCount -= 1;
     }
   }
 

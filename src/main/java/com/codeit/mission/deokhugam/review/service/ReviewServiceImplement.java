@@ -264,11 +264,8 @@ public class ReviewServiceImplement implements ReviewService {
     ReviewLike createdReviewLike = createReviewLike(review, user);
     reviewLikeRepository.save(createdReviewLike);
 
-    // 2. 특정 도서의 좋아요를 남긴 사용자 목록 업데이트 (추가)
+    // 2. 특정 리뷰의 좋아요 수 증가
     review.addReviewLike(createdReviewLike);
-
-    // 3. 데이터베이스 즉시 반영
-    reviewRepository.saveAndFlush(review);
   }
 
   // 리뷰 좋아요 생성
@@ -287,11 +284,8 @@ public class ReviewServiceImplement implements ReviewService {
     // 2. 리뷰 좋아요 삭제
     reviewLikeRepository.delete(targetReviewLike);
 
-    // 3. 특정 사용자의 리뷰 좋아요 목록에서 삭제
+    // 3. 특정 리뷰의 좋아요 수 감소
     review.removeReviewLike(targetReviewLike);
-
-    // 4. 데이터베이스 즉시 반영
-    reviewRepository.saveAndFlush(review);
   }
 
   // Review 엔티티 반환
