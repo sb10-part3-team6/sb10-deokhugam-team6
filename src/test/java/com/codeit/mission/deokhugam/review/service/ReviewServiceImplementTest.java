@@ -836,11 +836,8 @@ public class ReviewServiceImplementTest {
     assertEquals(reviewId,
         result.reviewId());                                                               // 요청 DTO 검증
     assertEquals(userId, result.userId());
-    assertEquals(1,
-        savedReview.getLikeCount());                                                      // 좋아요 개수
-    verify(reviewLikeRepository, times(1)).
-        save(
-            any(ReviewLike.class));                                                      // 리뷰 좋아요 저장 함수 호출 확인
+    verify(reviewLikeRepository, times(1)).saveAndFlush(any(ReviewLike.class));
+    verify(reviewRepository, times(1)).incrementLikeCount(reviewId);
   }
 
   // [성공]
@@ -894,8 +891,9 @@ public class ReviewServiceImplementTest {
     assertEquals(reviewId,
         result.reviewId());                                                         // 요청 DTO 검증
     assertEquals(userId, result.userId());
-    assertEquals(0, savedReview.getLikeCount());
     verify(reviewLikeRepository, times(1)).delete(savedLike);
+    verify(reviewLikeRepository, times(1)).flush();
+    verify(reviewRepository, times(1)).decrementLikeCount(reviewId);
   }
 
   // [실패] 좋아요 추가 및 취소 로직이 완료되기 전 동일한 사용자로부터 같은 요청을 받은 경우, 동시성 문제 발생
@@ -936,7 +934,7 @@ public class ReviewServiceImplementTest {
     given(exception.getMostSpecificCause()).willReturn(cause);
     given(cause.getMessage()).willReturn(
         "Unique index or primary key violation: uk_review_user_like");        // 발생한 제약 위반 예외 = 중복 리뷰 예외
-    given(reviewLikeRepository.save(any(ReviewLike.class))).willThrow(exception);
+    given(reviewLikeRepository.saveAndFlush(any(ReviewLike.class))).willThrow(exception);
 
     // when & then
     assertThrows(DuplicateReviewLikeRequestException.class, () -> {
