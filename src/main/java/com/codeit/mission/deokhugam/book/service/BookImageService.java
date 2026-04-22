@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.exception.S3UploadFailureException;
+import com.codeit.mission.deokhugam.book.exception.S3UrlParshFailureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -106,13 +107,13 @@ public class BookImageService {
 
             String path = uri.getPath(); // "/images/test.jpg"
             if (path == null || path.length() <= 1) {
-                throw new IllegalArgumentException("유효하지 않은 S3 URL");
+                throw new S3UrlParshFailureException();
             }
 
             return path.substring(1); // 앞 "/" 제거
 
         } catch (Exception e) {
-            throw new IllegalArgumentException("S3 URL 파싱 실패: " + fileUrl, e);
+            throw new S3UrlParshFailureException();
         }
     }
 }
