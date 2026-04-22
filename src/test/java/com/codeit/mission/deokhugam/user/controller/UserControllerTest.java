@@ -2,6 +2,10 @@ package com.codeit.mission.deokhugam.user.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -76,6 +80,21 @@ class UserControllerTest {
       UserRegisterRequest request = new UserRegisterRequest("invalid-email", "테스터", "Password123!");
 
       // when & then
+      mockMvc.perform(post("/api/users")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("실패: 닉네임 공백 (400 Bad Request)")
+    void register_Fail_BlankNickname() throws Exception {
+      //given
+      UserRegisterRequest request = new UserRegisterRequest("test@example.com", " ",
+          "Password123!");
+
+      //when & then
       mockMvc.perform(post("/api/users")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
@@ -244,6 +263,42 @@ class UserControllerTest {
           .andDo(print())
           .andExpect(status().isNotFound())
           .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
+    }
+  }
+
+  @Nested
+  @DisplayName("회원 탈퇴 API")
+  class DeleteUserApiTest {
+
+    @Test
+    @DisplayName("성공: 204 No Content를 반환")
+    void deleteUser_Success() throws Exception {
+      //given
+      UUID userId = UUID.randomUUID();
+      doNothing().when(userService).deleteUser(userId);
+
+      //when & then
+      mockMvc.perform(delete("/api/users/{userId}", userId))
+          .andDo(print())
+          .andExpect(status().isNoContent());
+
+      verify(userService).deleteUser(userId);
+    }
+
+    @Test
+    @DisplayName("실패: 존재하지 않는 유저 (404 Not Found)")
+    void deleteUser_Fail_NotFound() throws Exception {
+      //given
+      UUID userId = UUID.randomUUID();
+      doThrow(new UserNotFoundException(userId)).when(userService).deleteUser(userId);
+
+      //when & then
+      mockMvc.perform(delete("/api/users/{userId}", userId))
+          .andDo(print())
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
+
+      verify(userService).deleteUser(userId);
     }
   }
 }

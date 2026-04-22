@@ -55,9 +55,10 @@ public enum ErrorCode {
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "Book not found"),
     EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "external api error"),
     OCR_DETECT_FAILED(HttpStatus.BAD_REQUEST, "OCR detection failed"),
+    S3_URL_PARSE_FAILED(HttpStatus.BAD_REQUEST, "S3 url parsing failed"),
 
     // 댓글
-    FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "댓글 수정 권한이 없습니다.");
+    FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "Permission denied to edit this comment");
 
     private final HttpStatus httpStatus;
     private final String message;
