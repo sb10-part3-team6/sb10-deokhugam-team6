@@ -38,7 +38,7 @@ public class NotificationController {
 
     // 알림 읽음 상태 업데이트
     @PatchMapping("/{notificationId}")
-    public ResponseEntity<NotificationDto> updateAllAsRead(
+    public ResponseEntity<NotificationDto> updateById(
         @PathVariable UUID notificationId,
         @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
         @Valid @RequestBody NotificationUpdateRequest requestDto) {
