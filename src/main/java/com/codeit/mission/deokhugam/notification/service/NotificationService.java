@@ -120,10 +120,7 @@ public class NotificationService {
   }
 
   public void updateByUserId(UUID userId) {
-    if (!userRepository.existsById(userId)) {
-      throw new UserNotFoundException(userId);
-    }
-
+    checkUserExistsOrThrow(userId);
     notificationRepository.updateAllAsConfirmed(userId);
   }
 
@@ -151,6 +148,12 @@ public class NotificationService {
   private User getUser(UUID userId) {
     return userRepository.findById(userId)
       .orElseThrow(() -> new UserNotFoundException(userId));
+  }
+
+  private void checkUserExistsOrThrow(UUID userId) {
+    if (!userRepository.existsById(userId)) {
+      throw new UserNotFoundException(userId);
+    }
   }
 
   private Review getReview(UUID reviewId) {
