@@ -29,133 +29,133 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final NotificationRepository notificationRepository;
-    private final UserRepository userRepository;
-    private final ReviewRepository reviewRepository;
+  private final NotificationRepository notificationRepository;
+  private final UserRepository userRepository;
+  private final ReviewRepository reviewRepository;
 
-    private final NotificationMapper notificationMapper;
+  private final NotificationMapper notificationMapper;
 
-    public void createByLike(UUID senderId, UUID receiverId, UUID reviewId) {
-        User sender = getUser(senderId);
-        User receiver = getUser(receiverId);
-        Review review = getReview(reviewId);
+  public void createByLike(UUID senderId, UUID receiverId, UUID reviewId) {
+    User sender = getUser(senderId);
+    User receiver = getUser(receiverId);
+    Review review = getReview(reviewId);
 
-        notificationRepository.save(
-            createNotification(receiver, review,
-                "[" + sender.getNickname() + "]님이 나의 리뷰를 좋아합니다.")
-        );
-    }
+    notificationRepository.save(
+        createNotification(receiver, review,
+            "[" + sender.getNickname() + "]님이 나의 리뷰를 좋아합니다.")
+    );
+  }
 
-    public void createByComment(UUID senderId, UUID receiverId, UUID reviewId) {
-        User sender = getUser(senderId);
-        User receiver = getUser(receiverId);
-        Review review = getReview(reviewId);
+  public void createByComment(UUID senderId, UUID receiverId, UUID reviewId) {
+    User sender = getUser(senderId);
+    User receiver = getUser(receiverId);
+    Review review = getReview(reviewId);
 
-        notificationRepository.save(
-            createNotification(receiver, review,
-                "[" + sender.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.")
-        );
-    }
+    notificationRepository.save(
+        createNotification(receiver, review,
+            "[" + sender.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.")
+    );
+  }
 
-    public void createByReviewRanked(UUID userId, UUID reviewId) {
-        User user = getUser(userId);
-        Review review = getReview(reviewId);
+  public void createByReviewRanked(UUID userId, UUID reviewId) {
+    User user = getUser(userId);
+    Review review = getReview(reviewId);
 
-        notificationRepository.save(
-            // fixme: 인기 리뷰 알림 메시지 예시를 확인할 수 없어서 임시로 작성
-            createNotification(user, review, "나의 리뷰가 인기 리뷰로 등록되었습니다.")
-        );
-    }
+    notificationRepository.save(
+        // fixme: 인기 리뷰 알림 메시지 예시를 확인할 수 없어서 임시로 작성
+        createNotification(user, review, "나의 리뷰가 인기 리뷰로 등록되었습니다.")
+    );
+  }
 
-    // todo: @Transactional(readOnly = true)
-    public CursorPageResponseNotificationDto findByUserId(UUID userId,
-        NotificationRequestQuery query) {
+  @Transactional(readOnly = true)
+  public CursorPageResponseNotificationDto findByUserId(UUID userId,
+      NotificationRequestQuery query) {
 
-        Slice<Notification> slice =
-            notificationRepository.findByUserWithCursor(userId, query);
+    Slice<Notification> slice =
+        notificationRepository.findByUserWithCursor(userId, query);
 
-        long totalCount = notificationRepository.countByUserId(userId);
+    long totalCount = notificationRepository.countByUserId(userId);
 
-        List<Notification> content = slice.getContent();
+    List<Notification> content = slice.getContent();
 
-        String nextCursor = null;
-        Instant nextAfter = null;
+    String nextCursor = null;
+    Instant nextAfter = null;
 
-        if (!content.isEmpty()) {
-            Notification last = content.get(content.size() - 1);
+    if (!content.isEmpty()) {
+      Notification last = content.get(content.size() - 1);
 
-            if (slice.hasNext()) {
-                nextCursor = last.getCreatedAt().toInstant(ZoneOffset.UTC).toString();
-                nextAfter = last.getCreatedAt().toInstant(ZoneOffset.UTC);
-            }
-
-        }
-
-        List<NotificationDto> dtoContent = slice.getContent()
-            .stream()
-            .map(notificationMapper::toDto)
-            .toList();
-
-        return CursorPageResponseNotificationDto.builder()
-            .content(dtoContent)
-            .nextCursor(nextCursor)
-            .nextAfter(nextAfter)
-            .size(content.size())
-            .totalElements(totalCount)
-            .hasNext(slice.hasNext())
-            .build();
+      if (slice.hasNext()) {
+        nextCursor = last.getCreatedAt().toInstant(ZoneOffset.UTC).toString();
+        nextAfter = last.getCreatedAt().toInstant(ZoneOffset.UTC);
+      }
 
     }
 
-    public NotificationDto updateById(UUID notificationId, UUID requestUserId,
-        NotificationUpdateRequest requestDto) {
+    List<NotificationDto> dtoContent = slice.getContent()
+        .stream()
+        .map(notificationMapper::toDto)
+        .toList();
 
-        Notification notification = getNotification(notificationId);
+    return CursorPageResponseNotificationDto.builder()
+        .content(dtoContent)
+        .nextCursor(nextCursor)
+        .nextAfter(nextAfter)
+        .size(content.size())
+        .totalElements(totalCount)
+        .hasNext(slice.hasNext())
+        .build();
 
-        // 요청자의 id와 알림을 받은 사람의 id를 대조하여 일치하는 경우애만 update
-        if (!requestUserId.equals(notification.getUser().getId())) {
-            throw new NotificationNotOwnedException();
-        }
+  }
 
-        notification.updateConfirmed(requestDto.confirmed());
+  public NotificationDto updateById(UUID notificationId, UUID requestUserId,
+      NotificationUpdateRequest requestDto) {
 
-        return notificationMapper.toDto(notification);
+    Notification notification = getNotification(notificationId);
+
+    // 요청자의 id와 알림을 받은 사람의 id를 대조하여 일치하는 경우애만 update
+    if (!requestUserId.equals(notification.getUser().getId())) {
+      throw new NotificationNotOwnedException();
     }
 
-    public void updateByUserId(UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException(userId);
-        }
+    notification.updateConfirmed(requestDto.confirmed());
 
-        notificationRepository.updateAllAsConfirmed(userId);
+    return notificationMapper.toDto(notification);
+  }
+
+  public void updateByUserId(UUID userId) {
+    if (!userRepository.existsById(userId)) {
+      throw new UserNotFoundException(userId);
     }
 
-    private Notification createNotification(
-        User receiver,
-        Review review,
-        String message
-    ) {
-        return Notification.builder()
-            .reviewContent(review.getContent())
-            .message(message)
-            .confirmed(false)
-            .user(receiver)
-            .review(review)
-            .build();
-    }
+    notificationRepository.updateAllAsConfirmed(userId);
+  }
 
-    private User getUser(UUID userId) {
-        return userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId));
-    }
+  private Notification createNotification(
+      User receiver,
+      Review review,
+      String message
+  ) {
+    return Notification.builder()
+        .reviewContent(review.getContent())
+        .message(message)
+        .confirmed(false)
+        .user(receiver)
+        .review(review)
+        .build();
+  }
 
-    private Review getReview(UUID reviewId) {
-        return reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new ReviewNotFoundException(reviewId));
-    }
+  private User getUser(UUID userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(userId));
+  }
 
-    private Notification getNotification(UUID notificationId) {
-        return notificationRepository.findById(notificationId)
-            .orElseThrow(() -> new NotificationNotFoundException(notificationId));
-    }
+  private Review getReview(UUID reviewId) {
+    return reviewRepository.findById(reviewId)
+        .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+  }
+
+  private Notification getNotification(UUID notificationId) {
+    return notificationRepository.findById(notificationId)
+        .orElseThrow(() -> new NotificationNotFoundException(notificationId));
+  }
 }
