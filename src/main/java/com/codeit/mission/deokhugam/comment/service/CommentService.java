@@ -6,6 +6,7 @@ import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
 import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
+import com.codeit.mission.deokhugam.comment.entity.CommentStatus;
 import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
@@ -125,12 +126,33 @@ public class CommentService {
         );
     }
 
+    // 댓글 논리 삭제
+    public void softDelete(UUID commentId, UUID requestUserId) {
+        Comment comment = validCommentExists(commentId);
+        User requestUser = validUserExists(requestUserId);
+        if (!comment.getUserId().equals(requestUserId)) {
+            throw new CommentAuthorException();
+        }
+        comment.updateStatus(CommentStatus.DELETED);
+        commentRepository.save(comment);
+    }
+
+    // 댓글 물리 삭제
+    public void hardDelete(UUID commentId, UUID requestUserId) {
+        Comment comment = validCommentExists(commentId);
+        User requestUser = validUserExists(requestUserId);
+        if (!comment.getUserId().equals(requestUserId)) {
+            throw new CommentAuthorException();
+        }
+        commentRepository.deleteById(commentId);
+    }
+
     // 리뷰가 존재하는지 검증
     private void validReviewExists(UUID reviewId) {
         Review review = reviewRepository.findById(reviewId).orElseThrow(EntityNotFoundException::new);
 
         // 리뷰 상태가 Delete면 조회 실패
-        if (review.getStatus() == ReviewStatus.DELETED) {
+        if (review.getStatus().equals(ReviewStatus.DELETED)) {
             throw new ReviewNotFoundException(reviewId);
         }
     }
@@ -140,10 +162,22 @@ public class CommentService {
         User user = userRepository.findById(userId).orElseThrow(EntityNotFoundException::new);
 
         // 유저 상태가 Delete면 조회 실패
-        if (user.getStatus() == UserStatus.DELETED) {
+        if (user.getStatus().equals(UserStatus.DELETED)) {
             throw new UserNotFoundException(userId);
         }
 
         return user;
+    }
+
+    // 댓글이 존재하는지 검증
+    private Comment validCommentExists(UUID commentId) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
+
+        // 댓글 상태가 Delete면 조회 실패
+        if (comment.getStatus().equals(CommentStatus.DELETED)) {
+            throw new EntityNotFoundException();
+        }
+
+        return comment;
     }
 }

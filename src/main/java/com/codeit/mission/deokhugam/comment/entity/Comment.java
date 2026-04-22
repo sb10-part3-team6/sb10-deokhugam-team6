@@ -29,19 +29,29 @@ public class Comment extends BaseEntity {
     @Column(name = "content", nullable = false, length = 500)
     private String content;
 
+    // 댓글 상태 - 논리 삭제 구분 용
+    @Column(name = "status", nullable = false)
+    private CommentStatus status;
+
     @Builder
-    public Comment (UUID reviewId, UUID userId, String content) {
+    public Comment (UUID reviewId, UUID userId, String content, CommentStatus status) {
         super();
         this.reviewId = Objects.requireNonNull(reviewId);
         this.userId = Objects.requireNonNull(userId);
         validateContent(content);
         this.content = content;
+        this.status = status;
     }
 
     // 댓글 수정
     public void updateContent(String content) {
         validateContent(content);
         this.content = content;
+    }
+
+    // 댓글 상태 변경
+    public void updateStatus(CommentStatus status) {
+        this.status = status;
     }
 
     // 댓글 내용 유효성 검사
