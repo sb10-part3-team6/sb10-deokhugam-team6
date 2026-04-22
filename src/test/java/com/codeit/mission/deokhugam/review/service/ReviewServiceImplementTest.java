@@ -896,6 +896,47 @@ public class ReviewServiceImplementTest {
     verify(reviewRepository, times(1)).decrementLikeCount(reviewId);
   }
 
+  // [성공] 이미 취소된 상태에서 중복 취소 요청이 온 경우 (멱등성 보장)
+  @Test
+  @DisplayName("리뷰 좋아요 취소 성공: 이미 취소되어 데이터가 없는 경우에도 에러 없이 liked=false를 반환")
+  void remove_review_like_idempotency_success() {
+    // given (기존 취소 테스트와 동일하게 세팅하되...)
+    UUID reviewId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    // 가짜 객체 | 도서 및 사용자
+    User mockUser = User.builder().build();
+    ReflectionTestUtils.setField(mockUser, "id",
+        userId);                                                      // NPE 방지를 위한 id 강제 삽입
+
+    // 좋아요를 추가할 리뷰 정보
+    Review savedReview = Review.builder()
+        .user(mockUser)
+        .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
+        .rating(3)
+        .build();
+    ReflectionTestUtils.setField(savedReview, "id",
+        reviewId);                                                   // NPE 방지를 위한 id 강제 주입
+
+    given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));
+    given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
+
+    given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(true);
+    given(reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId)).willReturn(
+        Optional.empty());
+
+    // when
+    ReviewLikeDto result = reviewServiceImplement.toggleLike(reviewId, userId);
+
+    // then
+    assertNotNull(result);
+    assertFalse(result.liked());
+
+    verify(reviewLikeRepository, never()).delete(any());
+    verify(reviewLikeRepository, never()).flush();
+    verify(reviewRepository, never()).decrementLikeCount(reviewId);
+  }
+
   // [실패] 좋아요 추가 및 취소 로직이 완료되기 전 동일한 사용자로부터 같은 요청을 받은 경우, 동시성 문제 발생
   @Test
   @DisplayName("좋아요 추가 실패: 동일한 사용자로부터 똑같은 요청을 연속으로 받아 동시성 이슈가 발생한 경우, DUPLICATE_REVIEW_LIKE_REQUEST 에러 반환")
