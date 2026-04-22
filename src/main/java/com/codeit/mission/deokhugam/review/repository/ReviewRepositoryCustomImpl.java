@@ -28,7 +28,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   @Override
   public List<Review> searchReviews(ReviewSearchConditionDto condition) {
     // 1. 키워드 검색 조건
-    BooleanBuilder filterBuilder = builderFilterCondition(condition);
+    BooleanBuilder filterBuilder = buildFilterCondition(condition);
     // 2. 커서 기반 페이지네이션 조건
 
     // 사용자가 요청한 정렬 조건 (orderBy): 기본값이 생성 시점이므로 평점만 비교
@@ -208,7 +208,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   @Override
   public long countWithFilter(ReviewSearchConditionDto condition) {
     // 1. 동적 쿼리 내 WHERE 절에 추가될 빌더 객체 생성
-    BooleanBuilder filterBuilder = builderFilterCondition(condition);
+    BooleanBuilder filterBuilder = buildFilterCondition(condition);
 
     // 2. 동적 쿼리 실행
     Long totalCount = jpaQueryFactory
@@ -221,7 +221,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   }
 
   // 동적 쿼리 필터링
-  private BooleanBuilder builderFilterCondition(ReviewSearchConditionDto condition) {
+  private BooleanBuilder buildFilterCondition(ReviewSearchConditionDto condition) {
     // 1. 동적 쿼리 내 WHERE 절에 추가될 빌더 객체 생성
     BooleanBuilder filterBuilder = new BooleanBuilder();
 
