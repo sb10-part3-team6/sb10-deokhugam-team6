@@ -3,7 +3,9 @@ package com.codeit.mission.deokhugam.review.service;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
+import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
+import com.codeit.mission.deokhugam.review.dto.response.CursorPageResponseReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
@@ -18,6 +20,7 @@ import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -131,6 +134,97 @@ public class ReviewServiceImplementTest {
         any());                                    // Repository의 유효성 검증 (중복 검사) 미호출 확인
     verify(reviewMapper, never()).toDto(any(),
         anyBoolean());                             // Mapper의 toDto 미호출 확인
+  }
+
+  /*
+      리뷰 목록 조회
+   */
+  // [성공] 검색 결과가 존재하는 경우
+  @Test
+  @DisplayName("정렬 및 페이지네이션이 적용된 리뷰 목록 조회 완료")
+  void find_all_by_keyword_success() {
+    // given
+    UUID requestUserId = UUID.randomUUID();
+
+    // 조회할 리뷰 목록 정보
+    ReviewSearchConditionDto condition = new ReviewSearchConditionDto(
+        null,
+        null,
+        null,
+        "rating",
+        "desc",
+        null,
+        null,
+        2
+    );
+
+    // 가짜 객체 | 리뷰
+    Review review1 = Review.builder()
+        .rating(5)
+        .content("에로스")
+        .build();
+    ReflectionTestUtils.setField(review1, "id", UUID.randomUUID());
+    ReflectionTestUtils.setField(review1, "createdAt", LocalDateTime.now().minusDays(1));
+
+    Review review2 = Review.builder()
+        .rating(4)
+        .content("안테로스")
+        .build();
+    ReflectionTestUtils.setField(review2, "id", UUID.randomUUID());
+    ReflectionTestUtils.setField(review2, "createdAt", LocalDateTime.now().minusDays(2));
+
+    Review review3 = Review.builder()
+        .rating(3)
+        .content("외계인 고양이")
+        .build();
+    ReflectionTestUtils.setField(review3, "id", UUID.randomUUID());
+    ReflectionTestUtils.setField(review3, "createdAt", LocalDateTime.now().minusDays(3));
+
+    List<Review> mockReviews = List.of(review1, review2, review3);
+    List<Review> pagedReviews = List.of(review1, review2);
+    List<UUID> reviewIds = List.of(review1.getId(), review2.getId());
+    List<UUID> reviewLikeIds = List.of(review1.getId());
+
+    // 가짜 객체 | 응답 DTO
+    ReviewDto dto1 = ReviewDto.builder().
+        id(review1.getId())
+        .content(review1.getContent())
+        .likedByMe(true)
+        .build();
+    ReviewDto dto2 = ReviewDto.builder()
+        .id(review2.getId())
+        .content(review2.getContent())
+        .likedByMe(false)
+        .build();
+    List<ReviewDto> dtoList = List.of(dto1, dto2);
+
+    // 페이지 응답 DTO
+    CursorPageResponseReviewDto<ReviewDto> expectedResponse = CursorPageResponseReviewDto.<ReviewDto>builder()
+        .content(dtoList)
+        .hasNext(true)
+        .build();
+
+    // 내부 로직 흐름 모킹
+    given(reviewRepository.searchReviews(condition)).willReturn(mockReviews);
+    given(reviewLikeRepository.findLikedReviewIds(requestUserId, reviewIds)).willReturn(
+        reviewLikeIds);
+    given(reviewMapper.toDtoList(pagedReviews, reviewLikeIds)).willReturn(dtoList);
+    given(reviewRepository.countWithFilter(condition)).willReturn(15L);
+    given(
+        reviewMapper.toCursorPageResponse(eq(dtoList), anyString(), any(LocalDateTime.class), eq(2),
+            eq(15L), eq(true)))
+        .willReturn(expectedResponse);
+
+    // when
+    CursorPageResponseReviewDto<ReviewDto> result = reviewServiceImplement.findAllByKeyword(
+        requestUserId, condition);
+
+    // then
+    assertNotNull(result);
+    assertTrue(result.hasNext());                                                   // 다음 페이지 존재 여부
+    assertEquals(2, result.content().size());                              // 페이지된 리뷰 개수 확인
+    verify(reviewRepository).searchReviews(condition);
+    verify(reviewLikeRepository).findLikedReviewIds(requestUserId, reviewIds);
   }
 
   /*
