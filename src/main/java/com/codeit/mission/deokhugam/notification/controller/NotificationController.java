@@ -12,8 +12,8 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,15 +37,16 @@ public class NotificationController {
     }
 
     // 알림 읽음 상태 업데이트
-    @PostMapping
-    public ResponseEntity<NotificationDto> updateSingleNotification(
-        @PathVariable(name = "notificationId") UUID notificationId,
+    @PatchMapping("/{notificationId}")
+    public ResponseEntity<NotificationDto> updateById(
+        @PathVariable UUID notificationId,
         @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
-        @RequestBody NotificationUpdateRequest requestDto) {
+        @Valid @RequestBody NotificationUpdateRequest requestDto) {
 
         return ResponseEntity.ok(
-            notificationService.updateSingleNotification(notificationId, requestUserId,
+            notificationService.updateById(notificationId, requestUserId,
                 requestDto));
+    }
 
     }
 
