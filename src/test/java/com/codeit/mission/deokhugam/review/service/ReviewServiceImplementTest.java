@@ -13,6 +13,7 @@ import com.codeit.mission.deokhugam.review.entity.ReviewLike;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
+import com.codeit.mission.deokhugam.review.exception.InvalidCursorFormatException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -294,6 +296,78 @@ public class ReviewServiceImplementTest {
     assertEquals(0L, result.totalElements());
     verify(reviewRepository).searchReviews(condition);
     verify(reviewLikeRepository, never()).findReviewIdsByUserIdAndReviewIdIn(any(), any());
+  }
+
+  // [실패] 잘못된 형식의 커서 전달
+  @Test
+  @DisplayName("리뷰 목록 조회 실패: 평점 정렬 시, 잘못된 형식의 커서 문자열이 전달되면 InvalidCursorFormatException 예외 반환")
+  void searchReviews_InvalidRatingCursor_ThrowsException() {
+    // given
+    UUID requestUserId = UUID.randomUUID();
+
+    // 목록 조회할 리뷰 정보
+    ReviewSearchConditionDto condition = new ReviewSearchConditionDto(
+        null,
+        null,
+        null,
+        "rating",
+        "desc",
+        "meow-meow",
+        LocalDateTime.now(),
+        10
+    );
+
+    given(reviewRepository.searchReviews(any(ReviewSearchConditionDto.class)))
+        .willThrow(new InvalidCursorFormatException());
+
+    // when & then
+    assertThrows(InvalidCursorFormatException.class, () -> {
+      // try-catch 문 에외 반환 확인
+      reviewServiceImplement.findAllByKeyword(requestUserId, condition);
+    });
+    verify(reviewRepository, times(1)).searchReviews(any(ReviewSearchConditionDto.class));
+    verify(reviewLikeRepository, never()).findReviewIdsByUserIdAndReviewIdIn(any(), any());
+    verify(reviewMapper, never()).toDtoList(any(), any());
+    verify(reviewRepository, never()).countWithFilter(any(ReviewSearchConditionDto.class));
+    verify(reviewMapper, never()).toCursorPageResponse(
+        any(), any(), any(), anyInt(), anyLong(), anyBoolean()
+    );
+  }
+
+  // [실패] 잘못된 형식의 커서 전달
+  @Test
+  @DisplayName("리뷰 목록 조회 실패: 기본 정렬 시, UUID 형식이 아닌 커서가 전달되면 InvalidCursorFormatException 예외 반환")
+  void searchReviews_InvalidDefaultCursor_ThrowsException() {
+    // given
+    UUID requestUserId = UUID.randomUUID();
+
+    // 목록 조회할 리뷰 정보
+    ReviewSearchConditionDto condition = new ReviewSearchConditionDto(
+        null,
+        null,
+        null,
+        "createdAt",
+        "desc",
+        "meow-meow",
+        LocalDateTime.now(),
+        10
+    );
+
+    given(reviewRepository.searchReviews(any(ReviewSearchConditionDto.class)))
+        .willThrow(new InvalidCursorFormatException());
+
+    // when & then
+    assertThrows(InvalidCursorFormatException.class, () -> {
+      // try-catch 문 에외 반환 확인
+      reviewServiceImplement.findAllByKeyword(requestUserId, condition);
+    });
+    verify(reviewRepository, times(1)).searchReviews(any(ReviewSearchConditionDto.class));
+    verify(reviewLikeRepository, never()).findReviewIdsByUserIdAndReviewIdIn(any(), any());
+    verify(reviewMapper, never()).toDtoList(any(), any());
+    verify(reviewRepository, never()).countWithFilter(any(ReviewSearchConditionDto.class));
+    verify(reviewMapper, never()).toCursorPageResponse(
+        any(), any(), any(), anyInt(), anyLong(), anyBoolean()
+    );
   }
 
   /*
