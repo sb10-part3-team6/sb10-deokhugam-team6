@@ -3,8 +3,9 @@ package com.codeit.mission.deokhugam.dashboard.users.repository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserDto;
-import com.codeit.mission.deokhugam.dashboard.users.entity.PowerUser;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto;
+import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUser;
+import com.codeit.mission.deokhugam.dashboard.powerusers.repository.PowerUserRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;

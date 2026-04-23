@@ -4,7 +4,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.codeit.mission.deokhugam.dashboard.users.service.PowerUserSnapshotService;
+import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserSnapshotService;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

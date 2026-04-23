@@ -5,6 +5,7 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
@@ -27,7 +28,12 @@ import lombok.NoArgsConstructor;
         @UniqueConstraint(
             name = "uk_review_user_like",
             columnNames = {"review_id", "user_id"})
-    })
+    },
+    indexes = {
+        @Index(name = "idx_review_likes_liked_at_review_id", columnList = "liked_at, review_id"),
+        @Index(name = "idx_review_likes_liked_at_user_id", columnList= "liked_at, user_id")
+    }
+    )
 public class ReviewLike extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
