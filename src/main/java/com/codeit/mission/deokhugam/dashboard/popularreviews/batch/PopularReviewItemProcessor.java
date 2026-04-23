@@ -7,6 +7,8 @@ import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularRevie
 import com.codeit.mission.deokhugam.dashboard.popularreviews.service.PopularReviewAggregateService;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -35,14 +37,14 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
   void beforeStep(StepExecution stepExecution){
     String periodTypeStr = stepExecution.getJobExecution().getJobParameters().getString("periodType");
     String aggregatedAtStr = stepExecution.getJobExecution().getJobParameters().getString("aggregatedAt");
-    String snapshotIdStr = stepExecution.getJobExecution().getJobParameters().getString("snapshotId");
+    String snapshotIdStr = stepExecution.getJobExecution().getExecutionContext().getString("snapshotId");
 
     if (periodTypeStr == null || aggregatedAtStr == null || snapshotIdStr == null) {
-      throw new InvalidJobParameterException(Map.of(
-          "periodType", periodTypeStr != null ? periodTypeStr : null,
-          "aggregatedAt", aggregatedAtStr != null ? aggregatedAtStr : null,
-          "snapshotIdStr", snapshotIdStr != null ? snapshotIdStr : null
-          ));
+      Map<String, Object> details = new LinkedHashMap<>();
+      details.put("periodType",periodTypeStr);
+      details.put("aggregatedAt", aggregatedAtStr);
+      details.put("snapshotId", snapshotIdStr);
+      throw new InvalidJobParameterException(details);
     }
 
     this.periodType = PeriodType.valueOf(periodTypeStr);

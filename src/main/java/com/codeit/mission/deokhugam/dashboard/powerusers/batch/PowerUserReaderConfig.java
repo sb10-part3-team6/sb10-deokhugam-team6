@@ -13,7 +13,7 @@ public class PowerUserReaderConfig {
   // User를 읽는 ItemReader
   // JpaPagingItemReader는 Jpa 기반으로 페이지네이션을 하여 끊어서 읽어들일 수 있다.
   @Bean
-  @Qualifier("reviewReader")
+  @Qualifier("userReader")
   public JpaPagingItemReader<User> userReader(EntityManagerFactory emf){
     JpaPagingItemReader<User> reader = new JpaPagingItemReader<>(); // JpaPagingItemReader 객체 생성
     reader.setName("userReader"); // 이름 지정

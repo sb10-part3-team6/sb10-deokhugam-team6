@@ -72,7 +72,7 @@ public class AggregateSnapshotService {
     // 스냅샷의 상태를 확인
     if (newSnapshot.getStagingType() != StagingType.STAGING) {
       throw new SnapshotNotStagedPublishException(Map.of("snapshotId", newSnapshot.getId(),
-          "stagingType", newSnapshot.stagingType));
+          "stagingType", newSnapshot.getStagingType()));
     }
 
     snapshotRepository

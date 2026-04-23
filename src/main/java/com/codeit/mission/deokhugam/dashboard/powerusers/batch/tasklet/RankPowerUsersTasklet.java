@@ -43,7 +43,7 @@ public class RankPowerUsersTasklet implements Tasklet {
   private UUID getSnapshotId() {
     if (snapshotIdValue == null || snapshotIdValue.isBlank()) {
       throw new InvalidJobParameterException(Map.of("snapshotId",
-          snapshotIdValue != null ? snapshotIdValue : null));
+          snapshotIdValue != null ? snapshotIdValue : "null"));
     }
     return UUID.fromString(snapshotIdValue);
   }
