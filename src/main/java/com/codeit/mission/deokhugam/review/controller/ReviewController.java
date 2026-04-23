@@ -39,8 +39,7 @@ public class ReviewController {
   @GetMapping
   public ResponseEntity<CursorPageResponseReviewDto<ReviewDto>> findAll(
       @RequestParam UUID requestUserId,                                         // 쿼리 파리미터
-      @RequestHeader("Deokhugam-Request-User-ID") UUID headerRequestUserId,
-      // 헤더 정보 (별도로 사용하지 않음)
+      @RequestHeader("Deokhugam-Request-User-ID") UUID headerRequestUserId,     // 헤더 정보 (별도 사용 X)
       @ModelAttribute ReviewSearchConditionDto reviewSearchConditionDto) {      // 검색 조건 DTO
     // 쿼리로 들어온 요청자와 헤더로 들어온 요청자가 불일치 하는 경우
     if (!requestUserId.equals(headerRequestUserId)) {

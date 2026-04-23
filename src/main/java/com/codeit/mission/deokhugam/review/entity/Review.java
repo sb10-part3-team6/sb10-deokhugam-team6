@@ -38,7 +38,7 @@ public class Review extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "book_id", nullable = false)
-  private Book book;                                          // 리뷰 대상 도서
+  private Book book;                                           // 리뷰 대상 도서
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
