@@ -42,8 +42,8 @@ public class NotificationService {
     Review review = getReviewOrThrow(reviewId);
 
     notificationRepository.save(
-    createNotification(receiver, review,
-    "[" + sender.getNickname() + "]님이 나의 리뷰를 좋아합니다.")
+      createNotification(receiver, review,
+        "[" + sender.getNickname() + "]님이 나의 리뷰를 좋아합니다.")
     );
   }
 
@@ -53,8 +53,8 @@ public class NotificationService {
     Review review = getReviewOrThrow(reviewId);
 
     notificationRepository.save(
-    createNotification(receiver, review,
-    "[" + sender.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.")
+      createNotification(receiver, review,
+        "[" + sender.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.")
     );
   }
 
@@ -63,17 +63,17 @@ public class NotificationService {
     Review review = getReviewOrThrow(reviewId);
 
     notificationRepository.save(
-    // fixme: 인기 리뷰 알림 메시지 예시를 확인할 수 없어서 임시로 작성
-    createNotification(user, review, "나의 리뷰가 인기 리뷰로 등록되었습니다.")
+      // fixme: 인기 리뷰 알림 메시지 예시를 확인할 수 없어서 임시로 작성
+      createNotification(user, review, "나의 리뷰가 인기 리뷰로 등록되었습니다.")
     );
   }
 
   @Transactional(readOnly = true)
   public CursorPageResponseNotificationDto findByUserId(UUID userId,
-  NotificationRequestQuery query) {
+    NotificationRequestQuery query) {
 
     Slice<Notification> slice =
-    notificationRepository.findByUserWithCursor(userId, query);
+      notificationRepository.findByUserWithCursor(userId, query);
 
     long totalCount = notificationRepository.countByUserId(userId);
 
@@ -93,23 +93,23 @@ public class NotificationService {
     }
 
     List<NotificationDto> dtoContent = slice.getContent()
-    .stream()
-    .map(notificationMapper::toDto)
-    .toList();
+      .stream()
+      .map(notificationMapper::toDto)
+      .toList();
 
     return CursorPageResponseNotificationDto.builder()
-    .content(dtoContent)
-    .nextCursor(nextCursor)
-    .nextAfter(nextAfter)
-    .size(content.size())
-    .totalElements(totalCount)
-    .hasNext(slice.hasNext())
-    .build();
+      .content(dtoContent)
+      .nextCursor(nextCursor)
+      .nextAfter(nextAfter)
+      .size(content.size())
+      .totalElements(totalCount)
+      .hasNext(slice.hasNext())
+      .build();
 
   }
 
   public NotificationDto updateById(UUID notificationId, UUID requestUserId,
-  NotificationUpdateRequest requestDto) {
+    NotificationUpdateRequest requestDto) {
 
     Notification notification = getNotificationOrThrow(notificationId);
 
@@ -132,17 +132,17 @@ public class NotificationService {
   }
 
   private Notification createNotification(
-  User receiver,
-  Review review,
-  String message
+    User receiver,
+    Review review,
+    String message
   ) {
     return Notification.builder()
-    .reviewContent(review.getContent())
-    .message(message)
-    .confirmed(false)
-    .user(receiver)
-    .review(review)
-    .build();
+      .reviewContent(review.getContent())
+      .message(message)
+      .confirmed(false)
+      .user(receiver)
+      .review(review)
+      .build();
   }
 
   // 요청자의 id와 알림을 받은 사람의 id를 대조
@@ -161,16 +161,16 @@ public class NotificationService {
 
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
-    .orElseThrow(() -> new UserNotFoundException(userId));
+      .orElseThrow(() -> new UserNotFoundException(userId));
   }
 
   private Review getReviewOrThrow(UUID reviewId) {
     return reviewRepository.findById(reviewId)
-    .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+      .orElseThrow(() -> new ReviewNotFoundException(reviewId));
   }
 
   private Notification getNotificationOrThrow(UUID notificationId) {
     return notificationRepository.findById(notificationId)
-    .orElseThrow(() -> new NotificationNotFoundException(notificationId));
+      .orElseThrow(() -> new NotificationNotFoundException(notificationId));
   }
 }
