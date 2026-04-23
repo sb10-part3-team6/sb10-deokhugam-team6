@@ -125,8 +125,8 @@ public class ReviewBatchConfig {
 
       // 3. 삭제 대상인 리뷰와 연관된 데이터 삭제 (리뷰 좋아요, 댓글, 알림)
       commentRepository.deleteByReviewIdIn(reviewIds);
-      reviewRepository.deleteLikesByReviewIds(reviewIds);
-      notificationRepository.deleteByReviewIds(reviewIds);
+      reviewLikeRepository.deleteByReviewIdIn(reviewIds);
+      notificationRepository.deleteByReviewIdIn(reviewIds);
 
       // 4. 리뷰 물리 삭제
       reviewRepository.deleteAllByIdInBatch(reviewIds);
