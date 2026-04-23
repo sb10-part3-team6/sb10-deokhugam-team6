@@ -97,7 +97,9 @@ public class CommentServiceTest {
     void createCommentSuccess() {
         // given
         CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "test content");
+        given(reviewRepository.existsById(eq(reviewId))).willReturn(true);
         given(reviewRepository.findById(eq(reviewId))).willReturn(Optional.of(review));
+        given(userRepository.existsById(eq(userId))).willReturn(true);
         given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
 
         Comment savedComment = Comment.builder()
@@ -122,6 +124,7 @@ public class CommentServiceTest {
         // given
         UUID wrongReviewId = UUID.randomUUID();
         CommentCreateRequest request = new CommentCreateRequest(wrongReviewId, userId, "test content");
+        given(reviewRepository.existsById(eq(wrongReviewId))).willReturn(false);
         given(reviewRepository.findById(eq(wrongReviewId))).willReturn(Optional.empty());
 
         // when
@@ -136,10 +139,12 @@ public class CommentServiceTest {
     void updateCommentSuccess() {
         // given
         CommentUpdateRequest request = new CommentUpdateRequest("updated content");
+        given(commentRepository.existsById(eq(commentId))).willReturn(true);
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
-        given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
         given(commentRepository.save(any(Comment.class))).willReturn(comment);
         given(commentMapper.toDto(comment, userNickName)).willReturn(commentDto);
+        given(userRepository.existsById(eq(userId))).willReturn(true);
+        given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
 
         // when
         CommentDto result = commentService.updateComment(commentId, userId, request);
@@ -149,11 +154,12 @@ public class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("댓글 수정 실패")
+    @DisplayName("댓글 수정 실패 - 댓글 존재하지 않음")
     void updateCommentFail() {
         // given
         CommentUpdateRequest request = new CommentUpdateRequest("updated content");
         given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
+        given(commentRepository.existsById(eq(commentId))).willReturn(false);
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.empty());
 
         // when
@@ -183,6 +189,7 @@ public class CommentServiceTest {
     @DisplayName("댓글 상세 조회 성공")
     void findCommentSuccess() {
         // given
+        given(commentRepository.existsById(eq(commentId))).willReturn(true);
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
         given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
         given(commentMapper.toDto(comment, userNickName)).willReturn(commentDto);
@@ -195,9 +202,10 @@ public class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("댓글 상세 조회 실패")
+    @DisplayName("댓글 상세 조회 실패 - 댓글 존재하지 않음")
     void findCommentFail() {
         // given
+        given(commentRepository.existsById(eq(commentId))).willReturn(false);
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.empty());
 
         // when
@@ -283,7 +291,9 @@ public class CommentServiceTest {
     @DisplayName("댓글 논리 삭제 성공")
     void softDeleteCommentSuccess() {
         // given
+        given(commentRepository.existsById(eq(commentId))).willReturn(true);
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+        given(userRepository.existsById(eq(userId))).willReturn(true);
         given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
 
         // when
@@ -307,7 +317,10 @@ public class CommentServiceTest {
         when(otherUser.getId()).thenReturn(otherUserId);
         when(otherUser.getStatus()).thenReturn(UserStatus.ACTIVE);
 
+        given(commentRepository.existsById(eq(commentId))).willReturn(true);
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+
+        given(userRepository.existsById(eq(otherUserId))).willReturn(true);
         given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));
 
         // when
@@ -325,7 +338,10 @@ public class CommentServiceTest {
     @DisplayName("댓글 물리 삭제 성공")
     void hardDeleteCommentSuccess() {
         // given
+        given(commentRepository.existsById(eq(commentId))).willReturn(true);
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+
+        given(userRepository.existsById(eq(userId))).willReturn(true);
         given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
 
         // when
@@ -347,7 +363,10 @@ public class CommentServiceTest {
         when(otherUser.getId()).thenReturn(otherUserId);
         when(otherUser.getStatus()).thenReturn(UserStatus.ACTIVE);
 
+        given(commentRepository.existsById(eq(commentId))).willReturn(true);
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+
+        given(userRepository.existsById(eq(otherUserId))).willReturn(true);
         given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));
 
         // when
