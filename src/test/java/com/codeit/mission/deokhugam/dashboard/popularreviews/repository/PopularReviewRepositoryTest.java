@@ -51,6 +51,7 @@ class PopularReviewRepositoryTest {
     persistPopularReview(review3, 1L, 15.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
 
     em.flush();
+
     em.clear();
 
     long count = popularReviewRepository.countRankingsBySnapshotId(SNAPSHOT_ID);
