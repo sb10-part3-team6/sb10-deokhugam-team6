@@ -468,9 +468,14 @@ public class NotificationServiceTest {
       given(notificationRepository.findById(notificationId)).willReturn(Optional.of(notification));
 
       // when & then
+      // 예외 발생 검증
       assertThrows(NotificationNotOwnedException.class, () ->
         notificationService.updateById(notificationId, requestUserId, requestDto)
       );
+
+      // 알림 상태가 갱신되지 않았음을 검증
+      assertThat(notification.isConfirmed()).isFalse();
+      verify(notificationMapper, never()).toDto(any());
     }
 
     @Test
