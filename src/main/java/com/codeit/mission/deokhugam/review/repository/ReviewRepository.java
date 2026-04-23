@@ -40,7 +40,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
 
   // 댓글 수 감소
   @Modifying(clearAutomatically = true)
-  @Query("UPDATE Review  review SET review.commentCount = review.commentCount - 1 WHERE review.id = :reviewId")
+  @Query("UPDATE Review  review SET review.commentCount = review.commentCount - 1 WHERE review.id = :reviewId AND review.commentCount > 0")
   void decrementCommentCount(@Param("reviewId") UUID reviewId);
 
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
