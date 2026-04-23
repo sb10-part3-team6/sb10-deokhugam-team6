@@ -38,8 +38,11 @@ public class ReviewBatchScheduler {
 
       if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
         log.info("[REVIEW_BATCH_SCHEDULER] Review Hard Delete Job has been completed.");
-      } else {
+      } else if (jobExecution.getStatus() == BatchStatus.FAILED) {
         log.error("[REVIEW_BATCH_SCHEDULER] Job execution failed. Job Status: {}",
+            jobExecution.getStatus());
+      } else {
+        log.error("[REVIEW_BATCH_SCHEDULER] Job execution ended with status: {}",
             jobExecution.getStatus());
       }
 
