@@ -1,7 +1,9 @@
 package com.codeit.mission.deokhugam.review.service;
 
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
+import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
+import com.codeit.mission.deokhugam.review.dto.response.CursorPageResponseReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 
@@ -12,6 +14,7 @@ public interface ReviewService {
     ReviewDto findById(UUID id, UUID requestUserId);
 
     // 리뷰 목록 조회
+    CursorPageResponseReviewDto<ReviewDto> findAllByKeyword(UUID requestUserId, ReviewSearchConditionDto searchConditionDto);
 
     // 리뷰 등록
     ReviewDto create(ReviewCreateRequest reviewCreateRequest);
