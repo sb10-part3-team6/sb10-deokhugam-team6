@@ -10,3 +10,5 @@ Dockerfile
 bin
 obj
 *.log
+.env
+.env.*
