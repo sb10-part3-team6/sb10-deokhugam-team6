@@ -1,9 +1,8 @@
 package com.codeit.mission.deokhugam.dashboard.batch.tasklets;
 
 import com.codeit.mission.deokhugam.dashboard.DomainType;
-import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidJobParameterException;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotService;
-import java.util.Map;
+import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @RequiredArgsConstructor
-// Staging ???덈줈 ?앹꽦???ㅻ깄??媛앹껜瑜?Publish濡?諛붽씀???쒖뒪?щ┸
+// Staging 된 새로 생성한 스냅샷 객체를 Publish로 바꾸는 태스크릿
 public class PublishSnapshotTasklet implements Tasklet {
   private final AggregateSnapshotService aggregateSnapshotService;
 
@@ -30,7 +29,7 @@ public class PublishSnapshotTasklet implements Tasklet {
 
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-    // ?ㅻ깄??Publish 硫붿냼???몄텧
+    // 스냅샷 Publish 메소드 호출
     aggregateSnapshotService.publishSnapshot(
         getDomainType(),
         getSnapshotId()
@@ -40,28 +39,10 @@ public class PublishSnapshotTasklet implements Tasklet {
   }
 
   private UUID getSnapshotId() {
-    if (snapshotIdValue == null || snapshotIdValue.isBlank()) {
-      throw new InvalidJobParameterException(
-          Map.of("snapshotId", snapshotIdValue != null ? snapshotIdValue : "null"));
-    }
-
-    try {
-      return UUID.fromString(snapshotIdValue);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidJobParameterException(Map.of("snapshotId", snapshotIdValue));
-    }
+    return JobParameterUtils.parseUuid("snapshotId", snapshotIdValue);
   }
 
   private DomainType getDomainType() {
-    if (domainTypeValue == null || domainTypeValue.isBlank()) {
-      throw new InvalidJobParameterException(
-          Map.of("domainType", domainTypeValue != null ? domainTypeValue : "null"));
-    }
-
-    try {
-      return DomainType.valueOf(domainTypeValue);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidJobParameterException(Map.of("domainType", domainTypeValue));
-    }
+    return JobParameterUtils.parseEnum("domainType", domainTypeValue, DomainType.class);
   }
 }

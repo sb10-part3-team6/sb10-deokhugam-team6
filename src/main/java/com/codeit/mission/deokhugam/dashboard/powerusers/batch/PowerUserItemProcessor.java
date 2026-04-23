@@ -1,14 +1,12 @@
 package com.codeit.mission.deokhugam.dashboard.powerusers.batch;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidJobParameterException;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserStat;
 import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUser;
 import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserAggregateService;
+import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
 import com.codeit.mission.deokhugam.user.entity.User;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,52 +29,30 @@ public class PowerUserItemProcessor implements ItemProcessor<User, PowerUser> {
   private UUID snapshotId;
   private Map<UUID, UserStat> statsByUserId = Map.of();
 
-  // Step ?쒖옉 ??留ㅺ컻蹂?섎뱾??珥덇린?뷀븳??
-  // ?꾩옱 ?ㅽ뻾 媛앹껜??context瑜?二쇱엯諛쏆븘 蹂?섎? 珥덇린?뷀븳??
+  // Step 시작 전 매개변수들을 초기화한다.
+  // 현재 실행 객체의 context를 주입받아 변수를 초기화한다.
   @BeforeStep
   void beforeStep(StepExecution stepExecution){
     String periodTypeStr = stepExecution.getJobExecution().getJobParameters().getString("periodType");
     String aggregatedAtStr = stepExecution.getJobExecution().getJobParameters().getString("aggregatedAt");
     String snapshotIdStr = stepExecution.getJobExecution().getExecutionContext().getString("snapshotId");
 
-    Map<String, Object> details = new LinkedHashMap<>();
-    if (periodTypeStr == null || periodTypeStr.isBlank()) {
-      details.put("periodType", periodTypeStr != null ? periodTypeStr : "null");
-    }
-    if (aggregatedAtStr == null || aggregatedAtStr.isBlank()) {
-      details.put("aggregatedAt", aggregatedAtStr != null ? aggregatedAtStr : "null");
-    }
-    if (snapshotIdStr == null || snapshotIdStr.isBlank()) {
-      details.put("snapshotId", snapshotIdStr != null ? snapshotIdStr : "null");
-    }
-    if (!details.isEmpty()) {
-      throw new InvalidJobParameterException(details);
-    }
+    JobParameterUtils.validateRequired(
+        JobParameterUtils.parameter("periodType", periodTypeStr),
+        JobParameterUtils.parameter("aggregatedAt", aggregatedAtStr),
+        JobParameterUtils.parameter("snapshotId", snapshotIdStr)
+    );
 
-    try {
-      this.periodType = PeriodType.valueOf(periodTypeStr);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidJobParameterException(Map.of("periodType", periodTypeStr));
-    }
+    this.periodType = JobParameterUtils.parseEnum("periodType", periodTypeStr, PeriodType.class);
+    this.aggregatedAt = JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtStr);
+    this.snapshotId = JobParameterUtils.parseUuid("snapshotId", snapshotIdStr);
 
-    try {
-      this.aggregatedAt = LocalDateTime.parse(aggregatedAtStr);
-    } catch (DateTimeParseException e) {
-      throw new InvalidJobParameterException(Map.of("aggregatedAt", aggregatedAtStr));
-    }
-
-    try {
-      this.snapshotId = UUID.fromString(snapshotIdStr);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidJobParameterException(Map.of("snapshotId", snapshotIdStr));
-    }
-
-    this.statsByUserId = powerUserAggregateService.loadUserStats(periodType, aggregatedAt); // Aggregate ?쒕퉬?ㅼ뿉???좎? ?ㅽ꺈??濡쒕뱶?섎뒗 硫붿꽌???몄텧
+    this.statsByUserId = powerUserAggregateService.loadUserStats(periodType, aggregatedAt); // Aggregate 서비스에서 유저 스탯을 로드하는 메서드 호출
   }
 
   @Override
   public @Nullable PowerUser process(@NonNull User item) throws Exception {
-    // User id 蹂?UserStat???댁쟾 itemReader??諛섑솚??User濡쒕???媛?몄삩??
+    // User id 별 UserStat을 이전 itemReader이 반환한 User로부터 가져온다.
     UserStat stat =
         statsByUserId.getOrDefault(item.getId(), powerUserAggregateService.emptyStat(item.getId()));
     return powerUserAggregateService.toPowerUser(item, stat, periodType, aggregatedAt, snapshotId);

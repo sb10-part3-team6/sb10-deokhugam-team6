@@ -1,14 +1,12 @@
 package com.codeit.mission.deokhugam.dashboard.popularreviews.batch;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidJobParameterException;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewStat;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.service.PopularReviewAggregateService;
+import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -39,40 +37,15 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
     String aggregatedAtStr = stepExecution.getJobExecution().getJobParameters().getString("aggregatedAt");
     String snapshotIdStr = stepExecution.getJobExecution().getExecutionContext().getString("snapshotId");
 
-    Map<String, Object> details = new LinkedHashMap<>();
-    if (periodTypeStr == null || periodTypeStr.isBlank()) {
-      details.put("periodType", periodTypeStr != null ? periodTypeStr : "null");
-    }
+    JobParameterUtils.validateRequired(
+        JobParameterUtils.parameter("periodType", periodTypeStr),
+        JobParameterUtils.parameter("aggregatedAt", aggregatedAtStr),
+        JobParameterUtils.parameter("snapshotId", snapshotIdStr)
+    );
 
-    if (aggregatedAtStr == null || aggregatedAtStr.isBlank()) {
-      details.put("aggregatedAt", aggregatedAtStr != null ? aggregatedAtStr : "null");
-    }
-
-    if (snapshotIdStr == null || snapshotIdStr.isBlank()) {
-      details.put("snapshotId", snapshotIdStr != null ? snapshotIdStr : "null");
-    }
-
-    if (!details.isEmpty()) {
-      throw new InvalidJobParameterException(details);
-    }
-
-    try {
-      this.periodType = PeriodType.valueOf(periodTypeStr);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidJobParameterException(Map.of("periodType", periodTypeStr));
-    }
-
-    try {
-      this.aggregatedAt = LocalDateTime.parse(aggregatedAtStr);
-    } catch (DateTimeParseException e) {
-      throw new InvalidJobParameterException(Map.of("aggregatedAt", aggregatedAtStr));
-    }
-
-    try {
-      this.snapshotId = UUID.fromString(snapshotIdStr);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidJobParameterException(Map.of("snapshotId", snapshotIdStr));
-    }
+    this.periodType = JobParameterUtils.parseEnum("periodType", periodTypeStr, PeriodType.class);
+    this.aggregatedAt = JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtStr);
+    this.snapshotId = JobParameterUtils.parseUuid("snapshotId", snapshotIdStr);
 
     this.statsByReviewId = popularReviewAggregateService.loadReviewStat(periodType, aggregatedAt);
   }

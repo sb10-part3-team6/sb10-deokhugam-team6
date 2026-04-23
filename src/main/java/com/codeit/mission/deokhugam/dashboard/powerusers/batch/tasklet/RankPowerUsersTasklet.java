@@ -1,11 +1,9 @@
 package com.codeit.mission.deokhugam.dashboard.powerusers.batch.tasklet;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidJobParameterException;
 import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserAggregateService;
+import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
-import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -42,38 +40,14 @@ public class RankPowerUsersTasklet implements Tasklet {
   }
 
   private UUID getSnapshotId() {
-    if (snapshotIdValue == null || snapshotIdValue.isBlank()) {
-      throw new InvalidJobParameterException(Map.of("snapshotId",
-          snapshotIdValue != null ? snapshotIdValue : "null"));
-    }
-    try {
-      return UUID.fromString(snapshotIdValue);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidJobParameterException(Map.of("snapshotId", snapshotIdValue));
-    }
+    return JobParameterUtils.parseUuid("snapshotId", snapshotIdValue);
   }
 
   private LocalDateTime getAggregatedAt(){
-    if(aggregatedAtValue == null || aggregatedAtValue.isBlank()){
-      throw new InvalidJobParameterException(Map.of("aggregatedAt",
-          aggregatedAtValue != null ? aggregatedAtValue : "null"));
-    }
-    try {
-      return LocalDateTime.parse(aggregatedAtValue);
-    } catch (DateTimeParseException e) {
-      throw new InvalidJobParameterException(Map.of("aggregatedAt", aggregatedAtValue));
-    }
+    return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
   }
 
   private PeriodType getPeriodType(){
-    if(periodTypeValue == null || periodTypeValue.isBlank()){
-      throw new InvalidJobParameterException(Map.of("periodType",
-          periodTypeValue != null ? periodTypeValue : "null"));
-    }
-    try {
-      return PeriodType.valueOf(periodTypeValue);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidJobParameterException(Map.of("periodType", periodTypeValue));
-    }
+    return JobParameterUtils.parseEnum("periodType", periodTypeValue, PeriodType.class);
   }
 }

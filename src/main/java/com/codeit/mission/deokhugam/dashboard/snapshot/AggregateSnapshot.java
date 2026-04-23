@@ -10,7 +10,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Builder;
@@ -31,18 +30,18 @@ public class AggregateSnapshot extends BaseEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "period_type", nullable = false)
-  PeriodType periodType;
+  private PeriodType periodType;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "domain_type", nullable = false)
-  DomainType domainType;
+  private DomainType domainType;
 
   @Column(name = "aggregated_at", nullable = false)
-  LocalDateTime aggregatedAt;
+  private LocalDateTime aggregatedAt;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "staging_type", nullable = false)
-  StagingType stagingType;
+  private StagingType stagingType;
 
   @Builder
   public AggregateSnapshot(
@@ -51,7 +50,7 @@ public class AggregateSnapshot extends BaseEntity {
       DomainType domainType,
       LocalDateTime aggregatedAt,
       StagingType stagingType
-  ){
+  ) {
     this.snapshotId = snapshotId;
     this.periodType = periodType;
     this.domainType = domainType;
