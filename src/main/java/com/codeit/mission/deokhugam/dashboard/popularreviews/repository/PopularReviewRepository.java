@@ -92,7 +92,7 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
       where pr.snapshotId = :snapshotId
         and (:cursor is null
               or pr.rank < :cursor
-              or (pr.rank = :cursor and pr.createdAt < :after and pr.id > :lastId ))
+              or (pr.rank = :cursor and pr.createdAt < :after))
       order by pr.rank desc, pr.createdAt desc
       """)
   List<PopularReviewDto> findRankingDtosBySnapshotIdDesc(
