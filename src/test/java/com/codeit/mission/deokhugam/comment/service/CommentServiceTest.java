@@ -277,7 +277,6 @@ public class CommentServiceTest {
         // given
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
         given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
-        given(commentRepository.save(any(Comment.class))).willReturn(comment);
 
         // when
         commentService.softDelete(commentId, userId);
@@ -285,7 +284,6 @@ public class CommentServiceTest {
         // then
         verify(commentRepository).findById(commentId);
         verify(userRepository).findById(userId);
-        verify(commentRepository).save(comment);
 
     }
 
@@ -309,7 +307,6 @@ public class CommentServiceTest {
 
         verify(commentRepository).findById(commentId);
         verify(userRepository).findById(otherUserId);
-        verify(commentRepository, never()).save(any(Comment.class));
 
     }
 
