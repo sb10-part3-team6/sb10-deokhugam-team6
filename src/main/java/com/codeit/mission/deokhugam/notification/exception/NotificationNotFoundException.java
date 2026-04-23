@@ -8,6 +8,6 @@ import java.util.UUID;
 public class NotificationNotFoundException extends DeokhugamException {
 
     public NotificationNotFoundException(UUID notificationId) {
-        super(ErrorCode.NOTIFICATION_NOT_FOUND, Map.of("notificationId", notificationId));
+      super(ErrorCode.NOTIFICATION_NOT_FOUND, Map.of("notificationId", notificationId));
     }
 }
