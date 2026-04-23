@@ -138,6 +138,7 @@ public class NotificationRepositoryTest {
     NotificationRequestQuery secondQuery = NotificationRequestQuery.builder()
       .direction(DirectionEnum.DESC)
       .after(cursor)
+      .limit(20)
       .build();
 
     // when
