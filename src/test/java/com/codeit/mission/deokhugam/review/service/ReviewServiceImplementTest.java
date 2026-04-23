@@ -2,6 +2,8 @@ package com.codeit.mission.deokhugam.review.service;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
+import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
@@ -57,6 +59,12 @@ public class ReviewServiceImplementTest {
 
   @Mock
   private BookRepository bookRepository;
+
+  @Mock
+  private CommentRepository commentRepository;
+
+  @Mock
+  private NotificationRepository notificationRepository;
 
   @Mock
   private ReviewMapper reviewMapper;
@@ -742,10 +750,16 @@ public class ReviewServiceImplementTest {
     given(userRepository.findById(userId)).willReturn(
         Optional.of(mockUser));                                 // mockUser 반환
 
+    // 삭제할 리뷰 목록
+    List<UUID> reviewIds = List.of(reviewId);
+
     // when
     reviewServiceImplement.hardDelete(reviewId, userId);
 
     // then
+    verify(commentRepository, times(1)).deleteByReviewIdIn(reviewIds);
+    verify(reviewLikeRepository, times(1)).deleteByReviewIdIn(reviewIds);
+    verify(notificationRepository, times(1)).deleteByReviewIdIn(reviewIds);
     verify(reviewRepository, times(1)).delete(
         any(Review.class));                                     // Repository의 delete 함수 호출 확인
   }
@@ -778,6 +792,9 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(savedReview, "status",
         ReviewStatus.ACTIVE);                                         // status 강제 주입
 
+    // 삭제할 리뷰 목록
+    List<UUID> reviewIds = List.of(reviewId);
+
     given(reviewRepository.findById(reviewId)).willReturn(
         Optional.of(savedReview));                                    // savedReview 반환
     given(userRepository.findById(requestUserId)).willReturn(
@@ -788,6 +805,9 @@ public class ReviewServiceImplementTest {
       // validateOwner 예외 반환 확인
       reviewServiceImplement.hardDelete(savedReview.getId(), requestUser.getId());
     });
+    verify(commentRepository, never()).deleteByReviewIdIn(anyList());
+    verify(reviewLikeRepository, never()).deleteByReviewIdIn(anyList());
+    verify(notificationRepository, never()).deleteByReviewIdIn(anyList());
     verify(reviewRepository, never()).delete(any(Review.class));
   }
 
