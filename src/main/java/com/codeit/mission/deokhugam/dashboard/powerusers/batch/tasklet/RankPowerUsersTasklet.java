@@ -4,6 +4,7 @@ import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidJobParameterException;
 import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserAggregateService;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -45,22 +46,34 @@ public class RankPowerUsersTasklet implements Tasklet {
       throw new InvalidJobParameterException(Map.of("snapshotId",
           snapshotIdValue != null ? snapshotIdValue : "null"));
     }
-    return UUID.fromString(snapshotIdValue);
+    try {
+      return UUID.fromString(snapshotIdValue);
+    } catch (IllegalArgumentException e) {
+      throw new InvalidJobParameterException(Map.of("snapshotId", snapshotIdValue));
+    }
   }
 
   private LocalDateTime getAggregatedAt(){
     if(aggregatedAtValue == null || aggregatedAtValue.isBlank()){
       throw new InvalidJobParameterException(Map.of("aggregatedAt",
-          aggregatedAtValue != null ? aggregatedAtValue : null));
+          aggregatedAtValue != null ? aggregatedAtValue : "null"));
     }
-    return LocalDateTime.parse(aggregatedAtValue);
+    try {
+      return LocalDateTime.parse(aggregatedAtValue);
+    } catch (DateTimeParseException e) {
+      throw new InvalidJobParameterException(Map.of("aggregatedAt", aggregatedAtValue));
+    }
   }
 
   private PeriodType getPeriodType(){
     if(periodTypeValue == null || periodTypeValue.isBlank()){
       throw new InvalidJobParameterException(Map.of("periodType",
-          periodTypeValue != null ? periodTypeValue : null));
+          periodTypeValue != null ? periodTypeValue : "null"));
     }
-    return PeriodType.valueOf(periodTypeValue);
+    try {
+      return PeriodType.valueOf(periodTypeValue);
+    } catch (IllegalArgumentException e) {
+      throw new InvalidJobParameterException(Map.of("periodType", periodTypeValue));
+    }
   }
 }

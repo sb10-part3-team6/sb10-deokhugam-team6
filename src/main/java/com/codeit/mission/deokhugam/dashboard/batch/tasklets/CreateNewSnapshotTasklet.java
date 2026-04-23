@@ -6,6 +6,7 @@ import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidJobParameterExce
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotService;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Component;
 public class CreateNewSnapshotTasklet implements Tasklet {
   private final AggregateSnapshotService aggregateSnapshotService;
 
-  // 외부로부터 변수를 받아온다.
+  // ?몃?濡쒕???蹂?섎? 諛쏆븘?⑤떎.
   @Value("#{jobParameters['periodType']}")
   private String periodTypeValue;
 
@@ -37,33 +38,65 @@ public class CreateNewSnapshotTasklet implements Tasklet {
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 
-    // 파싱
-    PeriodType periodType = PeriodType.valueOf(periodTypeValue);
-    LocalDateTime aggregatedAt = LocalDateTime.parse(aggregatedAtValue);
-    DomainType domainType = DomainType.valueOf(domainTypeValue);
+    PeriodType periodType = getPeriodType();
+    LocalDateTime aggregatedAt = getAggregatedAt();
+    DomainType domainType = getDomainType();
 
-    if(periodType == null || aggregatedAt == null || domainType == null){
-      throw new InvalidJobParameterException(Map.of("periodType",periodTypeValue,
-          "aggregatedAt", aggregatedAtValue,
-          "domainType", domainTypeValue));
+    // ?ㅻ깄??媛앹껜 ?앹꽦 ?쒕퉬??硫붿꽌?쒕? ?몄텧??
+    AggregateSnapshot snapshot =
+        aggregateSnapshotService.createStagingSnapshot(domainType, periodType, aggregatedAt);
+
+
+    // ?ㅼ쓬 ?ㅽ뀦??AggregateStep???ㅻ깄??Id瑜??꾨떖?섍린 ?꾪빐 jobExecutionContext??媛믪쓣 ??ν븿.
+    ExecutionContext context = chunkContext.getStepContext() // ?꾩옱 ?ㅽ뻾 以묒씤 Step??而⑦뀓?ㅽ듃 ?뺣낫 媛?몄샂
+        .getStepExecution() // ?꾩옱 Step ?ㅽ뻾 媛앹껜
+        .getJobExecution() // ???랁븳 ?꾩껜 Job ?ㅽ뻾 媛앹껜
+        .getExecutionContext(); // Job ?꾩껜媛 怨듭쑀?섎뒗 Key-Value ??μ냼
+
+    // 而⑦뀓?ㅽ듃???ㅻ깄??Id, ?꾨찓??醫낅쪟瑜????
+    context.putString("snapshotId", snapshot.getSnapshotId().toString()); // ??snapshotId ?대쫫?쇰줈 ?대떦 Id瑜????
+    context.putString("domainType", domainType.name()); // domainType ?대쫫?쇰줈 ?대떦 ?꾨찓??醫낅쪟瑜????
+
+    // ?ㅽ뀦 醫낅즺瑜??뚮┝
+    return RepeatStatus.FINISHED;
+  }
+
+  private PeriodType getPeriodType() {
+    if (periodTypeValue == null || periodTypeValue.isBlank()) {
+      throw new InvalidJobParameterException(
+          Map.of("periodType", periodTypeValue != null ? periodTypeValue : "null"));
     }
 
+    try {
+      return PeriodType.valueOf(periodTypeValue);
+    } catch (IllegalArgumentException e) {
+      throw new InvalidJobParameterException(Map.of("periodType", periodTypeValue));
+    }
+  }
 
-    // 스냅샷 객체 생성 서비스 메서드를 호출함.
-    AggregateSnapshot snapshot = aggregateSnapshotService.createStagingSnapshot(domainType, periodType,aggregatedAt);
+  private LocalDateTime getAggregatedAt() {
+    if (aggregatedAtValue == null || aggregatedAtValue.isBlank()) {
+      throw new InvalidJobParameterException(
+          Map.of("aggregatedAt", aggregatedAtValue != null ? aggregatedAtValue : "null"));
+    }
 
+    try {
+      return LocalDateTime.parse(aggregatedAtValue);
+    } catch (DateTimeParseException e) {
+      throw new InvalidJobParameterException(Map.of("aggregatedAt", aggregatedAtValue));
+    }
+  }
 
-    // 다음 스텝인 AggregateStep에 스냅샷 Id를 전달하기 위해 jobExecutionContext에 값을 저장함.
-    ExecutionContext context = chunkContext.getStepContext() // 현재 실행 중인 Step의 컨텍스트 정보 가져옴
-        .getStepExecution() // 현재 Step 실행 객체
-        .getJobExecution() // 이 속한 전체 Job 실행 객체
-        .getExecutionContext(); // Job 전체가 공유하는 Key-Value 저장소
+  private DomainType getDomainType() {
+    if (domainTypeValue == null || domainTypeValue.isBlank()) {
+      throw new InvalidJobParameterException(
+          Map.of("domainType", domainTypeValue != null ? domainTypeValue : "null"));
+    }
 
-    // 컨텍스트에 스냅샷 Id, 도메인 종류를 저장
-    context.putString("snapshotId", snapshot.getSnapshotId().toString()); // 에 snapshotId 이름으로 해당 Id를 저장
-    context.putString("domainType", domainType.name()); // domainType 이름으로 해당 도메인 종류를 저장
-
-    // 스텝 종료를 알림
-    return RepeatStatus.FINISHED;
+    try {
+      return DomainType.valueOf(domainTypeValue);
+    } catch (IllegalArgumentException e) {
+      throw new InvalidJobParameterException(Map.of("domainType", domainTypeValue));
+    }
   }
 }

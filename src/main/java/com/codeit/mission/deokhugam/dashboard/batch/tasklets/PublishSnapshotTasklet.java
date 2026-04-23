@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @RequiredArgsConstructor
-// Staging 된 새로 생성한 스냅샷 객체를 Publish로 바꾸는 태스크릿
+// Staging ???덈줈 ?앹꽦???ㅻ깄??媛앹껜瑜?Publish濡?諛붽씀???쒖뒪?щ┸
 public class PublishSnapshotTasklet implements Tasklet {
   private final AggregateSnapshotService aggregateSnapshotService;
 
@@ -30,19 +30,38 @@ public class PublishSnapshotTasklet implements Tasklet {
 
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-    // 입력 값 검증
-    if(snapshotIdValue == null || snapshotIdValue.isBlank()){
-      throw new InvalidJobParameterException(Map.of("snapshotId",
-          snapshotIdValue != null ? snapshotIdValue : null));
-    }
-
-    // 스냅샷 Publish 메소드 호출
+    // ?ㅻ깄??Publish 硫붿냼???몄텧
     aggregateSnapshotService.publishSnapshot(
-        DomainType.valueOf(domainTypeValue),
-        UUID.fromString(snapshotIdValue)
+        getDomainType(),
+        getSnapshotId()
     );
 
     return RepeatStatus.FINISHED;
   }
-}
 
+  private UUID getSnapshotId() {
+    if (snapshotIdValue == null || snapshotIdValue.isBlank()) {
+      throw new InvalidJobParameterException(
+          Map.of("snapshotId", snapshotIdValue != null ? snapshotIdValue : "null"));
+    }
+
+    try {
+      return UUID.fromString(snapshotIdValue);
+    } catch (IllegalArgumentException e) {
+      throw new InvalidJobParameterException(Map.of("snapshotId", snapshotIdValue));
+    }
+  }
+
+  private DomainType getDomainType() {
+    if (domainTypeValue == null || domainTypeValue.isBlank()) {
+      throw new InvalidJobParameterException(
+          Map.of("domainType", domainTypeValue != null ? domainTypeValue : "null"));
+    }
+
+    try {
+      return DomainType.valueOf(domainTypeValue);
+    } catch (IllegalArgumentException e) {
+      throw new InvalidJobParameterException(Map.of("domainType", domainTypeValue));
+    }
+  }
+}

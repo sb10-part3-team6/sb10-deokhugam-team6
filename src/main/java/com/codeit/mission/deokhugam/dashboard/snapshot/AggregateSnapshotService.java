@@ -44,19 +44,6 @@ public class AggregateSnapshotService {
     return snapshotRepository.save(snapshot);
   }
 
-//  @Transactional
-//  public void archiveSnapshot(UUID snapshotId) {
-//    Optional<AggregateSnapshot> snapshot = snapshotRepository.findBySnapshotId(snapshotId);
-//
-//    if (snapshot.isEmpty()) {
-//      //log.warn("Snapshot not found for archiving: {}", snapshotId);
-//      return;
-//    }
-//    snapshot
-//        .filter(s -> s.getStagingType() == StagingType.STAGING)
-//        .ifPresent(AggregateSnapshot::archive);
-//  }
-
   @Transactional
   public void publishSnapshot(DomainType domainType, UUID snapshotId) {
     // 조회하고자 하는 스냅샷의 존재 여부를 확인하고 가져옴.
@@ -65,13 +52,15 @@ public class AggregateSnapshotService {
 
     // 스냅샷의 도메인 타입이 서로 일치하는지 확인
     if (!Objects.equals(newSnapshot.getDomainType(), domainType)) {
-      throw new DomainTypeNotEqualException(Map.of("newSnapshotId", newSnapshot.getSnapshotId(),
-          "foundSnapshotId", domainType));
+      throw new DomainTypeNotEqualException(Map.of(
+          "newDomainType", newSnapshot.getDomainType(),
+          "existingDomainType", domainType));
     }
 
     // 스냅샷의 상태를 확인
     if (newSnapshot.getStagingType() != StagingType.STAGING) {
-      throw new SnapshotNotStagedPublishException(Map.of("snapshotId", newSnapshot.getId(),
+      throw new SnapshotNotStagedPublishException(Map.of(
+          "snapshotId", newSnapshot.getSnapshotId(),
           "stagingType", newSnapshot.getStagingType()));
     }
 

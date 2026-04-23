@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.dashboard.batch.steps;
+package com.codeit.mission.deokhugam.dashboard.batch.tasklets.steps;
 
 import com.codeit.mission.deokhugam.dashboard.batch.tasklets.CreateNewSnapshotTasklet;
 import com.codeit.mission.deokhugam.dashboard.batch.tasklets.PublishSnapshotTasklet;
