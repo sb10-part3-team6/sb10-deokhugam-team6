@@ -898,7 +898,7 @@ public class ReviewServiceImplementTest {
   @Test
   @DisplayName("리뷰 좋아요 취소 성공: 이미 취소되어 데이터가 없는 경우에도 에러 없이 liked=false를 반환")
   void remove_review_like_idempotency_success() {
-    // given (기존 취소 테스트와 동일하게 세팅하되...)
+    // given
     UUID reviewId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
 

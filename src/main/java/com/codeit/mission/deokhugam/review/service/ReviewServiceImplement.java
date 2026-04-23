@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,8 @@ import org.springframework.util.StringUtils;
 /*
     리뷰 서비스
  */
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -151,7 +154,10 @@ public class ReviewServiceImplement implements ReviewService {
       // 5. 리뷰 저장 및 즉시 반영하여, try-catch 블록 내에서 제약 조건 위반 예외 포착
       reviewRepository.saveAndFlush(newReview);
 
-      // 6. 리뷰 응답 DTO 변환 및 반환
+      // 6. 로그 기록
+      log.info("[REVIEW_CREATE] Create Review Id: {}]", newReview.getId());
+
+      // 7. 리뷰 응답 DTO 변환 및 반환
       return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0
 
       // 만약 동시에 똑같은 요청이 들어와서, DB 유니크 제약 (uk_book_user)가 발생한다면 커스텀 중복 예외 발생
@@ -184,10 +190,13 @@ public class ReviewServiceImplement implements ReviewService {
     targetReview.updateContentAndRating(reviewUpdateRequest.content(),
         reviewUpdateRequest.rating());
 
-    // 5. 특정 리뷰에 대한 작성자의 좋아요 여부 확인
+    // 5. 로그 작성
+    log.info("[REVIEW_UPDATE] Update Review Id: {}", targetReview.getId());
+
+    // 6. 특정 리뷰에 대한 작성자의 좋아요 여부 확인
     boolean isLiked = isReviewLiked(targetReview.getId(), requestUser.getId());
 
-    // 6. 리뷰 응답 DTO 반환 및 변환
+    // 7. 리뷰 응답 DTO 반환 및 변환
     return reviewMapper.toDto(targetReview, isLiked);
   }
 
@@ -207,6 +216,9 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 4. 리뷰 논리 삭제
     targetReview.delete();
+
+    // 5. 로그 기록
+    log.info("[REVIEW_LOGICAL_DELETE] Logical Delete Review Id: {}", targetReview.getId());
   }
 
   // 리뷰 물리 삭제
@@ -222,6 +234,9 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 3. 리뷰 물리 삭제
     reviewRepository.delete(targetReview);
+
+    // 4. 로그 기록
+    log.info("[REVIEW_Hard_DELETE] Hard Delete Review Id: {}", targetReview.getId());
   }
 
   // 리뷰 좋아요 추가 및 취소
@@ -278,6 +293,9 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 2. 특정 리뷰의 좋아요 수 증가
     reviewRepository.incrementLikeCount(review.getId());
+
+    // 3. 로그 기록
+    log.info("[ADD_REVIEW_LIKE] Add Like Id: {}", createdReviewLike.getId());
   }
 
   // 리뷰 좋아요 생성
@@ -299,6 +317,9 @@ public class ReviewServiceImplement implements ReviewService {
 
           // 3. 좋아요 수 감소
           reviewRepository.decrementLikeCount(review.getId());
+
+          // 4. 로그 기록
+          log.info("[REMOVED_REVIEW_LIKE] Remove Like Id: {}", targetReviewLike.getId());
         });
   }
 
