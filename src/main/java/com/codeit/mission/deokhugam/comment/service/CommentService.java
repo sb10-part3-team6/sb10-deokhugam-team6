@@ -216,21 +216,21 @@ public class CommentService {
 
   // 리뷰 상태 검증
   private void validReviewStatus(Review review) {
-    if (!review.getStatus().equals(ReviewStatus.DELETED)) {
+    if (review.getStatus().equals(ReviewStatus.DELETED)) {
       throw new ReviewNotFoundException(review.getId());
     }
   }
 
   // 유저 상태 검증
   private void validUserStatus(User user) {
-    if (!user.getStatus().equals(UserStatus.DELETED)) {
+    if (user.getStatus().equals(UserStatus.DELETED)) {
       throw new UserNotFoundException(user.getId());
     }
   }
 
   // 댓글 상태 검증
   private void validCommentStatus(Comment comment) {
-    if (!comment.getStatus().equals(CommentStatus.DELETED)) {
+    if (comment.getStatus().equals(CommentStatus.DELETED)) {
       throw new CommentNotFoundException(comment.getId());
     }
   }
