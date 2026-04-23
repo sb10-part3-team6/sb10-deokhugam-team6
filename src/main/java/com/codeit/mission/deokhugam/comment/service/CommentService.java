@@ -169,6 +169,9 @@ public class CommentService {
     validAuthor(comment, requestUserId);
 
     comment.updateStatus(CommentStatus.DELETED);
+
+    // 댓글 수 감소
+    reviewRepository.decrementCommentCount(comment.getReviewId());
   }
 
   // 댓글 물리 삭제
