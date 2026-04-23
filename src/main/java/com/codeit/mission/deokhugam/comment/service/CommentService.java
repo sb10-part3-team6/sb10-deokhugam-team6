@@ -100,8 +100,6 @@ public class CommentService {
   // 댓글 목록 조회
   @Transactional(readOnly = true)
   public CursorPageResponseCommentDto findAllComments(CommentFindAllRequest request) {
-    // 리뷰 검증
-    validReviewExist(request.reviewId());
     // 리뷰 상태 검증
     validReviewStatus(getReviewOrThrow(request.reviewId()));
 
@@ -160,9 +158,7 @@ public class CommentService {
     // 댓글 상태 검증
     validCommentStatus(comment);
 
-    // 요청자 검증
-    validUserExist(requestUserId);
-    // 요청자 상태 검증
+    // 요청자 조회 및 상태 검증
     validUserStatus(getUserOrThrow(requestUserId));
 
     // 요청자와 댓글의 작성자 ID 비교
@@ -182,8 +178,6 @@ public class CommentService {
     // 댓글 상태 검증
     validCommentStatus(comment);
 
-    // 요청자 검증
-    validUserExist(requestUserId);
     // 요청자 상태 검증
     validUserStatus(getUserOrThrow(requestUserId));
 
@@ -192,27 +186,6 @@ public class CommentService {
 
     commentRepository.deleteById(commentId);
     reviewRepository.decrementCommentCount(comment.getReviewId());
-  }
-
-  // 리뷰 검증
-  private void validReviewExist(UUID reviewId) {
-    if (!reviewRepository.existsById(reviewId)) {
-      throw new ReviewNotFoundException(reviewId);
-    }
-  }
-
-  // 유저 검증
-  private void validUserExist(UUID userId) {
-    if (!userRepository.existsById(userId)) {
-      throw new UserNotFoundException(userId);
-    }
-  }
-
-  // 댓글 검증
-  private void validCommentExist(UUID commentId) {
-    if (!commentRepository.existsById(commentId)) {
-      throw new CommentNotFoundException(commentId);
-    }
   }
 
   // 리뷰 상태 검증
