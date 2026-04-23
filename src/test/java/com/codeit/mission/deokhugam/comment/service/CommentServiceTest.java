@@ -69,6 +69,7 @@ public class CommentServiceTest {
     userNickName = "testUser";
 
     user = mock(User.class);
+    // when 앞에 검증을 약화시키는 lenient() 삽입
     lenient().when(user.getId()).thenReturn(userId);
     lenient().when(user.getNickname()).thenReturn(userNickName);
 
@@ -222,10 +223,11 @@ public class CommentServiceTest {
     CommentDto firstCommentDto = mock(CommentDto.class);
     CommentDto secondCommentDto = mock(CommentDto.class);
 
+    Review review = mock(Review.class);
     given(findAllRequest.reviewId()).willReturn(reviewId);
     given(findAllRequest.limit()).willReturn(2);
 
-    given(reviewRepository.existsById(eq(reviewId))).willReturn(true);
+    given(reviewRepository.findById(eq(reviewId))).willReturn(Optional.ofNullable(review));
     given(commentRepository.findAllByCursor(eq(findAllRequest)))
         .willReturn(List.of(comment, secondComment));
     given(commentRepository.countByReviewId(eq(reviewId))).willReturn(2);
@@ -243,10 +245,10 @@ public class CommentServiceTest {
     assertThat(result.size()).isEqualTo(2);
     assertThat(result.totalElements()).isEqualTo(2);
     assertThat(result.hasNext()).isEqualTo(false);
-    assertThat(result.nextCursor()).isEqualTo(null);
-    assertThat(result.nextAfter()).isEqualTo(null);
+    assertThat(result.nextCursor()).isNull();
+    assertThat(result.nextAfter()).isNull();
 
-    verify(reviewRepository).existsById(reviewId);
+    verify(reviewRepository).findById(reviewId);
     verify(commentRepository).findAllByCursor(findAllRequest);
     verify(commentRepository).countByReviewId(reviewId);
     verify(userRepository).findAllById(any());
@@ -258,16 +260,18 @@ public class CommentServiceTest {
   @DisplayName("댓글 목록 조회 실패 - 리뷰 정보 없음")
   void findAllCommentsCommentFailByReviewNotFound() {
     // given
-    given(findAllRequest.reviewId()).willReturn(reviewId);
-    given(findAllRequest.limit()).willReturn(10);
+    // given(findAllRequest.reviewId()).willReturn(reviewId);
+    // given(findAllRequest.limit()).willReturn(10);
+    lenient().when(findAllRequest.reviewId()).thenReturn(reviewId);
+    lenient().when(findAllRequest.limit()).thenReturn(10);
 
-    given(reviewRepository.existsById(eq(reviewId))).willReturn(false);
+    given(reviewRepository.findById(eq(reviewId))).willReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
         .isInstanceOf(EntityNotFoundException.class);
 
-    verify(reviewRepository).existsById(reviewId);
+    verify(reviewRepository).findById(reviewId);
     verify(commentRepository, never()).findAllByCursor(any());
   }
 }
