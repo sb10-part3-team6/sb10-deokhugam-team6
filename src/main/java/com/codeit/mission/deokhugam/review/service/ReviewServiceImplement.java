@@ -3,6 +3,8 @@ package com.codeit.mission.deokhugam.review.service;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
+import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
@@ -15,7 +17,6 @@ import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
-import com.codeit.mission.deokhugam.review.exception.ReviewLikeNotFoundException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
@@ -48,6 +49,8 @@ public class ReviewServiceImplement implements ReviewService {
   private final ReviewLikeRepository reviewLikeRepository;
   private final BookRepository bookRepository;
   private final UserRepository userRepository;
+  private final CommentRepository commentRepository;
+  private final NotificationRepository notificationRepository;
 
   private final ReviewMapper reviewMapper;
 
@@ -232,7 +235,13 @@ public class ReviewServiceImplement implements ReviewService {
     // 2. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
     validateOwner(targetReview, requestUser);
 
-    // 3. 리뷰 물리 삭제
+    // 3. 연관 데이터 삭제 (댓글, 좋아요, 알림)
+    List<UUID> reviewIds = List.of(targetReview.getId());
+    commentRepository.deleteByReviewIdIn(reviewIds);
+    reviewLikeRepository.deleteByReviewIdIn(reviewIds);
+    notificationRepository.deleteByReviewIdIn(reviewIds);
+
+    // 4. 리뷰 물리 삭제
     reviewRepository.delete(targetReview);
 
     // 4. 로그 기록
