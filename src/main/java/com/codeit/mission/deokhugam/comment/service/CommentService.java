@@ -191,25 +191,26 @@ public class CommentService {
     validAuthor(comment, requestUserId);
 
     commentRepository.deleteById(commentId);
+    reviewRepository.decrementCommentCount(comment.getReviewId());
   }
 
   // 리뷰 검증
   private void validReviewExist(UUID reviewId) {
-    if (reviewRepository.existsById(reviewId)) {
+    if (!reviewRepository.existsById(reviewId)) {
       throw new ReviewNotFoundException(reviewId);
     }
   }
 
   // 유저 검증
   private void validUserExist(UUID userId) {
-    if (userRepository.existsById(userId)) {
+    if (!userRepository.existsById(userId)) {
       throw new UserNotFoundException(userId);
     }
   }
 
   // 댓글 검증
   private void validCommentExist(UUID commentId) {
-    if (commentRepository.existsById(commentId)) {
+    if (!commentRepository.existsById(commentId)) {
       throw new CommentNotFoundException(commentId);
     }
   }
