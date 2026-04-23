@@ -65,16 +65,11 @@ public class PopularReviewService {
     // 존재하지 않으면 rows를 통째로 뽑습니다.
     List<PopularReviewDto> content = hasNext ? new ArrayList<>(rows.subList(0, pageSize)) : rows;
 
-    // 다음 페이지를 조회하기 위한 Cursor와 보조 커서
-    String nextCursor = null;
-    String nextAfter = null;
-    // 다음 페이지가 존재하고 콘텐츠가 존재
-    if (hasNext && !content.isEmpty()) {
-      PopularReviewDto last = content.get(content.size() - 1);
-      // 컨텐츠 내 마지막 요소를 기준으로 next cursor와 보조 커서를 초기화한다.
-      nextCursor = String.valueOf(last.rank());
-      nextAfter = last.createdAt().toString();
-    }
+    // 다음 페이지를 조회하기 위한 Cursor와 보조 커서를 구함
+    // 다음 페이지가 존재하지 않으면 다음 커서 / 보조 커서는 null 처리
+    StringCursors nextCursors = getNextCursors(hasNext, content);
+    String nextCursor = nextCursors.cursor();
+    String nextAfter = nextCursors.after();
 
     // 스냅샷에 해당하는 요소들의 총 개수를 센다.
     long totalElements = popularReviewRepository.countRankingsBySnapshotId(publishedSnapshotId);
@@ -98,6 +93,7 @@ public class PopularReviewService {
   }
 
   private record ParsedCursors(Long cursor, LocalDateTime after){}
+  private record StringCursors(String cursor, String after){}
 
   private ParsedCursors parseCursors(String cursor, String after){
     try{
@@ -108,5 +104,14 @@ public class PopularReviewService {
     } catch (NumberFormatException | DateTimeException e){
       throw new InvalidCursorValueException();
     }
+  }
+
+  private StringCursors getNextCursors(boolean hasNext, List<PopularReviewDto> content){
+    if (hasNext && !content.isEmpty()) {
+      PopularReviewDto last = content.get(content.size() - 1);
+      // 컨텐츠 내 마지막 요소를 기준으로 next cursor와 보조 커서를 초기화한다.
+      return new StringCursors(String.valueOf(last.rank()), String.valueOf(last.createdAt()));
+    }
+    return new StringCursors(null, null);
   }
 }
