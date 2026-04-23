@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.review.repository;
 
-import com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import java.time.LocalDateTime;
@@ -36,7 +36,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate(
+          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate(
               r.user.id,
               coalesce(sum(r.rating), 0.0)
           )
@@ -70,7 +70,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
 
   // 기간 내 리뷰 당 받은 좋아요 수를 뽑는 쿼리
   @Query("""
-      select new com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewLikeCount(
+      select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount(
           rl.review.id,
           count(rl)
       )
