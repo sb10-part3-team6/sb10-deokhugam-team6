@@ -57,7 +57,7 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
         and (:cursor is null
               or pr.rank > :cursor
               or (pr.rank = :cursor and pr.createdAt > :after))
-      order by pr.rank asc, pr.createdAt asc, pr.id asc
+      order by pr.rank asc, pr.createdAt asc
       """)
   // book, user, review를 join해서 PopularReviewDto를 반환
   List<PopularReviewDto> findRankingDtosBySnapshotIdAsc(
@@ -92,8 +92,8 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
       where pr.snapshotId = :snapshotId
         and (:cursor is null
               or pr.rank < :cursor
-              or (pr.rank = :cursor and pr.createdAt < :after))
-      order by pr.rank desc, pr.createdAt desc, pr.id desc
+              or (pr.rank = :cursor and pr.createdAt < :after and pr.id > :lastId ))
+      order by pr.rank desc, pr.createdAt desc
       """)
   List<PopularReviewDto> findRankingDtosBySnapshotIdDesc(
       @Param("snapshotId") UUID snapshotId,

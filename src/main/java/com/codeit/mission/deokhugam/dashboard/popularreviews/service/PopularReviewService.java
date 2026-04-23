@@ -61,18 +61,9 @@ public class PopularReviewService {
     UUID publishedSnapshotId = getPublishedSnapshotId(periodType);
 
     // 커서 페이지 응답에 content 안에 들어갈 PopularReviewDto 리스트
-    List<PopularReviewDto> rows = new ArrayList<>();
-    if (direction == DirectionEnum.ASC) { // 오름차순
-      rows =
-          // 레포지토리에서 오름차 순 정렬하여 뽑아옴
-          popularReviewRepository.findRankingDtosBySnapshotIdAsc(
-              publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
-    } else {
-      rows =
-          // 내림차순
-          popularReviewRepository.findRankingDtosBySnapshotIdDesc(
-              publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
-    }
+    List<PopularReviewDto> rows = (direction == DirectionEnum.ASC)
+        ? popularReviewRepository.findRankingDtosBySnapshotIdAsc(publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1))
+        : popularReviewRepository.findRankingDtosBySnapshotIdDesc(publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
 
     // 뽑아온 rows의 사이즈가 한 페이지의 사이즈보다 크면 다음 페이지가 존재합니다.
     boolean hasNext = rows.size() > pageSize;
