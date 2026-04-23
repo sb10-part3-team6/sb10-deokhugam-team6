@@ -12,6 +12,7 @@ import com.codeit.mission.deokhugam.comment.exception.CommentNotFoundException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
@@ -78,6 +79,8 @@ public class CommentServiceTest {
         when(user.getStatus()).thenReturn(UserStatus.ACTIVE);
 
         review = mock(Review.class);
+        when(review.getId()).thenReturn(reviewId);
+        when(review.getStatus()).thenReturn(ReviewStatus.ACTIVE);
 
         comment = Comment.builder()
                 .reviewId(reviewId)
