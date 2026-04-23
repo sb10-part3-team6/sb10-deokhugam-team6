@@ -47,35 +47,43 @@ public enum ErrorCode {
   INVALID_CURSOR_FORMAT(HttpStatus.BAD_REQUEST,
       "cursor format is invalid"),                             // 잘못된 커서 형식
 
-    // 대시보드 배치 작업 관련 예외
-    JOB_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Batch Job has failed"), // 배치 Job이 실패할 시
-    JOB_LISTENER_SNAPSHOT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "Job listener has failed to mark snapshot as failed"),
+  // 대시보드 배치 작업 관련 예외
+  JOB_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Batch Job has failed"), // 배치 Job이 실패할 시
+  JOB_LISTENER_SNAPSHOT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR,
+      "Job listener has failed to mark snapshot as failed"),
 
 
-    // 대시보드 집계 및 조회
-    CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
-    CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST,"Invalid cursor or after format"),
-    POWER_AGGREGATION_BATCH_JOB_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PowerUser Aggregation Batch job Failed"),
-    SNAPSHOT_NOT_FOUND(HttpStatus.NOT_FOUND, "Snapshot is not found"),
-    INVALID_JOB_PARAMETER(HttpStatus.BAD_REQUEST, "Batch Job Parameter is Invalid"),
-    SNAPSHOT_ID_NOT_EQUAL(HttpStatus.CONFLICT, "Snapshot Ids are not equal"),
-    SNAPSHOT_NOT_STAGE_BUT_PUBLISH(HttpStatus.BAD_REQUEST, "Only staging snapshot can be published") ,
+  // 대시보드 집계 및 조회
+  CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST,
+      "Cursor and after must be provided together"),
+  CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST, "Invalid cursor or after format"),
+  POWER_AGGREGATION_BATCH_JOB_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,
+      "PowerUser Aggregation Batch job Failed"),
+  SNAPSHOT_NOT_FOUND(HttpStatus.NOT_FOUND, "Snapshot is not found"),
+  INVALID_JOB_PARAMETER(HttpStatus.BAD_REQUEST, "Batch Job Parameter is Invalid"),
+  SNAPSHOT_ID_NOT_EQUAL(HttpStatus.CONFLICT, "Snapshot Ids are not equal"),
+  SNAPSHOT_NOT_STAGE_BUT_PUBLISH(HttpStatus.BAD_REQUEST, "Only staging snapshot can be published"),
   DOMAIN_NOT_EQUAL(HttpStatus.CONFLICT, "Domain Types are not equal"),
 
 
-    //도서
-    WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),
-    S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed"),
-    INVALID_ISBN(HttpStatus.BAD_REQUEST, "Invalid ISBN"),
-    DUPLICATE_ISBN(HttpStatus.CONFLICT, "Duplicate ISBN"),
-    BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "Book not found"),
-    EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "external api error"),
-    OCR_DETECT_FAILED(HttpStatus.BAD_REQUEST, "OCR detection failed"),
-    S3_URL_PARSE_FAILED(HttpStatus.BAD_REQUEST, "S3 url parsing failed"),
+  //도서
+  WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),
+  S3_UPLOAD_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "S3 upload failed"),
+  INVALID_ISBN(HttpStatus.BAD_REQUEST, "Invalid ISBN"),
+  DUPLICATE_ISBN(HttpStatus.CONFLICT, "Duplicate ISBN"),
+  BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "Book not found"),
+  EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "external api error"),
+  OCR_DETECT_FAILED(HttpStatus.BAD_REQUEST, "OCR detection failed"),
+  S3_URL_PARSE_FAILED(HttpStatus.BAD_REQUEST, "S3 url parsing failed"),
 
-    // 댓글
-    FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "Permission denied to edit this comment"),
-    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Comment not found");
+  // 알림
+  NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Notification not found"),
+  NOTIFICATION_NOT_OWNED(HttpStatus.FORBIDDEN,
+      "No permission to access or modify this notification"),
+
+  // 댓글
+  FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "Permission denied to edit this comment"),
+  COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Comment not found");
 
   private final HttpStatus httpStatus;
   private final String message;
