@@ -48,4 +48,18 @@ public class CommentController {
     public ResponseEntity<CursorPageResponseCommentDto> getComments(@Valid @ModelAttribute CommentFindAllRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(commentService.findAllComments(request));
     }
+
+    // 댓글 논리 삭제
+    @DeleteMapping(value = "/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable("commentId") UUID commentId, @RequestParam UUID requestUserId) {
+        commentService.softDelete(commentId, requestUserId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 댓글 물리 삭제
+    @DeleteMapping(value = "/{commentId}/hard")
+    public ResponseEntity<Void> hardDeleteComment(@PathVariable("commentId") UUID commentId, @RequestParam UUID requestUserId) {
+        commentService.hardDelete(commentId, requestUserId);
+        return ResponseEntity.noContent().build();
+    }
 }

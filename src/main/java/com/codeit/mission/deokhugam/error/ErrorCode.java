@@ -73,12 +73,9 @@ public enum ErrorCode {
     OCR_DETECT_FAILED(HttpStatus.BAD_REQUEST, "OCR detection failed"),
     S3_URL_PARSE_FAILED(HttpStatus.BAD_REQUEST, "S3 url parsing failed"),
 
-  // 댓글
-  FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "Permission denied to edit this comment"),
-
-  // 알림
-  NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Notification not found"),
-  NOTIFICATION_NOT_OWNED(HttpStatus.FORBIDDEN, "No permission to access or modify this notification");
+    // 댓글
+    FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "Permission denied to edit this comment"),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Comment not found");
 
   private final HttpStatus httpStatus;
   private final String message;
