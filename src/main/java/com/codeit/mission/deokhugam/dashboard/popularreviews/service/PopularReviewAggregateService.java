@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PopularReviewAggregateService {
 
   // 인기 리뷰 집계에 필요한 가중치
-  //  private static final double COMMENT_COU
   private static final double COMMENT_COUNT_WEIGHT = 0.7d;
   private static final double LIKE_COUNT_WEIGHT = 0.3d;
 
@@ -121,4 +120,5 @@ public class PopularReviewAggregateService {
   private double calculateScore(long likeCount, long commentCount) {
     return (likeCount * LIKE_COUNT_WEIGHT) + (commentCount * COMMENT_COUNT_WEIGHT);
   }
+
 }

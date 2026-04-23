@@ -15,7 +15,9 @@ import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotReposito
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -43,19 +45,11 @@ public class PopularReviewService {
     // 페이지 사이즈는 1 ~ 100 범위를 벗어나지 않음.
     int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
 
-    // 커서와 보조 커서 null로 초기화
-    Long cursorLong = null;
-    LocalDateTime afterDate = null;
-
-    try {
-      if (cursor != null) {
-        // 커서 값이 존재하면, 커서와 보조 커서를 페이징을 위해 Long,LocalDateTime으로 파싱
-        cursorLong = Long.parseLong(cursor);
-        afterDate = LocalDateTime.parse(after);
-      }
-    } catch (NumberFormatException | DateTimeException e) {
-      throw new InvalidCursorValueException();
-    }
+    // 커서가 존재하면 String으로 부터 Long,LocalDate로 파싱
+    // 존재하지 않다면 둘 다 null로 초기화
+    ParsedCursors cursors = parseCursors(cursor, after);
+    Long cursorLong = cursors.cursor();
+    LocalDateTime afterDate = cursors.after();
 
     // 찾고자하는 기간에 해당하는 스냅샷의 ID를 구합니다.
     UUID publishedSnapshotId = getPublishedSnapshotId(periodType);
@@ -101,5 +95,18 @@ public class PopularReviewService {
             DomainType.POPULAR_REVIEW, periodType, StagingType.PUBLISHED)
         .map(AggregateSnapshot::getSnapshotId)
         .orElseThrow(SnapshotNotFoundException::new);
+  }
+
+  private record ParsedCursors(Long cursor, LocalDateTime after){}
+
+  private ParsedCursors parseCursors(String cursor, String after){
+    try{
+      if(cursor == null){
+        return new ParsedCursors(null, null);
+      }
+      return new ParsedCursors(Long.parseLong(cursor), LocalDateTime.parse(after));
+    } catch (NumberFormatException | DateTimeException e){
+      throw new InvalidCursorValueException();
+    }
   }
 }
