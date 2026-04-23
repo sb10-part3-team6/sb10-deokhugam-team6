@@ -6,6 +6,7 @@ import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
 import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
+import com.codeit.mission.deokhugam.comment.entity.CommentStatus;
 import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.exception.CommentNotFoundException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
@@ -284,6 +285,8 @@ public class CommentServiceTest {
         // then
         verify(commentRepository).findById(commentId);
         verify(userRepository).findById(userId);
+        assertThat(comment.getStatus()).isEqualTo(CommentStatus.DELETED);
+        verify(commentRepository, never()).deleteById(any(UUID.class));
 
     }
 
@@ -295,6 +298,7 @@ public class CommentServiceTest {
 
         User otherUser = mock(User.class);
         when(otherUser.getId()).thenReturn(otherUserId);
+        when(otherUser.getStatus()).thenReturn(UserStatus.ACTIVE);
 
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
         given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));
@@ -334,6 +338,7 @@ public class CommentServiceTest {
 
         User otherUser = mock(User.class);
         when(otherUser.getId()).thenReturn(otherUserId);
+        when(otherUser.getStatus()).thenReturn(UserStatus.ACTIVE);
 
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
         given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));

@@ -19,7 +19,6 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +60,8 @@ public class CommentService {
     public CommentDto updateComment(UUID commentId, UUID requestUserId, CommentUpdateRequest request) {
         // 요청자 검증 및 userNickName을 가져오기 위한 user
         User user = validUserExists(requestUserId);
-        Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
+        // 댓글 검증
+        Comment comment = validCommentExists(commentId);
         if (!comment.getUserId().equals(requestUserId)) {
             throw new CommentAuthorException();
         }
@@ -74,8 +74,8 @@ public class CommentService {
     // 댓글 조회
     @Transactional(readOnly = true)
     public CommentDto findComment(UUID commentId) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
-        User user = userRepository.findById(comment.getUserId()).orElseThrow(EntityNotFoundException::new);
+        Comment comment = validCommentExists(commentId);
+        User user = validUserExists(comment.getUserId());
         return commentMapper.toDto(comment, user.getNickname());
     }
 
@@ -153,13 +153,15 @@ public class CommentService {
     }
 
     // 리뷰가 존재하는지 검증
-    private void validReviewExists(UUID reviewId) {
+    private Review validReviewExists(UUID reviewId) {
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewNotFoundException(reviewId));
 
         // 리뷰 상태가 Delete면 조회 실패
         if (review.getStatus().equals(ReviewStatus.DELETED)) {
             throw new ReviewNotFoundException(reviewId);
         }
+
+        return review;
     }
 
     // 유저가 존재하는지 검증
