@@ -365,10 +365,6 @@ public class CommentServiceTest {
     given(secondUser.getId()).willReturn(secondUserId);
     given(secondUser.getNickname()).willReturn("secondUser");
 
-    User thirdUser = mock(User.class);
-    given(thirdUser.getId()).willReturn(thirdUserId);
-    given(thirdUser.getNickname()).willReturn("thirdUser");
-
     Comment secondComment = Comment.builder()
             .reviewId(reviewId)
             .userId(secondUserId)
@@ -402,7 +398,7 @@ public class CommentServiceTest {
             .willReturn(List.of(comment, secondComment, thirdComment));
     given(commentRepository.countByReviewId(reviewId)).willReturn(3);
     given(userRepository.findAllById(any()))
-            .willReturn(List.of(firstUser, secondUser, thirdUser));
+            .willReturn(List.of(firstUser, secondUser));
 
     given(commentMapper.toDto(comment, userNickname)).willReturn(firstCommentDto);
     given(commentMapper.toDto(secondComment, "secondUser")).willReturn(secondCommentDto);
