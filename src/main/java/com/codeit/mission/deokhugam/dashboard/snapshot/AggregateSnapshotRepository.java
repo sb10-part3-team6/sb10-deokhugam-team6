@@ -15,18 +15,4 @@ public interface AggregateSnapshotRepository extends JpaRepository<AggregateSnap
       PeriodType periodType,
       StagingType stagingType
   );
-
-  boolean existsByDomainTypeAndPeriodType(
-      DomainType domainType,
-      PeriodType periodType
-  );
-
-  boolean existsByDomainTypeAndPeriodTypeAndSnapshotId(
-      DomainType domainType,
-      PeriodType periodType,
-      UUID snapshotId
-  );
-
-
-
 }

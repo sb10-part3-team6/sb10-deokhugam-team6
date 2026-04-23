@@ -8,8 +8,10 @@ import java.util.Map;
 
 public class DashboardBatchJobFailException extends DeokhugamException {
 
-  public DashboardBatchJobFailException(DomainType domainType, PeriodType periodType) {
+  public DashboardBatchJobFailException(DomainType domainType, PeriodType periodType, Exception e) {
 
-    super(ErrorCode.JOB_FAILED, Map.of(("DomainType: " + domainType),("PeriodType: " + periodType)));
+    super(ErrorCode.JOB_FAILED, Map.of(
+        "DomainType", domainType.name(),
+        "PeriodType", periodType));
   }
 }

@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.review.repository;
 
-import com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewLikeCount;
-import com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import java.time.LocalDateTime;
@@ -87,16 +87,17 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
   @Query(value = "DELETE FROM reviews WHERE user_id IN :userIds", nativeQuery = true)
   void deleteByUserIds(@Param("userIds") List<UUID> userIds);
 
-  // 리뷰 당 받은 좋아요 수를 뽑는 쿼리
+  // 기간 내 리뷰 당 받은 좋아요 수를 뽑는 쿼리
   @Query("""
       select new com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewLikeCount(
-          r.id,
-          r.likeCount
+          rl.review.id,
+          count(rl)
       )
-      from Review r
-      where r.createdAt >= :periodStart
-        and r.createdAt < :periodEnd
-        and r.status = :status
+      from ReviewLike rl
+      where rl.likedAt >= :periodStart
+        and rl.likedAt < :periodEnd
+        and rl.review.status = :status
+      group by rl.review.id
       """)
   List<ReviewLikeCount> countReviewLikes(
       @Param("periodStart") LocalDateTime periodStart,

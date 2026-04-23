@@ -37,8 +37,7 @@ public class DashboardBatchScheduler {
     // DomainType을 순회
     for (DomainType domainType : List.of(
         DomainType.POWER_USER,
-        DomainType.POPULAR_REVIEW,
-        DomainType.POPULAR_BOOK)) {
+        DomainType.POPULAR_REVIEW)) {
 
       // Domain 별 주기를 순회
       for (PeriodType periodType : List.of(
@@ -59,7 +58,6 @@ public class DashboardBatchScheduler {
     Job job = switch (domainType) {
       case POWER_USER -> powerUserAggregationJob;
       case POPULAR_REVIEW -> popularReviewAggregationJob;
-//      case POPULAR_BOOK -> popularBookAggregationJob; 추후 구현 예정
     };
 
     // 집계에 필요한 파라미터들을 JobParameter로 전달한다.
@@ -74,7 +72,7 @@ public class DashboardBatchScheduler {
       // 해당 Job을 파라미터와 함께 실행한다.
       jobLauncher.run(job, params);
     } catch (Exception e) {
-      throw new DashboardBatchJobFailException(domainType, periodType);
+      throw new DashboardBatchJobFailException(domainType, periodType, e);
     }
   }
 }

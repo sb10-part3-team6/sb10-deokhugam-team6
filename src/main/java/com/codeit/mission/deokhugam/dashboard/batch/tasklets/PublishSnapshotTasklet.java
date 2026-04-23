@@ -1,7 +1,9 @@
 package com.codeit.mission.deokhugam.dashboard.batch.tasklets;
 
 import com.codeit.mission.deokhugam.dashboard.DomainType;
+import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidJobParameterException;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotService;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -28,11 +30,18 @@ public class PublishSnapshotTasklet implements Tasklet {
 
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+    // 입력 값 검증
+    if(snapshotIdValue == null || snapshotIdValue.isBlank()){
+      throw new InvalidJobParameterException(Map.of("snapshotId",
+          snapshotIdValue != null ? snapshotIdValue : null));
+    }
+
     // 스냅샷 Publish 메소드 호출
     aggregateSnapshotService.publishSnapshot(
         DomainType.valueOf(domainTypeValue),
         UUID.fromString(snapshotIdValue)
     );
+
     return RepeatStatus.FINISHED;
   }
 }

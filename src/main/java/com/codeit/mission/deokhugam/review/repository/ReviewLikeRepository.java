@@ -1,6 +1,6 @@
 package com.codeit.mission.deokhugam.review.repository;
 
-import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserLikeCount;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserLikeCount;
 import com.codeit.mission.deokhugam.review.entity.ReviewLike;
 import java.time.LocalDateTime;
 import java.util.List;
