@@ -103,7 +103,7 @@ public class PopularReviewService {
         hasNext);
   }
 
-  // periodType과 DomainType=Book으로 snapshotid를 뽑아옵니다.
+  // periodType과 DomainType=인기 리뷰으로 snapshotid를 뽑아옵니다.
   private UUID getPublishedSnapshotId(PeriodType periodType) {
     return aggregateSnapshotRepository
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(

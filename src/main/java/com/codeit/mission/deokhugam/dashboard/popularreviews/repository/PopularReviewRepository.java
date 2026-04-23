@@ -23,7 +23,7 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
                   and pr.snapshotId = :snapshotId
             order by pr.score desc, pr.createdAt asc
       """)
-  // period 기간 내에 존재하는 PopularReview를 점수 순으로 내림차순 하여 뽑는다
+  // period 에 해당하는 인기 리뷰들을 점수 기준으로 내림차순으로 반환
   List<PopularReview> findByPeriodDescByScore(
       @Param("periodType") PeriodType periodType,
       @Param("periodStart") LocalDateTime periodStart,
@@ -57,9 +57,9 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
         and (:cursor is null
               or pr.rank > :cursor
               or (pr.rank = :cursor and pr.createdAt > :after))
-      order by pr.rank asc, pr.createdAt asc
+      order by pr.rank asc, pr.createdAt asc, pr.id asc
       """)
-  // book, user, review를 join하여 PopularReviewDto로 만드는 쿼리 메서드
+  // book, user, review를 join해서 PopularReviewDto를 반환
   List<PopularReviewDto> findRankingDtosBySnapshotIdAsc(
       @Param("snapshotId") UUID snapshotId,
       @Param("cursor") Long cursor,
@@ -93,7 +93,7 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
         and (:cursor is null
               or pr.rank < :cursor
               or (pr.rank = :cursor and pr.createdAt < :after))
-      order by pr.rank desc, pr.createdAt desc
+      order by pr.rank desc, pr.createdAt desc, pr.id desc
       """)
   List<PopularReviewDto> findRankingDtosBySnapshotIdDesc(
       @Param("snapshotId") UUID snapshotId,

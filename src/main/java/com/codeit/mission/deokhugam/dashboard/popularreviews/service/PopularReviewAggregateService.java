@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PopularReviewAggregateService {
 
-  // 인기 리뷰 집계에 필요한 가중치
+  // ?멸린 由щ럭 吏묎퀎???꾩슂??媛以묒튂
   private static final double COMMENT_COUNT_WEIGHT = 0.7d;
   private static final double LIKE_COUNT_WEIGHT = 0.3d;
 
@@ -35,8 +35,8 @@ public class PopularReviewAggregateService {
   private final CommentRepository commentRepository;
   private final PopularReviewRepository popularReviewRepository;
 
-  // 댓글, 리뷰 좋아요 레포지토리에서 스탯을 뽑아내고
-  // 리뷰 아이디 별 인기 리뷰 스탯 형식으로 가공함.
+  // ?볤?, 由щ럭 醫뗭븘???덊룷吏?좊━?먯꽌 ?ㅽ꺈??戮묒븘?닿퀬
+  // 由щ럭 ?꾩씠??蹂??멸린 由щ럭 ?ㅽ꺈 ?뺤떇?쇰줈 媛怨듯븿.
   @Transactional(readOnly = true)
   public Map<UUID, ReviewStat> loadReviewStat(PeriodType periodType, LocalDateTime aggregatedAt) {
     List<LocalDateTime> periods = Utils.calculatePeriod(periodType, aggregatedAt);
@@ -88,7 +88,7 @@ public class PopularReviewAggregateService {
     }
   }
 
-  // 매개변수들을 받아서 인기 리뷰 객체로 반환하는 메서드
+  // 留ㅺ컻蹂?섎뱾??諛쏆븘???멸린 由щ럭 媛앹껜濡?諛섑솚?섎뒗 硫붿꽌??
   public PopularReview toPopularReview(
       UUID reviewId,
       ReviewStat stat,
@@ -113,12 +113,12 @@ public class PopularReviewAggregateService {
         .build();
   }
 
-  // 빈 리뷰 스탯을 반환
+  // 鍮?由щ럭 ?ㅽ꺈??諛섑솚
   public ReviewStat emptyStat(UUID reviewId) {
     return new ReviewStat(reviewId, 0L, 0L);
   }
 
-  // 스코어 계산식
+  // ?ㅼ퐫??怨꾩궛??
   private double calculateScore(long likeCount, long commentCount) {
     return (likeCount * LIKE_COUNT_WEIGHT) + (commentCount * COMMENT_COUNT_WEIGHT);
   }
