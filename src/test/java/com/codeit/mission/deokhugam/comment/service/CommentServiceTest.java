@@ -70,7 +70,7 @@ public class CommentServiceTest {
 
     user = mock(User.class);
     lenient().when(user.getId()).thenReturn(userId);
-    when(user.getNickname()).thenReturn(userNickName);
+    lenient().when(user.getNickname()).thenReturn(userNickName);
 
     comment = Comment.builder()
         .reviewId(reviewId)
@@ -113,7 +113,7 @@ public class CommentServiceTest {
     // given
     UUID wrongReviewId = UUID.randomUUID();
     CommentCreateRequest request = new CommentCreateRequest(wrongReviewId, userId, "test content");
-    given(reviewRepository.existsById(eq(wrongReviewId))).willReturn(false);
+    given(reviewRepository.findById(eq(wrongReviewId))).willReturn(Optional.empty());
 
     // when
 
