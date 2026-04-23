@@ -24,14 +24,24 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   boolean existsByBookIdAndUserId(UUID bookId, UUID userId);
 
   // 좋아요 수 증가
-  @Modifying(clearAutomatically = true)
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("UPDATE Review review SET review.likeCount = review.likeCount + 1 WHERE review.id = :reviewId")
   void incrementLikeCount(@Param("reviewId") UUID reviewId);
 
   // 좋아요 수 감소
-  @Modifying(clearAutomatically = true)
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("UPDATE Review review SET review.likeCount = review.likeCount - 1 WHERE review.id = :reviewId AND review.likeCount > 0")
   void decrementLikeCount(@Param("reviewId") UUID reviewId);
+
+  // 댓글 수 증가
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE Review  review SET review.commentCount = review.commentCount + 1 WHERE review.id = :reviewId")
+  void incrementCommentCount(@Param("reviewId") UUID reviewId);
+
+  // 댓글 수 감소
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE Review  review SET review.commentCount = review.commentCount - 1 WHERE review.id = :reviewId AND review.commentCount > 0")
+  void decrementCommentCount(@Param("reviewId") UUID reviewId);
 
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
   @Query(

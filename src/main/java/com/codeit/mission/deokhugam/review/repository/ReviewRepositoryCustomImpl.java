@@ -15,20 +15,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import static com.codeit.mission.deokhugam.review.entity.QReview.review;
 
+/*
+    ReviewRepositoryCustomImpl
+    --------------------------
+    키워드 부분 일치 / 완전 일치에 따른 가중치 부여
+    가중치를 최우선으로 정렬
+    사용자가 요청한 정렬 조건 및 정렬 방향에 따른 정렬
+ */
+@Slf4j
 @RequiredArgsConstructor
 public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
 
   private final JPAQueryFactory jpaQueryFactory;
 
-  // 필터링 + 내림차순 정렬 + 커서 기반 페이지네이션이 적용된 연동 목록 조회
+  // 필터링 + 내림차순 정렬 + 커서 기반 페이지네이션이 적용된 리뷰 목록 조회
   @Override
   public List<Review> searchReviews(ReviewSearchConditionDto condition) {
     // 1. 키워드 검색 조건
     BooleanBuilder filterBuilder = buildFilterCondition(condition);
+
     // 2. 커서 기반 페이지네이션 조건
 
     // 사용자가 요청한 정렬 조건 (orderBy): 기본값이 생성 시점이므로 평점만 비교
@@ -39,14 +49,15 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
     boolean isAsc = "asc".equalsIgnoreCase(
         condition.direction());
 
+    // 사용자가 요청한 정렬 조건 및 정렬 방향이 반영된 빌더 객체
     BooleanBuilder cursorBuilder = buildCountCondition(condition, isRatingOrder, isAsc);
     filterBuilder.and(cursorBuilder);
 
     // 3. 정렬 조건
     OrderSpecifier<?>[] orderSpecifiers = buildOrderSpecifiers(condition, isRatingOrder, isAsc);
 
-    // 6. 동적 쿼리 실행
-    return jpaQueryFactory
+    // 4. 동적 쿼리 실행
+    List<Review> result = jpaQueryFactory
         .selectFrom(review)
         // 성능 최적화: N + 1 문제 방지
         .leftJoin(review.book).fetchJoin()
@@ -56,6 +67,15 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
         .orderBy(orderSpecifiers)
         .limit(condition.limit() + 1)
         .fetch();
+
+    // 5. 로그 기록
+    log.info("[SEARCH_REVIEWS] Find Reviews Keyword = {} OrderBy = {}, Review Size = {}",
+        condition.keyword(),
+        condition.orderBy(),
+        result.size()
+    );
+
+    return result;
   }
 
   // 페이지네이션의 커서 조건을 정의하는 메서드
@@ -65,21 +85,29 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
     if (condition.cursor() == null && condition.after() == null) {
       return new BooleanBuilder();
     }
+    // 첫페이지 요청 이후, 잘못된 형식의 커서 전달
     if (condition.cursor() == null || condition.after() == null) {
       throw new InvalidCursorFormatException();
     }
 
+    // 2. 커서 기반 페이지네이션 조건 빌더 객체 생성
     try {
       String cursorStr = condition.cursor();              // 커서 문자열
       Integer cursorRank = null;                          // 가중치: 키워드 일치 정도에 따른 가중치
 
-      // 2. 사용자의 정렬 조건 (평점 / 생성 시간) 중 가중치 (rank) 분리
+      // 2. 전달된 커서 (가중치 + 정렬 조건 + ID) 중 가중치 (rank) 분리
       if (StringUtils.hasText(condition.keyword())) {
         String[] parts = cursorStr.split("_", 2);
         cursorRank = Integer.parseInt(parts[0]);
+
+        // 잘못된 가중치가 부여된 경우, 예외 처리
         if (cursorRank != 1 && cursorRank != 2) {
           throw new InvalidCursorFormatException();
         }
+
+        // 가중치 로그 기록
+        log.info("[SEARCH_REVIEWS] Parsed Rank Weight: {}%", (cursorRank == 1 ? 100 : 50));
+
         cursorStr = parts[1];                             // 남은 커서 부분
       }
 
@@ -100,11 +128,14 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   // 평점 기준 정렬 빌더 생성
   private BooleanBuilder createRatingCursorBuilder(String remainingCursor, LocalDateTime after,
       boolean isAsc) {
-    // 1. 커서로부터 평점과 마지막 요소 ID 분리
+    // 1. 커서 (정렬 기준 + ID) 중 평점과 마지막 요소 ID 분리
     String[] parts = remainingCursor.split("_", 2);
+
+    // 분리된 항목이 2개가 아닐 경우, 잘못된 형식의 커서 예외 반환
     if (parts.length != 2) {
       throw new InvalidCursorFormatException();
     }
+
     int cursorRating = Integer.parseInt(parts[0]);
     UUID cursorId = UUID.fromString(parts[1]);
 
@@ -138,9 +169,11 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
     BooleanBuilder builder = new BooleanBuilder();
 
     if (isAsc) {
+      // 마지막 요소의 생성 시간보다 생성 시간이 최근인 요소, 생성 시간이 같지만 ID 값이 큰 요소
       builder.or(review.createdAt.gt(after));
       builder.or(review.createdAt.eq(after).and(review.id.gt(cursorId)));
     } else {
+      // 마지막 요소의 생성 시간보다 생성 시간이 오래된 요소, 생성 시간이 같지만 ID 값이 작은 요소
       builder.or(review.createdAt.lt(after));
       builder.or(review.createdAt.eq(after).and(review.id.lt(cursorId)));
     }
@@ -177,11 +210,15 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       orderSpecifiers.add(exactMatchRank(condition.keyword()).asc());
     }
 
+    // 정렬 기준이 평점인 경우
     if (isRatingOrder) {
+      // 오름차순 여부에 따라 정렬 방향 결정
       orderSpecifiers.add(isAsc ? review.rating.asc() : review.rating.desc());
       orderSpecifiers.add(isAsc ? review.createdAt.asc() : review.createdAt.desc());
       orderSpecifiers.add(isAsc ? review.id.asc() : review.id.desc());
-    } else {
+    }
+    // 정렬 기준이 생성 시간인 경우
+    else {
       orderSpecifiers.add(isAsc ? review.createdAt.asc() : review.createdAt.desc());
       orderSpecifiers.add(isAsc ? review.id.asc() : review.id.desc());
     }
@@ -204,7 +241,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
         .otherwise(2);  // 부분 일치 (2순위)
   }
 
-  // 필터링 조건이 적용된 연동 목록의 전체 개수 조회
+  // 필터링 조건이 적용된 리뷰 목록의 전체 개수 조회
   @Override
   public long countWithFilter(ReviewSearchConditionDto condition) {
     // 1. 동적 쿼리 내 WHERE 절에 추가될 빌더 객체 생성
@@ -251,7 +288,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       return new BooleanBuilder();
     }
 
-    // 2. 키워드가 있을 때만 OR 조건 조립
+    // 2. 키워드가 있을 때만 OR 조건 조립 | 책 제목, 사용자 닉네임, 리뷰 내용
     return new BooleanBuilder()
         .or(review.content.contains(keyword))
         .or(review.user.nickname.contains(keyword))
