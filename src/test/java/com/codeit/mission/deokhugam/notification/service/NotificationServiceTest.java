@@ -443,11 +443,9 @@ public class NotificationServiceTest {
     @Test
     @DisplayName("알림 단건 업데이트 실패: 해당 유저가 소유하지 않은 알림 id를 전달한 경우")
     void updateSingleNotification_Failed() {
-      // note: 해당 유저가 소유하지 않은 notificationId를 전달
       // given
       UUID requestUserId = UUID.randomUUID();
       UUID receiverUserId = UUID.randomUUID();
-      UUID reviewId = UUID.randomUUID();
       UUID notificationId = UUID.randomUUID();
 
       // 알림을 조회할 유저
