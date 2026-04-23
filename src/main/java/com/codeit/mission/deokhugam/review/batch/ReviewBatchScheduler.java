@@ -25,7 +25,7 @@ public class ReviewBatchScheduler {
   private final Job reviewHardDeleteJob;            // 리뷰 물리 삭제 작업
 
   // 매일 자정에 물리 삭제 배치 작업을 실행하는 스케줄러
-  @Scheduled(cron = "0 0 0 * * *")
+  @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
   public void runReviewHardDeleteJob() {
     try {
       // 실행할 때마다 새로운 파라미터를 생성
