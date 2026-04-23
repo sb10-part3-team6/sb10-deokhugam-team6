@@ -6,7 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
-import com.codeit.mission.deokhugam.dashboard.users.entity.PowerUserSnapshot;
+import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUserSnapshot;
+import com.codeit.mission.deokhugam.dashboard.powerusers.repository.PowerUserSnapshotRepository;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.Optional;
