@@ -29,6 +29,7 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   // 알림 상태를 읽음으로 벌크 업데이트
   // 업데이트 된 레코드 수를 파악하기 위해 리턴 타입을 int로 지정
   @Modifying(clearAutomatically = true)
+  @Transactional
   @Query("UPDATE Notification n SET n.confirmed = true WHERE n.user.id = :userId AND n.confirmed = false")
   int updateAllAsConfirmed(@Param("userId") UUID userId);
 }
