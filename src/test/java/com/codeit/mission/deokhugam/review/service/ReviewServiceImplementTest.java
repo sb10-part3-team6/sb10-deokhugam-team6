@@ -805,9 +805,9 @@ public class ReviewServiceImplementTest {
       // validateOwner 예외 반환 확인
       reviewServiceImplement.hardDelete(savedReview.getId(), requestUser.getId());
     });
-    verify(commentRepository, never()).deleteByReviewIdIn(anyList());
-    verify(reviewLikeRepository, never()).deleteByReviewIdIn(anyList());
-    verify(notificationRepository, never()).deleteByReviewIdIn(anyList());
+    verify(commentRepository, never()).deleteByReviewIdIn(reviewIds);
+    verify(reviewLikeRepository, never()).deleteByReviewIdIn(reviewIds);
+    verify(notificationRepository, never()).deleteByReviewIdIn(reviewIds);
     verify(reviewRepository, never()).delete(any(Review.class));
   }
 
