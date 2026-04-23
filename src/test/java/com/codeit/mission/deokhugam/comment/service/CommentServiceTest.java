@@ -96,6 +96,7 @@ public class CommentServiceTest {
     CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "test content");
 
     Review review = mock(Review.class);
+    given(review.getId()).willReturn(reviewId);
     given(review.getStatus()).willReturn(ReviewStatus.ACTIVE);
 
     User user = mock(User.class);
@@ -155,6 +156,7 @@ public class CommentServiceTest {
     given(review.getStatus()).willReturn(ReviewStatus.ACTIVE);
 
     User deletedUser = mock(User.class);
+    given(deletedUser.getId()).willReturn(userId);
     given(deletedUser.getStatus()).willReturn(UserStatus.DELETED);
 
     given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
