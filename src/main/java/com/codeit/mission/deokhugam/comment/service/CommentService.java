@@ -44,8 +44,6 @@ public class CommentService {
         // Review 상태 검증
         validReviewStatus(getReviewOrThrow(request.reviewId()));
 
-        // User 검증
-        validUserExist(request.userId());
         // User 조회
         User user = getUserOrThrow(request.userId());
         // User 상태 검증
@@ -65,15 +63,11 @@ public class CommentService {
     // 댓글 수정
     @Transactional
     public CommentDto updateComment(UUID commentId, UUID requestUserId, CommentUpdateRequest request) {
-        // 요청자 검증
-        validUserExist(requestUserId);
         // 요청자 조회
         User user = getUserOrThrow(requestUserId);
         // 요청자 상태 검증
         validUserStatus(user);
 
-        // 댓글 검증
-        validCommentExist(commentId);
         // 댓글 조회
         Comment comment = getCommentOrThrow(commentId);
         // 댓글 상태 검증
@@ -91,8 +85,6 @@ public class CommentService {
     // 댓글 상세 조회
     @Transactional(readOnly = true)
     public CommentDto findComment(UUID commentId) {
-        // 댓글 검증
-        validCommentExist(commentId);
         // 댓글 조회
         Comment comment = getCommentOrThrow(commentId);
         // 댓글 상태 검증
@@ -160,8 +152,6 @@ public class CommentService {
     // 댓글 논리 삭제
     @Transactional
     public void softDelete(UUID commentId, UUID requestUserId) {
-        // 댓글 검증
-        validCommentExist(commentId);
         // 댓글 조회
         Comment comment = getCommentOrThrow(commentId);
         // 댓글 상태 검증
@@ -181,8 +171,6 @@ public class CommentService {
     // 댓글 물리 삭제
     @Transactional
     public void hardDelete(UUID commentId, UUID requestUserId) {
-        // 댓글 검증
-        validCommentExist(commentId);
         // 댓글 조회
         Comment comment = getCommentOrThrow(commentId);
         // 댓글 상태 검증
