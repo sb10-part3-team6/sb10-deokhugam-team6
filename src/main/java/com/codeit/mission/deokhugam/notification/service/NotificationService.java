@@ -16,6 +16,7 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
@@ -122,6 +123,12 @@ public class NotificationService {
   public void updateByUserId(UUID userId) {
     validateUserExists(userId);
     notificationRepository.updateAllAsConfirmed(userId);
+  }
+
+  // 현 시점을 기준으로 확인한 알림 중 1주일이 경과된 알림 삭제
+  public void deleteNotificationsConfirmedBeforeOneWeek() {
+    LocalDateTime cutoff = LocalDateTime.now().minusWeeks(1);
+    notificationRepository.deleteByConfirmedTrueAndUpdatedAtBefore(cutoff);
   }
 
   private Notification createNotification(
