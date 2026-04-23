@@ -139,13 +139,17 @@ class PopularReviewRepositoryTest {
         persistReview("rank2b@test.com", "rank2b", "book-rank2b", "isbn-12", "rank2b review");
     Review rankOneReview =
         persistReview("rank1@test.com", "rank1", "book-rank1", "isbn-13", "rank1 review");
+    Review otherSnapshotReview =
+        persistReview("other@test.com", "other", "book-other", "isbn-14", "other review");
 
     persistPopularReview(rankThreeReview, 3L, 40.0, periodStart, periodEnd, SNAPSHOT_ID);
     PopularReview earlyRankTwo =
         persistPopularReview(earlyRankTwoReview, 2L, 30.0, periodStart, periodEnd, SNAPSHOT_ID);
     PopularReview lateRankTwo =
         persistPopularReview(lateRankTwoReview, 2L, 29.0, periodStart, periodEnd, SNAPSHOT_ID);
+
     persistPopularReview(rankOneReview, 1L, 20.0, periodStart, periodEnd, SNAPSHOT_ID);
+    persistPopularReview(otherSnapshotReview, 1L, 100.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
 
     em.flush();
     updateCreatedAt(earlyRankTwo.getId(), LocalDateTime.of(2026, 4, 21, 0, 0));
