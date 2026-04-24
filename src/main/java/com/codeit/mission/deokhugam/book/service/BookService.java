@@ -380,13 +380,17 @@ public class BookService {
     private Object parseCursor(String orderBy, String cursor) {
         if (cursor == null || cursor.isBlank()) return null;
 
-        return switch (orderBy) {
-            case "title" -> cursor;
-            case "publishedDate" -> LocalDate.parse(cursor);
-            case "rating" -> Double.parseDouble(cursor);
-            case "reviewCount" -> Integer.parseInt(cursor);
-            default -> throw new IllegalArgumentException("Invalid orderBy");
-        };
+        try {
+            return switch (orderBy) {
+                case "title" -> cursor;
+                case "publishedDate" -> LocalDate.parse(cursor);
+                case "rating" -> Double.parseDouble(cursor);
+                case "reviewCount" -> Integer.parseInt(cursor);
+                default -> throw new IllegalArgumentException("Invalid orderBy");
+            };
+        } catch (NumberFormatException | java.time.format.DateTimeParseException e) {
+            throw new CursorOrAfterFormatNotValidException(); // 또는 적절한 커스텀 예외
+        }
     }
 
     private LocalDateTime parseAfter(String after) {
@@ -400,7 +404,7 @@ public class BookService {
             case "publishedDate" -> book.getPublishedDate().toString();
             case "rating" -> String.valueOf(book.getRating());
             case "reviewCount" -> String.valueOf(book.getReviewCount());
-            default -> throw new IllegalArgumentException();
+            default -> throw new IllegalArgumentException("Invalid orderBy: " + orderBy);
         };
     }
 
