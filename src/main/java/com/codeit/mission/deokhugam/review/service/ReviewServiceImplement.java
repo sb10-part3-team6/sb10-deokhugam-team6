@@ -63,11 +63,12 @@ public class ReviewServiceImplement implements ReviewService {
   // 리뷰 상세 조회
   @Override
   public ReviewDto findById(UUID id, UUID requestUserId) {
-    // 1. 조정할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+    // 1. Review / User 조회 : 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
+    validateUserActive(requestUser);
     validateReviewActive(targetReview);
 
     // 3. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
@@ -152,16 +153,20 @@ public class ReviewServiceImplement implements ReviewService {
       Book book = getBookEntityOrThrow(reviewCreateRequest.bookId());
       User user = getUserEntityOrThrow(reviewCreateRequest.userId());
 
-      // 4. 리뷰 생성
+      // 4. Book / User 논리 삭제 여부 검증
+      validateBookActive(book);
+      validateUserActive(user);
+
+      // 5. 리뷰 생성
       Review newReview = reviewMapper.toEntity(reviewCreateRequest, book, user);
 
-      // 5. 리뷰 저장 및 즉시 반영하여, try-catch 블록 내에서 제약 조건 위반 예외 포착
+      // 6. 리뷰 저장 및 즉시 반영하여, try-catch 블록 내에서 제약 조건 위반 예외 포착
       reviewRepository.saveAndFlush(newReview);
 
-      // 6. 로그 기록
+      // 7. 로그 기록
       log.info("[REVIEW_CREATE] Create Review Id: {}]", newReview.getId());
 
-      // 7. 리뷰 응답 DTO 변환 및 반환
+      // 8. 리뷰 응답 DTO 변환 및 반환
       return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0
 
       // 만약 동시에 똑같은 요청이 들어와서, DB 유니크 제약 (uk_book_user)가 발생한다면 커스텀 중복 예외 발생
@@ -180,12 +185,13 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public ReviewDto update(UUID id, UUID requestUserId, ReviewUpdateRequest reviewUpdateRequest) {
-    // 1. 수정할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
+    validateUserActive(requestUser);
 
     // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 수정 가능
     validateOwner(targetReview, requestUser);
@@ -208,12 +214,13 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public void delete(UUID id, UUID requestUserId) {
-    // 1. 삭제할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
+    validateUserActive(requestUser);
 
     // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
     validateOwner(targetReview, requestUser);
@@ -229,23 +236,26 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public void hardDelete(UUID id, UUID requestUserId) {
-    // 1. 삭제할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
+    // 2. User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
+    validateUserActive(requestUser);
+
+    // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
     validateOwner(targetReview, requestUser);
 
-    // 3. 연관 데이터 삭제 (댓글, 좋아요, 알림)
+    // 4. 연관 데이터 삭제 (댓글, 좋아요, 알림)
     List<UUID> reviewIds = List.of(targetReview.getId());
     commentRepository.deleteByReviewIdIn(reviewIds);
     reviewLikeRepository.deleteByReviewIdIn(reviewIds);
     notificationRepository.deleteByReviewIdIn(reviewIds);
 
-    // 4. 리뷰 물리 삭제
+    // 5. 리뷰 물리 삭제
     reviewRepository.delete(targetReview);
 
-    // 4. 로그 기록
+    // 6. 로그 기록
     log.info("[REVIEW_Hard_DELETE] Hard Delete Review Id: {}", targetReview.getId());
   }
 
@@ -253,14 +263,15 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public ReviewLikeDto toggleLike(UUID id, UUID requestUserId) {
-    // 1. 좋아요를 생성할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
+    validateUserActive(requestUser);
 
-    // 3. 좋아요 생성 및 취소
+    // 3. 좋아요 추가 및 취소 (동시성 처리 포함)
     boolean isLiked = executeToggleWithConcurrencyHandle(targetReview, requestUser);
 
     // 4. 응답 DTO 생성 및 반환
@@ -274,6 +285,7 @@ public class ReviewServiceImplement implements ReviewService {
   // 좋아요 추가 및 생성 동시성 문제 해결을 위한 메서드
   private boolean executeToggleWithConcurrencyHandle(Review review, User requestUser) {
     try {
+      // 1. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
       boolean isLiked = isReviewLiked(review.getId(), requestUser.getId());
 
       // 특정 리뷰에 대한 사용자의 좋아요가 존재하지 않을 경우, 좋아요 추가
