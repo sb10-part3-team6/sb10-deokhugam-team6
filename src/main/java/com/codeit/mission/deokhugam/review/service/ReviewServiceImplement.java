@@ -151,12 +151,7 @@ public class ReviewServiceImplement implements ReviewService {
       User user = getUserEntityOrThrow(reviewCreateRequest.userId());
 
       // 4. 리뷰 생성
-      Review newReview = Review.builder()
-          .book(book)
-          .user(user)
-          .content(reviewCreateRequest.content())
-          .rating(reviewCreateRequest.rating())
-          .build();
+      Review newReview = reviewMapper.toEntity(reviewCreateRequest, book, user);
 
       // 5. 리뷰 저장 및 즉시 반영하여, try-catch 블록 내에서 제약 조건 위반 예외 포착
       reviewRepository.saveAndFlush(newReview);
