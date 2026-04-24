@@ -37,6 +37,10 @@ import org.springframework.util.StringUtils;
 
 /*
     리뷰 서비스
+    ---------
+    리뷰 생성, 수정, 삭제 (논리 / 물리)
+    리뷰 상세 조회, 정렬 및 페이지네이션이 적용된 목록 조회
+    좋아요 추가 및 취소
  */
 
 @Slf4j
