@@ -20,6 +20,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewBatchConfigTest {
@@ -60,6 +61,21 @@ class ReviewBatchConfigTest {
     verify(reviewLikeRepository, times(1)).deleteByReviewIdIn(targetIds);
     verify(notificationRepository, times(1)).deleteByReviewIdIn(targetIds);
     verify(reviewRepository, times(1)).deleteAllByIdInBatch(targetIds);
+  }
+
+  @Test
+  @DisplayName("Chunk가 비어 있으면 어떤 삭제도 수행하지 않음")
+  void review_handler_delete_writer_empty_chunk_no_operation() throws Exception {
+    // given
+    ItemWriter<UUID> writer = reviewBatchConfig.reviewHardDeleteWriter();
+    Chunk<UUID> chunk = new Chunk<>(List.of());
+
+    // when
+    writer.write(chunk);
+
+    // then
+    verifyNoInteractions(commentRepository, reviewLikeRepository, notificationRepository,
+        reviewRepository);
   }
 
   @Test
