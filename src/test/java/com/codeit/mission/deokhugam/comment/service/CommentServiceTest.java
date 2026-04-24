@@ -75,17 +75,17 @@ public class CommentServiceTest {
     userNickname = "testUser";
 
     comment = Comment.builder()
-            .reviewId(reviewId)
-            .userId(userId)
-            .content("test content")
-            .status(CommentStatus.ACTIVE)
-            .build();
+        .reviewId(reviewId)
+        .userId(userId)
+        .content("test content")
+        .status(CommentStatus.ACTIVE)
+        .build();
 
     ReflectionTestUtils.setField(comment, "id", commentId);
     ReflectionTestUtils.setField(
-            comment,
-            "createdAt",
-            LocalDateTime.of(2026, 4, 21, 10, 0, 0)
+        comment,
+        "createdAt",
+        LocalDateTime.of(2026, 4, 21, 10, 0, 0)
     );
   }
 
@@ -104,11 +104,11 @@ public class CommentServiceTest {
     given(user.getNickname()).willReturn(userNickname);
 
     Comment savedComment = Comment.builder()
-            .reviewId(reviewId)
-            .userId(userId)
-            .content("test content")
-            .status(CommentStatus.ACTIVE)
-            .build();
+        .reviewId(reviewId)
+        .userId(userId)
+        .content("test content")
+        .status(CommentStatus.ACTIVE)
+        .build();
 
     CommentDto commentDto = mock(CommentDto.class);
 
@@ -138,7 +138,7 @@ public class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.createComment(request))
-            .isInstanceOf(ReviewNotFoundException.class);
+        .isInstanceOf(ReviewNotFoundException.class);
 
     verify(reviewRepository).findById(reviewId);
     verify(userRepository, never()).findById(any());
@@ -164,7 +164,7 @@ public class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.createComment(request))
-            .isInstanceOf(UserNotFoundException.class);
+        .isInstanceOf(UserNotFoundException.class);
 
     verify(reviewRepository).findById(reviewId);
     verify(userRepository).findById(userId);
@@ -215,7 +215,7 @@ public class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.updateComment(commentId, userId, request))
-            .isInstanceOf(CommentNotFoundException.class);
+        .isInstanceOf(CommentNotFoundException.class);
 
     verify(userRepository).findById(userId);
     verify(commentRepository).findById(commentId);
@@ -237,7 +237,7 @@ public class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.updateComment(commentId, otherUserId, request))
-            .isInstanceOf(CommentAuthorException.class);
+        .isInstanceOf(CommentAuthorException.class);
 
     verify(userRepository).findById(otherUserId);
     verify(commentRepository).findById(commentId);
@@ -275,7 +275,7 @@ public class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.findComment(commentId))
-            .isInstanceOf(CommentNotFoundException.class);
+        .isInstanceOf(CommentNotFoundException.class);
 
     verify(commentRepository).findById(commentId);
     verify(userRepository, never()).findById(any());
@@ -302,17 +302,17 @@ public class CommentServiceTest {
     given(secondUser.getNickname()).willReturn("secondUser");
 
     Comment secondComment = Comment.builder()
-            .reviewId(reviewId)
-            .userId(secondUserId)
-            .content("second content")
-            .status(CommentStatus.ACTIVE)
-            .build();
+        .reviewId(reviewId)
+        .userId(secondUserId)
+        .content("second content")
+        .status(CommentStatus.ACTIVE)
+        .build();
 
     ReflectionTestUtils.setField(secondComment, "id", secondCommentId);
     ReflectionTestUtils.setField(
-            secondComment,
-            "createdAt",
-            LocalDateTime.of(2026, 4, 21, 9, 59, 0)
+        secondComment,
+        "createdAt",
+        LocalDateTime.of(2026, 4, 21, 9, 59, 0)
     );
 
     CommentDto firstCommentDto = mock(CommentDto.class);
@@ -323,10 +323,10 @@ public class CommentServiceTest {
 
     given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
     given(commentRepository.findAllByCursor(findAllRequest))
-            .willReturn(List.of(comment, secondComment));
-    given(commentRepository.countByReviewId(reviewId)).willReturn(2);
+        .willReturn(List.of(comment, secondComment));
+    given(commentRepository.countByReviewId(reviewId)).willReturn(2L);
     given(userRepository.findAllById(any()))
-            .willReturn(List.of(firstUser, secondUser));
+        .willReturn(List.of(firstUser, secondUser));
 
     given(commentMapper.toDto(comment, userNickname)).willReturn(firstCommentDto);
     given(commentMapper.toDto(secondComment, "secondUser")).willReturn(secondCommentDto);
@@ -366,18 +366,18 @@ public class CommentServiceTest {
     given(secondUser.getNickname()).willReturn("secondUser");
 
     Comment secondComment = Comment.builder()
-            .reviewId(reviewId)
-            .userId(secondUserId)
-            .content("second content")
-            .status(CommentStatus.ACTIVE)
-            .build();
+        .reviewId(reviewId)
+        .userId(secondUserId)
+        .content("second content")
+        .status(CommentStatus.ACTIVE)
+        .build();
 
     Comment thirdComment = Comment.builder()
-            .reviewId(reviewId)
-            .userId(thirdUserId)
-            .content("third content")
-            .status(CommentStatus.ACTIVE)
-            .build();
+        .reviewId(reviewId)
+        .userId(thirdUserId)
+        .content("third content")
+        .status(CommentStatus.ACTIVE)
+        .build();
 
     LocalDateTime secondCreatedAt = LocalDateTime.of(2026, 4, 21, 9, 59, 0);
     LocalDateTime thirdCreatedAt = LocalDateTime.of(2026, 4, 21, 9, 58, 0);
@@ -395,10 +395,10 @@ public class CommentServiceTest {
 
     given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
     given(commentRepository.findAllByCursor(findAllRequest))
-            .willReturn(List.of(comment, secondComment, thirdComment));
-    given(commentRepository.countByReviewId(reviewId)).willReturn(3);
+        .willReturn(List.of(comment, secondComment, thirdComment));
+    given(commentRepository.countByReviewId(reviewId)).willReturn(3L);
     given(userRepository.findAllById(any()))
-            .willReturn(List.of(firstUser, secondUser));
+        .willReturn(List.of(firstUser, secondUser));
 
     given(commentMapper.toDto(comment, userNickname)).willReturn(firstCommentDto);
     given(commentMapper.toDto(secondComment, "secondUser")).willReturn(secondCommentDto);
@@ -426,7 +426,7 @@ public class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
-            .isInstanceOf(ReviewNotFoundException.class);
+        .isInstanceOf(ReviewNotFoundException.class);
 
     verify(reviewRepository).findById(reviewId);
     verify(commentRepository, never()).findAllByCursor(any());
@@ -467,7 +467,7 @@ public class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.softDelete(commentId, otherUserId))
-            .isInstanceOf(CommentAuthorException.class);
+        .isInstanceOf(CommentAuthorException.class);
 
     verify(commentRepository).findById(commentId);
     verify(userRepository).findById(otherUserId);
@@ -508,7 +508,7 @@ public class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.hardDelete(commentId, otherUserId))
-            .isInstanceOf(CommentAuthorException.class);
+        .isInstanceOf(CommentAuthorException.class);
 
     verify(commentRepository).findById(commentId);
     verify(userRepository).findById(otherUserId);

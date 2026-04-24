@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
@@ -16,6 +15,7 @@ import com.codeit.mission.deokhugam.dashboard.StagingType;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.CursorPageResponsePowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.powerusers.repository.PowerUserRepository;
+import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserService;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import com.codeit.mission.deokhugam.error.DeokhugamException;
@@ -85,9 +85,8 @@ class PowerUserServiceTest {
     assertNull(result.nextAfter()); // 보조 커서(nextAfter)도 없음.
 
     // 스냅샷 레포지토리에서 DAILY, Published의 가장 최신 PowerUserSnapshot을 찾는 메서드가 실행되었는가?
-    verify(aggregateSnapshotRepository)
-        .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-            DomainType.POWER_USER, PeriodType.DAILY, StagingType.PUBLISHED);
+    verify(aggregateSnapshotRepository).findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+        DomainType.POWER_USER, PeriodType.DAILY, StagingType.PUBLISHED);
     // 파워 유저 레포지토리에서 해당 스냅샷 ID에 해당하는 파워 유저 객체를 랭킹 오름차순으로 조회하는 메서드가 실행되었는가?
     verify(powerUserRepository)
         .findRankingDtosBySnapshotIdAsc(DAILY_SNAPSHOT_ID, null, null, PageRequest.of(0, 51));
@@ -256,8 +255,8 @@ class PowerUserServiceTest {
   // DAILY_SNAPSHOT_ID를 가지는 PUBLISH 된 임의의 스냅샷 객체를 생성하는 메서드
   private AggregateSnapshot publishedSnapshot(PeriodType periodType, UUID snapshotId) {
     return AggregateSnapshot.builder()
-        .snapshotId(snapshotId)
         .domainType(DomainType.POWER_USER)
+        .snapshotId(snapshotId)
         .periodType(periodType)
         .aggregatedAt(LocalDateTime.of(2026, 4, 15, 0, 0))
         .stagingType(StagingType.PUBLISHED)
