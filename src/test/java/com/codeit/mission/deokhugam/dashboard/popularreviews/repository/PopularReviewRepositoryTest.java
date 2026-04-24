@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.popularreviews.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.config.QuerydslConfig;
@@ -82,6 +83,9 @@ class PopularReviewRepositoryTest {
     // 다른 스냅샷
     Review ignoredReview =
         persistReview("ignored@test.com", "ignored", "ignored-book", "isbn-6", "ignored review");
+    // 집계 기간에 포함되지 않는 리뷰
+    Review outOfPeriod =
+        persistReview("out@test.com","outdated", "outdated-book", "isbn-15", "out review");
 
     // 영속화
     PopularReview highScore =
@@ -89,6 +93,7 @@ class PopularReviewRepositoryTest {
     PopularReview lowScore =
         persistPopularReview(lowScoreReview, 2L, 45.0, periodStart, periodEnd, SNAPSHOT_ID);
     persistPopularReview(ignoredReview, 1L, 100.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
+    persistPopularReview(outOfPeriod, 1L, 120.0, periodStart.minusWeeks(1), periodStart.minusDays(1), SNAPSHOT_ID);
 
     // 컨텍스트 플러시 & 클리어
     em.flush();
@@ -107,7 +112,7 @@ class PopularReviewRepositoryTest {
   }
 
   @Test
-  @DisplayName("같은 스냅샷 내에서 동점일 때 rank 와 createdAt 기준 오름차순 조회")
+  @DisplayName("같은 스냅샷 내에서 동점일 때 rank 내림차순, createdAt 오름차순 조회")
   void findRankingDtosBySnapshotIdAsc_ordersByRankThenCreatedAt() {
     // given
     LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
@@ -142,6 +147,7 @@ class PopularReviewRepositoryTest {
     assertEquals("b", result.get(1).userNickname());
     assertEquals("book-a", result.get(0).bookTitle());
     assertEquals("book-b", result.get(1).bookTitle());
+    assertTrue((result.get(0).createdAt().isBefore(result.get(1).createdAt())));
   }
 
   @Test

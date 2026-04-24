@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewCommentCount;
@@ -14,11 +13,8 @@ import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewStat;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularReviewRepository;
-import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
-import com.codeit.mission.deokhugam.user.entity.User;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +25,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class PopularReviewAggregateServiceTest {
@@ -50,68 +45,30 @@ class PopularReviewAggregateServiceTest {
   @DisplayName("인기 리뷰 집계에 필요한 지수들을 일괄 로딩하는 테스트 (성공)")
   public void loadReviewStat_success(){
     // given
-    LocalDateTime periodStart = LocalDateTime.of(2026,4,14,0,0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026,4,21,0,0);
+    LocalDateTime aggregatedAt = LocalDateTime.of(2026,4,21,0,0);
+    LocalDateTime periodStart = PeriodType.WEEKLY.calculateStart(aggregatedAt);
+    LocalDateTime periodEnd = PeriodType.WEEKLY.calculateEnd(aggregatedAt);
 
-    // 두 명의 사용자 생성
-    User userA = User.builder().email("a@naver.com").nickname("AA").password("AA12").build();
-    User userB = User.builder().email("b@naver.com").nickname("BB").password("BB12").build();
+    // 두 명의 사용자 ID 생성
+    UUID higherReviewId = UUID.randomUUID();
+    UUID lowerReviewId = UUID.randomUUID();
 
-    // 인기 좋은 도서
-    Book bookA = Book.builder()
-        .title("good-book")
-        .publisher("publisher-a")
-        .isbn("ABSCISSA")
-        .author("author-a")
-        .thumbnailUrl("www.naver.com")
-        .rating(6.5)
-        .reviewCount(3)
-        .publishedDate(LocalDate.of(2022,3,2))
-        .description("desc-a").build();
-
-    // 인기 없는 도서
-    Book bookB = Book.builder()
-        .title("bad-book")
-        .publisher("publisher-b")
-        .isbn("BADBOOK")
-        .author("author-b")
-        .thumbnailUrl("www.never.com")
-        .rating(1.5)
-        .reviewCount(1)
-        .publishedDate(LocalDate.of(2021,3,2))
-        .description("desc-b").build();
-
-    // 인기 좋은 리뷰
-    Review higherReview = Review.builder()
-        .user(userA)
-        .book(bookA)
-        .content("great review")
-        .rating(5)
-        .build();
-
-    // 인기 없는 리뷰
-    Review lowerReview = Review.builder()
-        .user(userB)
-        .book(bookB)
-        .content("not good")
-        .rating(1)
-        .build();
-
-    // 리뷰의 id를 강제로 세팅
-    ReflectionTestUtils.setField(higherReview, "id", UUID.randomUUID());
-    ReflectionTestUtils.setField(lowerReview, "id", UUID.randomUUID());
-
-
-    //
-    when(commentRepository.findReviewCommentCounts(periodStart, periodEnd))
+    // 리뷰 별 댓글 수 설정
+    when(commentRepository.findReviewCommentCounts(periodStart,periodEnd))
         .thenReturn(List.of(
-        new ReviewCommentCount(higherReview.getId(), 5L),
-        new ReviewCommentCount(lowerReview.getId(), 1L)
-        ));
+            new ReviewCommentCount(higherReviewId, 5L),
+            new ReviewCommentCount(lowerReviewId, 1L)
+            )
+        );
+
+    // 리뷰 별 좋아요 수 설정
     when(reviewRepository.countReviewLikes(periodStart, periodEnd, ReviewStatus.ACTIVE))
         .thenReturn(List.of(
-            new ReviewLikeCount(higherReview.getId(), 3L)
-        ));
+            new ReviewLikeCount(higherReviewId, 3L),
+            new ReviewLikeCount(lowerReviewId, 0L)
+            )
+        );
+
 
     // when
     // 리뷰 별 스탯을 구한다.
@@ -119,13 +76,13 @@ class PopularReviewAggregateServiceTest {
 
     // then
     assertEquals(2, statsPerReview.size()); // 요소 개수가 2인지?
-    assertEquals(higherReview.getId(), statsPerReview.get(higherReview.getId()).reviewId()); // ID 가 일치하는지?
-    assertEquals(lowerReview.getId(),statsPerReview.get(lowerReview.getId()).reviewId());
+    assertEquals(higherReviewId, statsPerReview.get(higherReviewId).reviewId()); // ID 가 일치하는지?
+    assertEquals(lowerReviewId,statsPerReview.get(lowerReviewId).reviewId());
     // 각종 스탯들 검증
-    assertEquals(3L, statsPerReview.get(higherReview.getId()).likeCount());
-    assertEquals(5L, statsPerReview.get(higherReview.getId()).commentCount());
-    assertEquals(0L, statsPerReview.get(lowerReview.getId()).likeCount());
-    assertEquals(1L, statsPerReview.get(lowerReview.getId()).commentCount());
+    assertEquals(3L, statsPerReview.get(higherReviewId).likeCount());
+    assertEquals(5L, statsPerReview.get(higherReviewId).commentCount());
+    assertEquals(0L, statsPerReview.get(lowerReviewId).likeCount());
+    assertEquals(1L, statsPerReview.get(lowerReviewId).commentCount());
     verify(commentRepository).findReviewCommentCounts(periodStart, periodEnd);
     verify(reviewRepository).countReviewLikes(periodStart, periodEnd, ReviewStatus.ACTIVE);
   }
