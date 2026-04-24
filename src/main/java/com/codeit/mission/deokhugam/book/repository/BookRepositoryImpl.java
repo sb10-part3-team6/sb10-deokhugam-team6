@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.book.repository;
 
+import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.entity.SortDirection;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.QBook;
@@ -33,6 +34,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
         QBook book = QBook.book;
 
         BooleanBuilder builder = new BooleanBuilder();
+        builder.and(book.bookStatus.ne(BookStatus.DELETED));
 
         // 1. keyword 조건
         if (keyword != null && !keyword.isBlank()) {
