@@ -2,7 +2,6 @@ package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.BookDto;
-import com.codeit.mission.deokhugam.book.dto.BookSearchConditionDto;
 import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
 import com.codeit.mission.deokhugam.book.dto.CursorPageRequestDto;
 import com.codeit.mission.deokhugam.book.dto.CursorPageResponseBookDto;
@@ -280,7 +279,7 @@ public class BookService {
   }
 
   //책 상세 정보 조회 메서드
-  public BookDto findBook(UUID id) {
+  public BookDto getBookEntityOrThrow(UUID id) {
     Book book = bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
 
     if (isDeleted(book)) {
@@ -360,7 +359,7 @@ public class BookService {
     Object cursorValue = parseCursor(orderBy, cursor);
 
     List<Book> books = bookRepository.findAllByCursor(
-        new BookSearchConditionDto(
+        new CursorPageRequestDto(
             keyword,
             orderBy,
             direction,

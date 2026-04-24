@@ -54,7 +54,7 @@ public class BookController {
   public ResponseEntity<BookDto> findBook(
       @PathVariable UUID bookId
   ) {
-    return ResponseEntity.ok(bookService.findBook(bookId));
+    return ResponseEntity.ok(bookService.getBookEntityOrThrow(bookId));
   }
 
   @PatchMapping("/{bookId}")
