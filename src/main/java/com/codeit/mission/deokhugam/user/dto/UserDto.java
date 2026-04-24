@@ -14,7 +14,7 @@ public record UserDto(
 
     @Schema(
         description = "이메일",
-        example = "string"
+        example = "string@codeit.com"
     )
     String email,
 

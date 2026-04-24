@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 public record UserLoginRequest(
     @Schema(
         description = "이메일",
-        example = "string",
+        example = "string@codeit.com",
         requiredMode = Schema.RequiredMode.REQUIRED
 
     )
@@ -18,7 +18,7 @@ public record UserLoginRequest(
 
     @Schema(
         description = "비밀번호",
-        example = "string",
+        example = "a77DOP0Z7q7Oa%#$t",
         requiredMode = Schema.RequiredMode.REQUIRED
     )
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
