@@ -6,8 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-
-@Schema(description = "수정할 리뷰 정보를 담보 DTO")
+@Schema(description = "수정할 리뷰 정보를 담은 DTO")
 public record ReviewUpdateRequest(
     @Schema(
         description = "내용",
@@ -19,6 +18,8 @@ public record ReviewUpdateRequest(
 
     @Schema(
         description = "평점",
+        minimum = "1",
+        maximum = "5",
         example = "1",
         requiredMode = Schema.RequiredMode.REQUIRED
     )
