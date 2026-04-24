@@ -12,13 +12,13 @@ import org.mapstruct.MappingConstants;
 public interface ReviewLikeMapper {
 
   // 엔티티 변환
-  @Mapping(target = "id", ignore = true)
   @Mapping(target = "review", source = "review")
   @Mapping(target = "user", source = "user")
+  @Mapping(target = "likedAt", ignore = true)
+  // @PrePersist를 통해 채워짐
   ReviewLike toEntity(Review review, User user);
 
   // 엔티티 -> 응답 DTO 변환
-  @Mapping(target = "id", source = "reviewLike.id")
   @Mapping(target = "reviewId", source = "review.id")
   @Mapping(target = "userId", source = "user.id")
   @Mapping(target = "liked", source = "isLiked")

@@ -20,7 +20,6 @@ import org.mapstruct.MappingConstants;
 public interface ReviewMapper {
 
   // 요청 DTO -> 엔티티 변환
-  @Mapping(target = "id", ignore = true)
   @Mapping(target = "book", source = "book")
   @Mapping(target = "user", source = "user")
   @Mapping(target = "content", source = "request.content")
