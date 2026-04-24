@@ -33,7 +33,7 @@ public record CursorPageResponseCommentDto(
         description = "총 요소 수",
         example = "100"
     )
-    int totalElements,
+    long totalElements,
 
     @Schema(
         description = "다음 페이지 여부",
