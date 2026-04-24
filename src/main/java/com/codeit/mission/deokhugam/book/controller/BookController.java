@@ -74,8 +74,8 @@ public class BookController {
             @RequestParam String keyword,
             @RequestParam String orderBy,
             @RequestParam SortDirection direction,
-            @RequestParam String cursor,
-            @RequestParam String after,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) String after,
             @RequestParam int limit
             ){
         return ResponseEntity.ok(bookService.findAllBooks(keyword, orderBy, direction, cursor, after, limit));
