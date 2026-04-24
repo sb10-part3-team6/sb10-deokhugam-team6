@@ -38,13 +38,13 @@ public record CommentDto(
 
     @Schema(
         description = "생성 시점",
-        example = "2026-04-24T06:02:16.849Z"
+        example = "2026-04-24T06:02:16.849"
     )
     LocalDateTime createdAt,
 
     @Schema(
         description = "수정 시점",
-        example = "2026-04-24T06:02:16.849Z"
+        example = "2026-04-24T06:02:16.849"
     )
     LocalDateTime updatedAt
 ) {

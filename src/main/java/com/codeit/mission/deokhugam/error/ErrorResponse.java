@@ -11,7 +11,7 @@ import java.util.Map;
 public record ErrorResponse(
     @Schema(
         description = "에러 발생 시점",
-        example = "2025-04-06T15:04:05.000Z"
+        example = "2025-04-06T15:04:05.000"
     )
     Instant timestamp,
 

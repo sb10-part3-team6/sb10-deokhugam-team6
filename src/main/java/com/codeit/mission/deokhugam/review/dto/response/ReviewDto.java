@@ -77,13 +77,13 @@ public record ReviewDto(
 
     @Schema(
         description = "생성 시점",
-        example = "2026-04-24T02:49:51.932Z"
+        example = "2026-04-24T02:49:51.932"
     )
     LocalDateTime createdAt,
 
     @Schema(
         description = "수정 시점",
-        example = "2026-04-24T02:49:51.932Z"
+        example = "2026-04-24T02:49:51.932"
     )
     LocalDateTime updatedAt
 ) {

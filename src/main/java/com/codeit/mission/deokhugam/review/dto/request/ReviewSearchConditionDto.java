@@ -48,7 +48,7 @@ public record ReviewSearchConditionDto(
 
     @Schema(
         description = "보조 커서 (createdAt)",
-        example = "2025-04-06T15:04:05.000Z"
+        example = "2025-04-06T15:04:05.000"
     )
     LocalDateTime after,
 
