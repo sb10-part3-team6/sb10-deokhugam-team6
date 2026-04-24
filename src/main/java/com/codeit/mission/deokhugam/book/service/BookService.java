@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.dto.*;
+import com.codeit.mission.deokhugam.book.entity.AssertDirection;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.event.BookDeletedEvent;
@@ -320,6 +321,84 @@ public class BookService {
         eventPublisher.publishEvent(
                 new BookDeletedEvent(book.getThumbnailUrl())
         );
+    }
+
+    public CursorPageResponseBookDto findAllBooks(
+            String keyword,
+            String orderBy,
+            AssertDirection direction,
+            String cursor,
+            String after,
+            int limit
+    ) {
+
+        LocalDateTime afterValue = parseAfter(after);
+        Object cursorValue = parseCursor(orderBy, cursor);
+
+        List<Book> books = bookRepository.findAllByCursor(
+                keyword,
+                orderBy,
+                direction,
+                cursorValue,
+                afterValue,
+                limit
+        );
+
+        boolean hasNext = books.size() > limit;
+        if (hasNext) {
+            books = books.subList(0, limit);
+        }
+
+        List<BookDto> content = books.stream()
+                .map(bookDtoMapper::toDto)
+                .toList();
+
+        String nextCursor = null;
+        LocalDateTime nextAfter = null;
+
+        if (hasNext && !books.isEmpty()) {
+            Book last = books.get(books.size() - 1);
+            nextCursor = extractCursor(last, orderBy);
+            nextAfter = last.getCreatedAt();
+        }
+
+        Long totalElements = bookRepository.count(); // 필요하면 검색 조건 반영
+
+        return new CursorPageResponseBookDto(
+                content,
+                nextCursor,
+                nextAfter,
+                content.size(),
+                totalElements,
+                hasNext
+        );
+    }
+
+    private Object parseCursor(String orderBy, String cursor) {
+        if (cursor == null || cursor.isBlank()) return null;
+
+        return switch (orderBy) {
+            case "title" -> cursor;
+            case "publishedDate" -> LocalDate.parse(cursor);
+            case "rating" -> Double.parseDouble(cursor);
+            case "reviewCount" -> Integer.parseInt(cursor);
+            default -> throw new IllegalArgumentException("Invalid orderBy");
+        };
+    }
+
+    private LocalDateTime parseAfter(String after) {
+        if (after == null || after.isBlank()) return null;
+        return LocalDateTime.parse(after);
+    }
+
+    private String extractCursor(Book book, String orderBy) {
+        return switch (orderBy) {
+            case "title" -> book.getTitle();
+            case "publishedDate" -> book.getPublishedDate().toString();
+            case "rating" -> String.valueOf(book.getRating());
+            case "reviewCount" -> String.valueOf(book.getReviewCount());
+            default -> throw new IllegalArgumentException();
+        };
     }
 
     private boolean isDeleted(Book book){
