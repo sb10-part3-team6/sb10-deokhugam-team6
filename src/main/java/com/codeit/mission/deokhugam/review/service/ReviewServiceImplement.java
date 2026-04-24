@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.review.service;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
@@ -22,6 +23,7 @@ import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
+import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -374,7 +376,21 @@ public class ReviewServiceImplement implements ReviewService {
     }
   }
 
-  // 유효성 검증 (논리 삭제 여부 확인): 이미 논리적으로 삭제된 리뷰일 경우, 예외 발생
+  // 유효성 검증 (도서 논리 삭제 여부 확인): 이미 논리적으로 삭제된 도서일 경우, 예외 발생
+  private void validateBookActive(Book targetBook) {
+    if (targetBook.getBookStatus() == BookStatus.DELETED) {
+      throw new BookNotFoundException();
+    }
+  }
+
+  // 유효성 검증 (사용자 논리 삭제 여부 확인): 이미 논리적으로 삭제된 사용자일 경우, 예외 발생
+  private void validateUserActive(User targetUser) {
+    if (targetUser.getStatus() == UserStatus.DELETED) {
+      throw new UserNotFoundException(targetUser.getId());
+    }
+  }
+
+  // 유효성 검증 (리뷰 논리 삭제 여부 확인): 이미 논리적으로 삭제된 리뷰일 경우, 예외 발생
   private void validateReviewActive(Review targetReview) {
     if (targetReview.getStatus() == ReviewStatus.DELETED) {
       throw new ReviewNotFoundException(targetReview.getId());
