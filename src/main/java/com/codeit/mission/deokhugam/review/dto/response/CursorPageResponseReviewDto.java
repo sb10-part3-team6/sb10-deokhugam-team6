@@ -1,21 +1,48 @@
 package com.codeit.mission.deokhugam.review.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-/*
-    리뷰 페이지네이션 응답 DTO
- */
+@Schema(description = "커서 기반 페이징 응답")
 @Builder
 public record CursorPageResponseReviewDto<T>(
-    List<T> content,                        // 실제 데이터 목록
-    String nextCursor,                      // 다음 페이지 커서
-    LocalDateTime nextAfter,                // 이전 페이지의 마지막 요소 생성 시간
-    int size,                               // 페이지 크기
-    long totalElements,                     // 총 요소 수
-    boolean hasNext                         // 다음 페이지 여부
+    @Schema(
+        description = "페이지 내용"
+    )
+    List<T> content,
+
+    @Schema(
+        description = "다음 페이지 커서",
+        example = "string"
+    )
+    String nextCursor,
+
+    @Schema(
+        description = "마지막 요소의 생성 시간",
+        example = "2025-04-06T15:04:05.000Z"
+    )
+    LocalDateTime nextAfter,
+
+    @Schema(
+        description = "페이지 크기",
+        example = "10"
+    )
+    int size,
+
+    @Schema(
+        description = "총 요소 수",
+        example = "100"
+    )
+    long totalElements,
+
+    @Schema(
+        description = "다음 페이지 여부",
+        example = "true"
+    )
+    boolean hasNext
 ) {
 
 }
