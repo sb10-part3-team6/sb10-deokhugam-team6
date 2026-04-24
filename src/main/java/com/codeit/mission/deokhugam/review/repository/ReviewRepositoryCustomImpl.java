@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.review.repository;
 
+import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
@@ -264,6 +265,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
 
     // 2. 기본 상태 필터: 활성(ACTIVE)인 리뷰만 조회
     filterBuilder.and(review.status.eq(ReviewStatus.ACTIVE));
+    filterBuilder.and(review.book.bookStatus.eq(BookStatus.ACTIVE));
 
     // 3. [완전 일치 조건]: 특정 도서 ID 필터
     if (condition.bookId() != null) {

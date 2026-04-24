@@ -69,8 +69,9 @@ public class ReviewServiceImplement implements ReviewService {
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / Book / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateUserActive(requestUser);
+    validateBookActive(targetReview.getBook());
     validateReviewActive(targetReview);
 
     // 3. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
@@ -204,8 +205,9 @@ public class ReviewServiceImplement implements ReviewService {
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / Book / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
+    validateBookActive(targetReview.getBook());
     validateUserActive(requestUser);
 
     // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 수정 가능
@@ -282,8 +284,9 @@ public class ReviewServiceImplement implements ReviewService {
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / Book / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
+    validateBookActive(targetReview.getBook());
     validateUserActive(requestUser);
 
     // 3. 좋아요 추가 및 취소 (동시성 처리 포함)
