@@ -65,7 +65,7 @@ class ReviewBatchConfigTest {
 
   @Test
   @DisplayName("Chunk가 비어 있으면 어떤 삭제도 수행하지 않음")
-  void review_handler_delete_writer_empty_chunk_no_operation() throws Exception {
+  void review_hard_delete_writer_empty_chunk_no_operation() throws Exception {
     // given
     ItemWriter<UUID> writer = reviewBatchConfig.reviewHardDeleteWriter();
     Chunk<UUID> chunk = new Chunk<>(List.of());
