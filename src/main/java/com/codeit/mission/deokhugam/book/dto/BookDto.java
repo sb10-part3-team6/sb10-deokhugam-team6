@@ -1,6 +1,5 @@
 package com.codeit.mission.deokhugam.book.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,4 +18,5 @@ public record BookDto(
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
+
 }
