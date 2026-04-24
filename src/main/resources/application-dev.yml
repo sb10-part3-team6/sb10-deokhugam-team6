@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  # 데이터베이스 설정
+  datasource:
+    url: jdbc:postgresql://localhost:5432/
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  # JPA/Hibernate 운영 설정
+  jpa:
+    properties:
+      hibernate:
+        ddl-auto: create
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+          default_batch_fetch_size: 100
+
+logging:
+  level:
+    com.codeit.mission.deokhugam: debug
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true

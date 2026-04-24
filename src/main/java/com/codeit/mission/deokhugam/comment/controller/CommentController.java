@@ -6,6 +6,8 @@ import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
 import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.service.CommentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "댓글 관리", description = "댓글 관련 API")
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class CommentController {
     private final CommentService commentService;
 
     // 댓글 생성
+    @Operation(summary = "")
     @PostMapping
     public ResponseEntity<CommentDto> createComment(@Valid @RequestBody CommentCreateRequest request) {
         CommentDto commentDto = commentService.createComment(request);
