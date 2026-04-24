@@ -7,6 +7,7 @@ import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -57,10 +59,12 @@ class ReviewBatchConfigTest {
     writer.write(chunk);
 
     // then
-    verify(commentRepository, times(1)).deleteByReviewIdIn(targetIds);
-    verify(reviewLikeRepository, times(1)).deleteByReviewIdIn(targetIds);
-    verify(notificationRepository, times(1)).deleteByReviewIdIn(targetIds);
-    verify(reviewRepository, times(1)).deleteAllByIdInBatch(targetIds);
+    InOrder inOrder = inOrder(commentRepository, reviewLikeRepository, notificationRepository,
+        reviewRepository);
+    inOrder.verify(commentRepository, times(1)).deleteByReviewIdIn(targetIds);
+    inOrder.verify(reviewLikeRepository, times(1)).deleteByReviewIdIn(targetIds);
+    inOrder.verify(notificationRepository, times(1)).deleteByReviewIdIn(targetIds);
+    inOrder.verify(reviewRepository, times(1)).deleteAllByIdInBatch(targetIds);
   }
 
   @Test
