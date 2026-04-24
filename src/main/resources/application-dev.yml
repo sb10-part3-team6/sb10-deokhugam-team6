@@ -30,6 +30,10 @@ logging:
     org.hibernate.orm.jdbc.bind: trace
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
   endpoint:
     health:
       show-details: always
