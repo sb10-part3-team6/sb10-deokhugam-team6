@@ -97,24 +97,12 @@ public class ReviewServiceImplement implements ReviewService {
     String nextCursor = null;
     LocalDateTime nextAfter = null;
 
+    // 페이징 된 리뷰 목록이 있고 다음 페이지가 존재할 때만 기록
     if (!pagedReviews.isEmpty() && hasNext) {
       Review lastItem = pagedReviews.get(pagedReviews.size() - 1);
 
       nextAfter = lastItem.getCreatedAt();
-
-      String rank = "";
-      // 키워드가 존재할 경우, 가중치 (rank) 설정
-      if (StringUtils.hasText(condition.keyword())) {
-        // 책 제목, 사용자 닉네임, 키워드 중 하나라도 일치한다면
-        boolean isExact = lastItem.getBook().getTitle().equals(condition.keyword()) ||
-            lastItem.getUser().getNickname().equals(condition.keyword()) ||
-            lastItem.getContent().equals(condition.keyword());
-
-        rank = (isExact ? "1" : "2") + "_";
-      }
-      nextCursor = "rating".equals(condition.orderBy())
-          ? rank + lastItem.getRating() + "_" + lastItem.getId().toString()
-          : rank + lastItem.getId().toString();
+      nextCursor = generateNextCursor(lastItem, condition);
     }
 
     // 4. 페이징 된 리뷰 ID 목록 (최대 10개)
@@ -140,6 +128,31 @@ public class ReviewServiceImplement implements ReviewService {
         totalElements,
         hasNext
     );
+  }
+
+  // 커서 생성 로직
+  private String generateNextCursor(Review lastItem, ReviewSearchConditionDto condition) {
+    // 가중치 접두사 계산
+    String rankPrefix = generateRankPrefix(lastItem, condition.keyword());
+
+    return "rating".equals(condition.orderBy())
+        ? rankPrefix + lastItem.getRating() + "_" + lastItem.getId().toString()
+        : rankPrefix + lastItem.getId().toString();
+  }
+
+  // 가중치 (rank) 접두사 계산 로직
+  private String generateRankPrefix(Review lastItem, String keyword) {
+    // 1. 키워드가 존재할 경우, 가중치 (rank) 설정
+    if (!StringUtils.hasText(keyword)) {
+      return "";
+    }
+
+    // 책 제목, 사용자 닉네임, 키워드 중 하나라도 정확하게 일치한다면 완전 일치 (가중치 1) 부여
+    boolean isExact = lastItem.getBook().getTitle().equalsIgnoreCase(keyword) ||
+        lastItem.getUser().getNickname().equalsIgnoreCase(keyword) ||
+        lastItem.getContent().equalsIgnoreCase(keyword);
+
+    return (isExact ? "1" : "2") + "_";
   }
 
   // 리뷰 등록
