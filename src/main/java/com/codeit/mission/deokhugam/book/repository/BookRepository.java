@@ -1,10 +1,10 @@
 package com.codeit.mission.deokhugam.book.repository;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.UUID;
+public interface BookRepository extends JpaRepository<Book, UUID>, BookRepositoryCustom {
 
-public interface BookRepository extends JpaRepository<Book, UUID> {
-    boolean existsByIsbn(String isbn);
+  boolean existsByIsbn(String isbn);
 }

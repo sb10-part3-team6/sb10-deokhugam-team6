@@ -9,10 +9,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 public class BookDeletedEventListener {
-    private final BookImageService bookImageService;
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(BookDeletedEvent event) {
-        bookImageService.deleteFileByUrl(event.getThumbnailUrl());
-    }
+  private final BookImageService bookImageService;
+
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(BookDeletedEvent event) {
+    bookImageService.deleteFileByUrl(event.thumbnailUrl());
+  }
 }
