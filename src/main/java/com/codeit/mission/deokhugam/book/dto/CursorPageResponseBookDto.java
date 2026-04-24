@@ -11,4 +11,5 @@ public record CursorPageResponseBookDto(
     Long totalElements,
     boolean hasNext
 ) {
+
 }
