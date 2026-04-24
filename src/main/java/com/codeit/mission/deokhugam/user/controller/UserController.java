@@ -33,7 +33,7 @@ public class UserController {
 
   @Operation(
       summary = "회원가입",
-      operationId = "sign_up_6",
+      operationId = "register_6",
       description = "새로운 사용자를 등록합니다."
   )
   @ApiResponses({
