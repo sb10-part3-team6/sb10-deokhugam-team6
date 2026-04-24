@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.book.repository;
 
+import com.codeit.mission.deokhugam.book.dto.BookSearchConditionDto;
 import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.entity.SortDirection;
 import com.codeit.mission.deokhugam.book.entity.Book;
@@ -23,14 +24,14 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Book> findAllByCursor(
-            String keyword,
-            String orderBy,
-            SortDirection direction,
-            Object cursor,
-            LocalDateTime after,
-            int limit
-    ) {
+    public List<Book> findAllByCursor(BookSearchConditionDto condition) {
+        String keyword = condition.keyword();
+        String orderBy = condition.orderBy();
+        SortDirection direction = condition.direction();
+        Object cursor = condition.cursor();
+        LocalDateTime after = condition.after();
+        int limit = condition.limit();
+
         QBook book = QBook.book;
 
         BooleanBuilder builder = new BooleanBuilder();

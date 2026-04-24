@@ -9,7 +9,6 @@ import com.codeit.mission.deokhugam.book.exception.*;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatusCode;
@@ -325,7 +324,7 @@ public class BookService {
     }
 
     public CursorPageResponseBookDto findAllBooks(
-            @NonNull CursorPageRequestDto request
+            CursorPageRequestDto request
     ) {
         String keyword = request.keyword();
         String orderBy = request.orderBy();
@@ -333,6 +332,8 @@ public class BookService {
         String cursor = request.cursor();
         String after = request.after();
         int limit = request.limit();
+
+
 
         if (limit <= 0) {
             throw new IllegalLimitException();
@@ -342,12 +343,14 @@ public class BookService {
         Object cursorValue = parseCursor(orderBy, cursor);
 
         List<Book> books = bookRepository.findAllByCursor(
-                keyword,
-                orderBy,
-                direction,
-                cursorValue,
-                afterValue,
-                limit + 1
+                new BookSearchConditionDto(
+                        keyword,
+                        orderBy,
+                        direction,
+                        cursorValue,
+                        afterValue,
+                        limit + 1
+                )
         );
 
         boolean hasNext = books.size() > limit;

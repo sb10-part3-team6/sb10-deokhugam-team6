@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.book.repository;
 
+import com.codeit.mission.deokhugam.book.dto.BookSearchConditionDto;
 import com.codeit.mission.deokhugam.book.entity.SortDirection;
 import com.codeit.mission.deokhugam.book.entity.Book;
 
@@ -7,13 +8,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BookRepositoryCustom {
-    List<Book> findAllByCursor(
-            String keyword,
-            String orderBy,
-            SortDirection direction,
-            Object cursor,
-            LocalDateTime after,
-            int limit
-    );
+    List<Book> findAllByCursor(BookSearchConditionDto condition);
     long countByCondition(String keyword);
 }
