@@ -1,8 +1,11 @@
 package com.codeit.mission.deokhugam.review.mapper;
 
+import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.CursorPageResponseReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
+import com.codeit.mission.deokhugam.user.entity.User;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -15,6 +18,13 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ReviewMapper {
+
+  // 요청 DTO -> 엔티티 변환
+  @Mapping(target = "book", source = "book")
+  @Mapping(target = "user", source = "user")
+  @Mapping(target = "content", source = "request.content")
+  @Mapping(target = "rating", source = "request.rating")
+  Review toEntity(ReviewCreateRequest request, Book book, User user);
 
   // Entity -> 응답 DTO 변환
   @Mapping(target = "id", source = "review.id")
