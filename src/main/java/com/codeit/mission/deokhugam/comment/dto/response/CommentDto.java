@@ -31,7 +31,7 @@ public record CommentDto(
     String userNickName,
 
     @Schema(
-        description = "내용)",
+        description = "내용",
         example = "string"
     )
     String content,

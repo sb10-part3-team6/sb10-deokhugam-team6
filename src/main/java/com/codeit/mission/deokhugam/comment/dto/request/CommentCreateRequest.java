@@ -17,7 +17,7 @@ public record CommentCreateRequest(
     UUID reviewId,
 
     @Schema(
-        description = "리뷰 작성자 ID",
+        description = "댓글 작성자 ID",
         example = "3fa85f64-5717-4562-b3fc-2c963f66afa6",
         requiredMode = Schema.RequiredMode.REQUIRED
     )
