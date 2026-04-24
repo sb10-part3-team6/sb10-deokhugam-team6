@@ -71,13 +71,8 @@ public class BookController {
 
     @GetMapping
     public ResponseEntity<CursorPageResponseBookDto> getBooks(
-            @RequestParam(required = false) String keyword,
-            @RequestParam String orderBy,
-            @RequestParam SortDirection direction,
-            @RequestParam(required = false) String cursor,
-            @RequestParam(required = false) String after,
-            @RequestParam int limit
+            @ModelAttribute CursorPageRequestDto request
             ){
-        return ResponseEntity.ok(bookService.findAllBooks(keyword, orderBy, direction, cursor, after, limit));
+        return ResponseEntity.ok(bookService.findAllBooks(request));
     }
 }

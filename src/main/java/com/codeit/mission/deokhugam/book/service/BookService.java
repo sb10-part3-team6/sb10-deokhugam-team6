@@ -9,6 +9,7 @@ import com.codeit.mission.deokhugam.book.exception.*;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatusCode;
@@ -324,13 +325,15 @@ public class BookService {
     }
 
     public CursorPageResponseBookDto findAllBooks(
-            String keyword,
-            String orderBy,
-            SortDirection direction,
-            String cursor,
-            String after,
-            int limit
+            @NonNull CursorPageRequestDto request
     ) {
+        String keyword = request.keyword();
+        String orderBy = request.orderBy();
+        SortDirection direction = request.direction();
+        String cursor = request.cursor();
+        String after = request.after();
+        int limit = request.limit();
+
         if (limit <= 0) {
             throw new IllegalLimitException();
         }
