@@ -10,9 +10,11 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor
 @Table(
     name = "popular_books",
     indexes = {
@@ -33,8 +35,8 @@ public class PopularBook extends BaseEntity {
   @Column(name = "review_count", nullable = false)
   private Long reviewCount;
 
-  @Column(name = "comment_count", nullable = false)
-  private Long commentCount;
+  @Column(name = "avgRating", nullable = false)
+  private double avgRating;
 
   @Column(name = "score" ,nullable = false)
   private double score;
@@ -54,7 +56,7 @@ public class PopularBook extends BaseEntity {
       LocalDateTime periodStart,
       LocalDateTime periodEnd,
       Long reviewCount,
-      Long commentCount,
+      double avgRating,
       double score,
       Long rank,
       PeriodType periodType,
@@ -64,7 +66,7 @@ public class PopularBook extends BaseEntity {
     this.periodEnd = periodEnd;
     this.periodStart = periodStart;
     this.reviewCount = reviewCount;
-    this.commentCount = commentCount;
+    this.avgRating = avgRating;
     this.score = score;
     this.rank = rank;
     this.periodType = periodType;
