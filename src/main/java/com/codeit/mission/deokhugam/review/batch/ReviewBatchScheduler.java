@@ -8,6 +8,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +19,17 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ReviewBatchScheduler {
 
   private final JobLauncher jobLauncher;            // 배치 실행 엔진
   private final Job reviewHardDeleteJob;            // 리뷰 물리 삭제 작업
+
+  // 명시적 Job 주입하여, 명확하게 의존성 주입
+  public ReviewBatchScheduler(JobLauncher jobLauncher,
+      @Qualifier("reviewHardDeleteJob") Job reviewHardDeleteJob) {
+    this.jobLauncher = jobLauncher;
+    this.reviewHardDeleteJob = reviewHardDeleteJob;
+  }
 
   // 매일 자정에 물리 삭제 배치 작업을 실행하는 스케줄러
   @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
