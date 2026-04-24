@@ -157,4 +157,29 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
             default -> throw new IllegalArgumentException("Invalid orderBy");
         };
     }
+
+    @Override
+    public long countByCondition(String keyword) {
+        QBook book = QBook.book;
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // 삭제 제외
+        builder.and(book.bookStatus.ne(BookStatus.DELETED));
+
+        // 검색 조건
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(
+                    book.title.containsIgnoreCase(keyword)
+                            .or(book.author.containsIgnoreCase(keyword))
+                            .or(book.isbn.containsIgnoreCase(keyword))
+            );
+        }
+
+        return queryFactory
+                .select(book.count())
+                .from(book)
+                .where(builder)
+                .fetchOne();
+    }
 }

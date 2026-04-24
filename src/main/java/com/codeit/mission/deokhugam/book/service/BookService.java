@@ -362,7 +362,7 @@ public class BookService {
             nextAfter = last.getCreatedAt();
         }
 
-        Long totalElements = bookRepository.count(); // 필요하면 검색 조건 반영
+        Long totalElements = bookRepository.countByCondition(keyword); // 검색 조건 반영
 
         return new CursorPageResponseBookDto(
                 content,

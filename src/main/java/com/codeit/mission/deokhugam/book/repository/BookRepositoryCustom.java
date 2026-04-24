@@ -15,4 +15,5 @@ public interface BookRepositoryCustom {
             LocalDateTime after,
             int limit
     );
+    long countByCondition(String keyword);
 }
