@@ -33,7 +33,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,metrics,loggers
   endpoint:
     health:
       show-details: always

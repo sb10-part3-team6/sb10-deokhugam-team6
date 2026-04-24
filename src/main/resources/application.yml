@@ -4,8 +4,6 @@ spring:
   batch:
     job:
       enabled: false
-  profiles:
-    active: dev
 
 cloud:
   aws:
