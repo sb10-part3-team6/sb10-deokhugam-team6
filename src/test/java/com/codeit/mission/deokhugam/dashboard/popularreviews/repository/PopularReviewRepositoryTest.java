@@ -37,62 +37,79 @@ class PopularReviewRepositoryTest {
   private EntityManager em;
 
   @Test
-  @DisplayName("해당 스냅샷에 해당하는 PopularReview만 개수 세기")
+  @DisplayName("해당 스냅샷에 해당하는 PopularReview만 개수 세기 (성공)")
   void countRankingsBySnapshotId_countsTargetSnapshotOnly() {
+    // given
     LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
     LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
 
+    // 타겟 스냅샷에 해당하는 리뷰 두개
     Review review1 = persistReview("user1@test.com", "user1", "book1", "isbn-1", "review1");
     Review review2 = persistReview("user2@test.com", "user2", "book2", "isbn-2", "review2");
+    // 타겟 스냅샷에 해당하지 않는 리뷰 하나
     Review review3 = persistReview("user3@test.com", "user3", "book3", "isbn-3", "review3");
 
+    // 리뷰들을 PopularReview로 가공하고 영속화한다.
     persistPopularReview(review1, 1L, 30.0, periodStart, periodEnd, SNAPSHOT_ID);
     persistPopularReview(review2, 2L, 20.0, periodStart, periodEnd, SNAPSHOT_ID);
-    persistPopularReview(review3, 1L, 15.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
+    persistPopularReview(review3, 1L, 15.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID); // 이건 다른 스냅샷!
 
+    // 영속성 컨텍스트 적용 및 클리어
     em.flush();
-
     em.clear();
 
+    // 타겟 스냅샷에 존재하는 인기 리뷰 개수를 센다.
     long count = popularReviewRepository.countRankingsBySnapshotId(SNAPSHOT_ID);
 
+    // then
+    // 2개의 인기 리뷰가 들어가있는지 확인한다.
     assertEquals(2L, count);
   }
 
   @Test
-  @DisplayName("기간별 인기 리뷰를 점수 기준 내림차순으로 조회")
+  @DisplayName("기간별 인기 리뷰를 점수 기준 내림차순으로 조회 (성공)")
   void findByPeriodDescByScore_returnsRowsOrderedByScore() {
+    // given
+    // 집계 기간 범위 설정
     LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
     LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
 
+    // 세 개의 리뷰 생성
     Review highScoreReview =
         persistReview("high@test.com", "high", "high-book", "isbn-4", "high review");
     Review lowScoreReview =
         persistReview("low@test.com", "low", "low-book", "isbn-5", "low review");
+    // 다른 스냅샷
     Review ignoredReview =
         persistReview("ignored@test.com", "ignored", "ignored-book", "isbn-6", "ignored review");
 
+    // 영속화
     PopularReview highScore =
         persistPopularReview(highScoreReview, 1L, 99.0, periodStart, periodEnd, SNAPSHOT_ID);
     PopularReview lowScore =
         persistPopularReview(lowScoreReview, 2L, 45.0, periodStart, periodEnd, SNAPSHOT_ID);
     persistPopularReview(ignoredReview, 1L, 100.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
 
+    // 컨텍스트 플러시 & 클리어
     em.flush();
     em.clear();
 
+    // when
+    // 타겟 스냅샷과 타겟 기간에 해당하는 인기 리뷰를 점수별로 내림차순 조회함.
     List<PopularReview> result =
         popularReviewRepository.findByPeriodDescByScore(
             PeriodType.WEEKLY, periodStart, periodEnd, SNAPSHOT_ID);
 
-    assertEquals(2, result.size());
-    assertEquals(highScore.getReviewId(), result.get(0).getReviewId());
+    // then
+    assertEquals(2, result.size()); // 두 개의 인기 리뷰가 산출되었는지?
+    assertEquals(highScore.getReviewId(), result.get(0).getReviewId()); // 리스트의 첫 번째 요소가 highScore와 같은지
     assertEquals(lowScore.getReviewId(), result.get(1).getReviewId());
   }
 
   @Test
   @DisplayName("같은 스냅샷 내에서 동점일 때 rank 와 createdAt 기준 오름차순 조회")
   void findRankingDtosBySnapshotIdAsc_ordersByRankThenCreatedAt() {
+    // given
     LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
     LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
 
@@ -114,10 +131,12 @@ class PopularReviewRepositoryTest {
     updateCreatedAt(later.getId(), LocalDateTime.of(2026, 4, 21, 0, 1));
     em.clear();
 
+    // when
     List<PopularReviewDto> result =
         popularReviewRepository.findRankingDtosBySnapshotIdAsc(
             SNAPSHOT_ID, null, null, PageRequest.of(0, 10));
 
+    // then
     assertEquals(2, result.size());
     assertEquals("a", result.get(0).userNickname());
     assertEquals("b", result.get(1).userNickname());
@@ -128,6 +147,7 @@ class PopularReviewRepositoryTest {
   @Test
   @DisplayName("내림차순 조회 시 cursor 와 createdAt 기준 다음 페이지 조회")
   void findRankingDtosBySnapshotIdDesc_appliesCursorAndTieBreak() {
+    // given
     LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
     LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
 
@@ -147,7 +167,6 @@ class PopularReviewRepositoryTest {
         persistPopularReview(earlyRankTwoReview, 2L, 30.0, periodStart, periodEnd, SNAPSHOT_ID);
     PopularReview lateRankTwo =
         persistPopularReview(lateRankTwoReview, 2L, 29.0, periodStart, periodEnd, SNAPSHOT_ID);
-
     persistPopularReview(rankOneReview, 1L, 20.0, periodStart, periodEnd, SNAPSHOT_ID);
     persistPopularReview(otherSnapshotReview, 1L, 100.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
 
@@ -156,18 +175,20 @@ class PopularReviewRepositoryTest {
     updateCreatedAt(lateRankTwo.getId(), LocalDateTime.of(2026, 4, 21, 0, 1));
     em.clear();
 
+    // when
     List<PopularReviewDto> result =
         popularReviewRepository.findRankingDtosBySnapshotIdDesc(
             SNAPSHOT_ID,
             2L,
             LocalDateTime.of(2026, 4, 21, 0, 1),
             PageRequest.of(0, 10));
-
+    // then
     assertEquals(2, result.size());
     assertEquals("rank2a", result.get(0).userNickname());
     assertEquals("rank1", result.get(1).userNickname());
   }
 
+  // 리뷰 객체를 생성하고 영속화하는 메서드
   private Review persistReview(
       String email,
       String nickname,
@@ -186,6 +207,7 @@ class PopularReviewRepositoryTest {
     return review;
   }
 
+  // 사용자 정보를 받아서 User 객체로 가공하고 영속화하는 메서드
   private User persistUser(String email, String nickname) {
     User user = User.builder()
         .email(email)
@@ -196,6 +218,7 @@ class PopularReviewRepositoryTest {
     return user;
   }
 
+  // 도서 정보를 받아서 Book 객체로 가공하고 영속화하는 메서드
   private Book persistBook(String title, String isbn) {
     Book book = Book.builder()
         .title(title)
@@ -212,6 +235,7 @@ class PopularReviewRepositoryTest {
     return book;
   }
 
+  // 리뷰와 점수, 기간, 스냅샷을 받아 인기 리뷰로 변환하고 영속화하는 메서드
   private PopularReview persistPopularReview(
       Review review,
       long rank,
@@ -235,6 +259,7 @@ class PopularReviewRepositoryTest {
     return popularReview;
   }
 
+  // 인기 리뷰의 생성 날짜를 변경하는 메서드
   private void updateCreatedAt(UUID id, LocalDateTime createdAt) {
     int updatedRows =
         em.createQuery("update PopularReview pr set pr.createdAt = :createdAt where pr.id = :id")
