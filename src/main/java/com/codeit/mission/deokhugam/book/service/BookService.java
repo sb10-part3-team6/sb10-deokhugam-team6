@@ -344,7 +344,7 @@ public class BookService {
                 direction,
                 cursorValue,
                 afterValue,
-                limit
+                limit + 1
         );
 
         boolean hasNext = books.size() > limit;
