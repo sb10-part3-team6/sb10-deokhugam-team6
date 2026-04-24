@@ -57,10 +57,7 @@ public class BookService {
 
         //ISBN 유효성 검증
         validateIsbn13(request.isbn());
-        if(bookRepository.existsByIsbn(request.isbn())){
-            throw new DuplicatedIsbnException(request.isbn());
-        }
-
+        isExist(request.isbn());
         String imagePath = upload(image);
 
         Book book = Book.builder()
@@ -416,5 +413,11 @@ public class BookService {
 
     private boolean isDeleted(Book book){
         return book.getBookStatus() == BookStatus.DELETED;
+    }
+
+    private void isExist(String isbn){
+        if(bookRepository.existsByIsbn(isbn)){
+            throw new DuplicatedIsbnException(isbn);
+        }
     }
 }
