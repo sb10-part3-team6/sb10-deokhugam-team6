@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.dashboard.users.service;
+package com.codeit.mission.deokhugam.dashboard.powerusers.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
