@@ -45,9 +45,9 @@ class PopularReviewAggregateServiceTest {
   @DisplayName("인기 리뷰 집계에 필요한 지수들을 일괄 로딩하는 테스트 (성공)")
   public void loadReviewStat_success(){
     // given
-    LocalDateTime aggregatedAt = LocalDateTime.of(2026,4,21,0,0);
-    LocalDateTime periodStart = PeriodType.WEEKLY.calculateStart(aggregatedAt);
-    LocalDateTime periodEnd = PeriodType.WEEKLY.calculateEnd(aggregatedAt);
+    LocalDateTime aggregatedAt = LocalDateTime.of(2026,4,23,15,30);
+    LocalDateTime periodStart = LocalDateTime.of(2026,4,16,15,30);
+    LocalDateTime periodEnd = LocalDateTime.of(2026,4,23,15,30);
 
     // 두 명의 사용자 ID 생성
     UUID higherReviewId = UUID.randomUUID();
@@ -85,6 +85,28 @@ class PopularReviewAggregateServiceTest {
     assertEquals(1L, statsPerReview.get(lowerReviewId).commentCount());
     verify(commentRepository).findReviewCommentCounts(periodStart, periodEnd);
     verify(reviewRepository).countReviewLikes(periodStart, periodEnd, ReviewStatus.ACTIVE);
+  }
+
+  @Test
+  @DisplayName("주중 시각을 기준으로 ")
+  void rankPopularReviews_usesMidWeekCalculatedPeriod() {
+    // given
+    // 주중 집계 시간
+    LocalDateTime aggregatedAt = LocalDateTime.of(2026, 4, 23, 15, 30);
+    // 주간이므로 집계시간으로 부터 7일 이전이 periodStart가 된다.
+    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 16, 15, 30);
+    // 스냅샷 ID
+    UUID snapshotId = UUID.randomUUID();
+
+    when(popularReviewRepository.findByPeriodDescByScore(
+        PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId))
+        .thenReturn(List.of());
+
+    // when
+    popularReviewAggregateService.rankPopularReviews(PeriodType.WEEKLY, aggregatedAt, snapshotId);
+
+    verify(popularReviewRepository)
+        .findByPeriodDescByScore(PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId);
   }
 
   @Test

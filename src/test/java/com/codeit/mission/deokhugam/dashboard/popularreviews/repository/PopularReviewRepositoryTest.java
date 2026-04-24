@@ -112,7 +112,7 @@ class PopularReviewRepositoryTest {
   }
 
   @Test
-  @DisplayName("같은 스냅샷 내에서 동점일 때 rank 내림차순, createdAt 오름차순 조회")
+  @DisplayName("같은 스냅샷 내에서 동점일 때 rank 오름차순, createdAt 오름차순 조회")
   void findRankingDtosBySnapshotIdAsc_ordersByRankThenCreatedAt() {
     // given
     LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
