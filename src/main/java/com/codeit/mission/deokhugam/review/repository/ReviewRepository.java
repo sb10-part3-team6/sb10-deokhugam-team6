@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.review.repository;
 
-import com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserLikeCount;
-import com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import java.time.LocalDateTime;
@@ -18,44 +18,35 @@ import org.springframework.transaction.annotation.Transactional;
     리뷰 레파지토리
  */
 @Repository
-public interface ReviewRepository extends JpaRepository<Review, UUID> {
+public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRepositoryCustom {
 
   // 중복 검사: 특정 도서에 대한 사용자 리뷰 존재 유무
   boolean existsByBookIdAndUserId(UUID bookId, UUID userId);
 
   // 좋아요 수 증가
-  @Modifying
-  @Query("UPDATE Review review SET review.likeCount = review.likeCount + 1 " +
-      "WHERE review.id = :id")
-  void incrementLikes(@Param("id") UUID id);
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE Review review SET review.likeCount = review.likeCount + 1 WHERE review.id = :reviewId")
+  void incrementLikeCount(@Param("reviewId") UUID reviewId);
 
   // 좋아요 수 감소
-  @Modifying
-  @Query("UPDATE Review review SET review.likeCount = review.likeCount - 1 " +
-      "WHERE review.id = :id")
-  void decrementLikes(@Param("id") UUID id);
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE Review review SET review.likeCount = review.likeCount - 1 WHERE review.id = :reviewId AND review.likeCount > 0")
+  void decrementLikeCount(@Param("reviewId") UUID reviewId);
 
-  // 좋아요 삭제
-  @Modifying
-  @Query(value = "DELETE FROM review_likes " +
-      "WHERE review_id = :reviewId AND user_id = :userId",
-      nativeQuery = true)
-  int deleteReviewLike(@Param("reviewId") UUID reviewId, @Param("userId") UUID userId);
+  // 댓글 수 증가
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE Review  review SET review.commentCount = review.commentCount + 1 WHERE review.id = :reviewId")
+  void incrementCommentCount(@Param("reviewId") UUID reviewId);
 
-  // 특정 리뷰에 대한 특정 유저의 좋아요 여부
-  @Query("SELECT COUNT(review.id) > 0 " +// 조건 만족 여부에 따라, true / false 반환
-      "FROM Review review " +
-      "JOIN review.likedUsers user " +
-      // Review 엔티티 내부 likedUser 필드 조인
-      "WHERE review.id = :reviewId AND user.id = :userId")
-  // 리뷰 id 및 사용자 id에 대한 완전 일치 조건
-  boolean existsLikedByIdAndUserId(@Param("reviewId") UUID reviewId,
-      @Param("userId") UUID userId);
+  // 댓글 수 감소
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE Review  review SET review.commentCount = review.commentCount - 1 WHERE review.id = :reviewId AND review.commentCount > 0")
+  void decrementCommentCount(@Param("reviewId") UUID reviewId);
 
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.users.dto.UserReviewAggregate(
+          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate(
               r.user.id,
               coalesce(sum(r.rating), 0.0)
           )
@@ -86,4 +77,21 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
   @Transactional
   @Query(value = "DELETE FROM reviews WHERE user_id IN :userIds", nativeQuery = true)
   void deleteByUserIds(@Param("userIds") List<UUID> userIds);
+
+  // 기간 내 리뷰 당 받은 좋아요 수를 뽑는 쿼리
+  @Query("""
+      select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount(
+          rl.review.id,
+          count(rl)
+      )
+      from ReviewLike rl
+      where rl.likedAt >= :periodStart
+        and rl.likedAt < :periodEnd
+        and rl.review.status = :status
+      group by rl.review.id
+      """)
+  List<ReviewLikeCount> countReviewLikes(
+      @Param("periodStart") LocalDateTime periodStart,
+      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("status") ReviewStatus status);
 }

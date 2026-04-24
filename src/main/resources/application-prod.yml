@@ -1,0 +1,52 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  application:
+    name: sb10-deokhugam-team6
+
+  # 데이터베이스 설정
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  # JPA/Hibernate 운영 설정
+  jpa:
+    hibernate:
+      ddl-auto: validate # 운영 DB 스키마 보호
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        default_batch_fetch_size: 100
+
+  # 배치 설정
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+
+# AWS S3 설정
+cloud:
+  aws:
+    s3:
+      region: ap-northeast-2
+      bucket: ${AWS_BUCKET_NAME}
+
+# 외부 API 설정
+naverapi:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+ocr:
+  url: https://api.ocr.space/parse/image
+  apikey: ${SPACE_OCR_API_KEY}
+
+# 로깅 설정
+logging:
+  level:
+    root: info
+    com.codeit.mission.deokhugam: info

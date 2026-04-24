@@ -6,7 +6,9 @@ import com.codeit.mission.deokhugam.comment.dto.request.CommentUpdateRequest;
 import com.codeit.mission.deokhugam.comment.dto.response.CommentDto;
 import com.codeit.mission.deokhugam.comment.dto.response.CursorPageResponseCommentDto;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
+import com.codeit.mission.deokhugam.comment.entity.CommentStatus;
 import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
+import com.codeit.mission.deokhugam.comment.exception.CommentNotFoundException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.review.entity.Review;
@@ -17,7 +19,6 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,120 +31,205 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class CommentService {
 
-    private final CommentRepository commentRepository;
-    private final ReviewRepository reviewRepository;
-    private final UserRepository userRepository;
-    private final CommentMapper commentMapper;
+  private final CommentRepository commentRepository;
+  private final ReviewRepository reviewRepository;
+  private final UserRepository userRepository;
+  private final CommentMapper commentMapper;
 
-    // 댓글 등록
-    @Transactional
-    public CommentDto createComment(CommentCreateRequest request) {
-        // Review 검증
-        validReviewExists(request.reviewId());
-        // User검증 + userNickName을 가져오기 위한 user
-        User user = validUserExists(request.userId());
+  // 댓글 등록
+  @Transactional
+  public CommentDto createComment(CommentCreateRequest request) {
+    // Review 조회
+    Review review = getReviewOrThrow(request.reviewId());
+    // Review 상태 검증
+    validReviewStatus(review);
 
-        Comment comment = Comment.builder()
-                .reviewId(request.reviewId())
-                .userId(request.userId())
-                .content(request.content())
-                .build();
+    // User 조회
+    User user = getUserOrThrow(request.userId());
+    // User 상태 검증
+    validUserStatus(user);
 
-        Comment savedComment = commentRepository.save(comment);
-        return commentMapper.toDto(savedComment, user.getNickname());
-    }
+    Comment comment = Comment.builder()
+        .reviewId(request.reviewId())
+        .userId(request.userId())
+        .content(request.content())
+        .status(CommentStatus.ACTIVE)
+        .build();
 
-    // 댓글 수정
-    @Transactional
-    public CommentDto updateComment(UUID commentId, UUID requestUserId, CommentUpdateRequest request) {
-        // 요청자 검증 및 userNickName을 가져오기 위한 user
-        User user = validUserExists(requestUserId);
-        Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
-        if (!comment.getUserId().equals(requestUserId)) {
-            throw new CommentAuthorException();
-        }
+    Comment savedComment = commentRepository.saveAndFlush(comment);
+    reviewRepository.incrementCommentCount(review.getId());
 
-        comment.updateContent(request.content());
-        Comment updatedComment = commentRepository.save(comment);
-        return commentMapper.toDto(updatedComment, user.getNickname());
-    }
+    return commentMapper.toDto(savedComment, user.getNickname());
+  }
+
+  // 댓글 수정
+  @Transactional
+  public CommentDto updateComment(UUID commentId, UUID requestUserId,
+      CommentUpdateRequest request) {
+    // 요청자 조회
+    User user = getUserOrThrow(requestUserId);
+    // 요청자 상태 검증
+    validUserStatus(user);
 
     // 댓글 조회
-    public CommentDto findComment(UUID commentId) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
-        User user = userRepository.findById(comment.getUserId()).orElseThrow(EntityNotFoundException::new);
-        return commentMapper.toDto(comment, user.getNickname());
+    Comment comment = getCommentOrThrow(commentId);
+    // 댓글 상태 검증
+    validCommentStatus(comment);
+
+    if (!comment.getUserId().equals(requestUserId)) {
+      throw new CommentAuthorException();
     }
 
-    // 댓글 목록 조회
-    public CursorPageResponseCommentDto findAllComments(CommentFindAllRequest request) {
-        validReviewExists(request.reviewId());
-        int limit = request.limit();
-        List<Comment> comments = commentRepository.findAllByCursor(request);
+    comment.updateContent(request.content());
+    Comment updatedComment = commentRepository.save(comment);
+    return commentMapper.toDto(updatedComment, user.getNickname());
+  }
 
-        boolean hasNext = comments.size() > limit;
-        if (hasNext) {
-            comments = comments.subList(0, limit);
-        }
+  // 댓글 상세 조회
+  @Transactional(readOnly = true)
+  public CommentDto findComment(UUID commentId) {
+    // 댓글 조회
+    Comment comment = getCommentOrThrow(commentId);
+    // 댓글 상태 검증
+    validCommentStatus(comment);
 
-        Map<UUID, String> nicknameMap = userRepository.findAllById(
-                        comments.stream()
-                                .map(Comment::getUserId)
-                                .distinct()
-                                .toList()
-                ).stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        User::getId,
-                        User::getNickname
-                ));
+    String userNickName = getUserOrThrow(comment.getUserId()).getNickname();
+    return commentMapper.toDto(comment, userNickName);
+  }
 
-        List<CommentDto> content = comments.stream()
-                .map(comment -> commentMapper.toDto(
-                        comment,
-                        nicknameMap.get(comment.getUserId())
-                ))
-                .toList();
+  // 댓글 목록 조회
+  @Transactional(readOnly = true)
+  public CursorPageResponseCommentDto findAllComments(CommentFindAllRequest request) {
+    // 리뷰 상태 검증
+    validReviewStatus(getReviewOrThrow(request.reviewId()));
 
-        String nextCursor = null;
-        LocalDateTime nextAfter = null;
+    int limit = request.limit();
+    List<Comment> comments = commentRepository.findAllByCursor(request);
 
-        if (hasNext && !comments.isEmpty()) {
-            Comment last = comments.get(comments.size() - 1);
-            nextCursor = last.getId().toString();
-            nextAfter = last.getCreatedAt();
-        }
-
-        int totalElements = commentRepository.countByReviewId(request.reviewId());
-
-        return new CursorPageResponseCommentDto(
-                content,
-                nextCursor,
-                nextAfter,
-                content.size(),
-                totalElements,
-                hasNext
-        );
+    boolean hasNext = comments.size() > limit;
+    if (hasNext) {
+      comments = comments.subList(0, limit);
     }
 
-    // 리뷰가 존재하는지 검증
-    private void validReviewExists(UUID reviewId) {
-        Review review = reviewRepository.findById(reviewId).orElseThrow(EntityNotFoundException::new);
+    Map<UUID, String> nicknameMap = userRepository.findAllById(
+            comments.stream()
+                .map(Comment::getUserId)
+                .distinct()
+                .toList()
+        ).stream()
+        .collect(java.util.stream.Collectors.toMap(
+            User::getId,
+            User::getNickname
+        ));
 
-        // 리뷰 상태가 Delete면 조회 실패
-        if (review.getStatus() == ReviewStatus.DELETED) {
-            throw new ReviewNotFoundException(reviewId);
-        }
+    List<CommentDto> content = comments.stream()
+        .map(comment -> commentMapper.toDto(
+            comment,
+            nicknameMap.get(comment.getUserId())
+        ))
+        .toList();
+
+    String nextCursor = null;
+    LocalDateTime nextAfter = null;
+
+    if (hasNext && !comments.isEmpty()) {
+      Comment last = comments.get(comments.size() - 1);
+      nextCursor = last.getId().toString();
+      nextAfter = last.getCreatedAt();
     }
 
-    // 유저가 존재하는지 검증
-    private User validUserExists(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(EntityNotFoundException::new);
+    int totalElements = commentRepository.countByReviewId(request.reviewId());
 
-        // 유저 상태가 Delete면 조회 실패
-        if (user.getStatus() == UserStatus.DELETED) {
-            throw new UserNotFoundException(userId);
-        }
+    return new CursorPageResponseCommentDto(
+        content,
+        nextCursor,
+        nextAfter,
+        content.size(),
+        totalElements,
+        hasNext
+    );
+  }
 
-        return user;
+  // 댓글 논리 삭제
+  @Transactional
+  public void softDelete(UUID commentId, UUID requestUserId) {
+    // 댓글 조회
+    Comment comment = getCommentOrThrow(commentId);
+    // 댓글 상태 검증
+    validCommentStatus(comment);
+
+    // 요청자 조회 및 상태 검증
+    validUserStatus(getUserOrThrow(requestUserId));
+
+    // 요청자와 댓글의 작성자 ID 비교
+    validAuthor(comment, requestUserId);
+
+    comment.updateStatus(CommentStatus.DELETED);
+
+    // 댓글 수 감소
+    reviewRepository.decrementCommentCount(comment.getReviewId());
+  }
+
+  // 댓글 물리 삭제
+  @Transactional
+  public void hardDelete(UUID commentId, UUID requestUserId) {
+    // 댓글 조회
+    Comment comment = getCommentOrThrow(commentId);
+    // 댓글 상태 검증
+    validCommentStatus(comment);
+
+    // 요청자 상태 검증
+    validUserStatus(getUserOrThrow(requestUserId));
+
+    // 요청자와 댓글의 작성자 ID 비교
+    validAuthor(comment, requestUserId);
+
+    commentRepository.deleteById(commentId);
+    reviewRepository.decrementCommentCount(comment.getReviewId());
+  }
+
+  // 리뷰 상태 검증
+  private void validReviewStatus(Review review) {
+    if (review.getStatus().equals(ReviewStatus.DELETED)) {
+      throw new ReviewNotFoundException(review.getId());
     }
+  }
+
+  // 유저 상태 검증
+  private void validUserStatus(User user) {
+    if (user.getStatus().equals(UserStatus.DELETED)) {
+      throw new UserNotFoundException(user.getId());
+    }
+  }
+
+  // 댓글 상태 검증
+  private void validCommentStatus(Comment comment) {
+    if (comment.getStatus().equals(CommentStatus.DELETED)) {
+      throw new CommentNotFoundException(comment.getId());
+    }
+  }
+
+  // 리뷰 조회 후 반환
+  private Review getReviewOrThrow(UUID reviewId) {
+    return reviewRepository.findById(reviewId)
+        .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+  }
+
+  // 유저 조회 후 반환
+  private User getUserOrThrow(UUID userId) {
+    return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+  }
+
+  // 댓글 조회 후 반환
+  private Comment getCommentOrThrow(UUID commentId) {
+    return commentRepository.findById(commentId)
+        .orElseThrow(() -> new CommentNotFoundException(commentId));
+  }
+
+  // 댓글 작성자와 요청자 ID 비교
+  private void validAuthor(Comment comment, UUID userId) {
+    if (!comment.getUserId().equals(userId)) {
+      throw new CommentAuthorException();
+    }
+  }
 }
