@@ -9,7 +9,7 @@ public record CursorPageRequestDto(
         String orderBy,
         SortDirection direction,
         String cursor,
-        LocalDateTime after,
+        String after,
         int limit
 ) {
 }
