@@ -71,7 +71,7 @@ public class BookController {
 
     @GetMapping
     public ResponseEntity<CursorPageResponseBookDto> getBooks(
-            @RequestParam String keyword,
+            @RequestParam(required = false) String keyword,
             @RequestParam String orderBy,
             @RequestParam SortDirection direction,
             @RequestParam(required = false) String cursor,
