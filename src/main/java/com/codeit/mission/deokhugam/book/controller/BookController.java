@@ -1,9 +1,7 @@
 package com.codeit.mission.deokhugam.book.controller;
 
-import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
-import com.codeit.mission.deokhugam.book.dto.BookDto;
-import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
-import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
+import com.codeit.mission.deokhugam.book.dto.*;
+import com.codeit.mission.deokhugam.book.entity.AssertDirection;
 import com.codeit.mission.deokhugam.book.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -69,5 +67,16 @@ public class BookController {
     ){
         bookService.hardDeleteBook(bookId);
         return ResponseEntity.status(204).build();
+    }
+
+    public ResponseEntity<CursorPageResponseBookDto> getBooks(
+            @RequestParam String keyword,
+            @RequestPart String orderBy,
+            @RequestParam AssertDirection direction,
+            @RequestParam String cursor,
+            @RequestParam String after,
+            @RequestParam int limit
+            ){
+        return ResponseEntity.ok(bookService.findAllBooks(keyword, orderBy, direction, cursor, after, limit));
     }
 }
