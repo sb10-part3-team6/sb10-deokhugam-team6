@@ -22,7 +22,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
   // 파워 유저 집계할 때 기간 별 댓글 개수를 가져오는 레포지토리 메서드
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.users.dto.UserCommentCount(
+          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserCommentCount(
               c.userId,
               count(c.id)
           )
@@ -38,7 +38,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
   // 인기 리뷰를 집계할 때 기간 별 리뷰에 다린 댓글 개수를 가져오는 레포지토리 메서드
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewCommentCount(
+          select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewCommentCount(
               c.reviewId,
               count(c.id)
           )
