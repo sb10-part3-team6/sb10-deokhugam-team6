@@ -17,25 +17,25 @@ public record ErrorResponse(
 
     @Schema(
         description = "발생한 에러 코드",
-        example = "ERROR_CODE"
+        example = "USER_NOT_FOUND"
     )
     String code,
 
     @Schema(
         description = "에러 메시지",
-        example = "string"
+        example = "User not found"
     )
     String message,
 
     @Schema(
         description = "관련 추가 정보",
-        example = "{\"string\": \"object\"}"
+        example = "{\"userId\": 123}"
     )
     Map<String, Object> details,
 
     @Schema(
         description = "발생한 예외 클래스명",
-        example = "ErrorException"
+        example = "DeokhugamException"
     )
     String exceptionType,
 
