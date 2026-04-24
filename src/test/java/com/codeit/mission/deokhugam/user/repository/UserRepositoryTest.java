@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.user.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.mission.deokhugam.config.JpaAuditingConfig;
+import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import jakarta.persistence.EntityManager;
@@ -19,7 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 @DataJpaTest
-@Import(JpaAuditingConfig.class)
+@Import({JpaAuditingConfig.class, QuerydslConfig.class})
 class UserRepositoryTest {
 
   @Autowired

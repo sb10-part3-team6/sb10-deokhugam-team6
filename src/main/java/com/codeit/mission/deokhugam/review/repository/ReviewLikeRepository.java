@@ -16,7 +16,7 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, UUID> {
 
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserLikeCount(
+          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserLikeCount(
               rl.user.id,
               count(rl)
           )
