@@ -35,8 +35,7 @@ public class PopularReviewAggregateService {
   private final CommentRepository commentRepository;
   private final PopularReviewRepository popularReviewRepository;
 
-  // 댓글, 리뷰 좋아요 레포지토리에서 스탯을 뽑아내고
-  // 리뷰 아이디 별 인기 리뷰 스탯 형식으로 가공함.
+  // 일괄적으로 리뷰의 점수를 로드
   @Transactional(readOnly = true)
   public Map<UUID, ReviewStat> loadReviewStat(PeriodType periodType, LocalDateTime aggregatedAt) {
     List<LocalDateTime> periods = Utils.calculatePeriod(periodType, aggregatedAt);
@@ -88,7 +87,6 @@ public class PopularReviewAggregateService {
     }
   }
 
-  // 매개변수들을 받아서 인기 리뷰 객체로 반환하는 메서드
   public PopularReview toPopularReview(
       UUID reviewId,
       ReviewStat stat,
@@ -113,13 +111,14 @@ public class PopularReviewAggregateService {
         .build();
   }
 
-  // 빈 리뷰 스탯을 반환
+
   public ReviewStat emptyStat(UUID reviewId) {
     return new ReviewStat(reviewId, 0L, 0L);
   }
 
-  // 스코어 계산식
+
   private double calculateScore(long likeCount, long commentCount) {
     return (likeCount * LIKE_COUNT_WEIGHT) + (commentCount * COMMENT_COUNT_WEIGHT);
   }
+
 }

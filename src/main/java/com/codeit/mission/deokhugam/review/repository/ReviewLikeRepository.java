@@ -7,16 +7,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface ReviewLikeRepository extends JpaRepository<ReviewLike, UUID> {
 
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.users.dto.PowerUserLikeCount(
+          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserLikeCount(
               rl.user.id,
               count(rl)
           )
@@ -43,4 +45,10 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, UUID> {
       "WHERE reviewLike.user.id = :userId AND reviewLike.review.id IN :reviewIds")
   List<UUID> findReviewIdsByUserIdAndReviewIdIn(@Param("userId") UUID userId,
       @Param("reviewIds") List<UUID> reviewIds);
+
+  // 삭제 대상 리뷰에 달린 좋아요 일괄 삭제
+  @Modifying(clearAutomatically = true)
+  @Transactional
+  @Query(value = "DELETE FROM ReviewLike reviewLike WHERE reviewLike.review.id IN :reviewIds")
+  void deleteByReviewIdIn(@Param("reviewIds") List<UUID> reviewIds);
 }

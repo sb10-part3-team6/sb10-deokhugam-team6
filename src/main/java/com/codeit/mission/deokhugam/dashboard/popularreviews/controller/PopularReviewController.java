@@ -18,18 +18,15 @@ public class PopularReviewController {
 
   private final PopularReviewService popularReviewService;
 
-//  @GetMapping
-//  ResponseEntity<CursorPageResponsePopularReviewDto> getPopularReviews(
-//      @RequestParam("period") PeriodType periodType,
-//      @RequestParam("direction") DirectionEnum direction,
-//      @RequestParam("cursor") String cursor,
-//      @RequestParam("after") String after,
-//      @RequestParam("limit") int limit
-//  ){
-//
-//    return ResponseEntity.ok(popularReviewService.getReviews(periodType, direction,
-//        cursor, after, limit));
-//
-//  }
+  @GetMapping
+  public ResponseEntity<CursorPageResponsePopularReviewDto> getPopularReviews(
+      @RequestParam(defaultValue = "DAILY") PeriodType period,
+      @RequestParam(defaultValue = "ASC") DirectionEnum direction,
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "after", required = false) String after,
+      @RequestParam(defaultValue = "50") int limit
+  ) {
+    return ResponseEntity.ok(popularReviewService.getReviews(period, direction, cursor, after, limit));
+  }
 
 }

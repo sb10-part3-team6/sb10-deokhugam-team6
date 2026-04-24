@@ -1,22 +1,49 @@
 package com.codeit.mission.deokhugam.error;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 import java.time.Instant;
 import java.util.Map;
 
-/*
-    에러 응답 DTO
-    ----------------
-    공통된 예외 메시지 처리를 위한 응답 DTO
- */
+@Schema(description = "공통 예외 응답")
 @Builder
-public record ErrorResponse (
-        Instant timestamp,                  // 에러 발생 시각
-        String code,                        // 발생한 에러 코드
-        String message,                     // 발생한 에러 메시지
-        Map<String, Object> details,        // 발생한 에러와 관련된 추가 정보
-        String exceptionType,               // 발생한 에러 클래스 이름
-        int status                          // HTTP 상태 코드
+public record ErrorResponse(
+    @Schema(
+        description = "에러 발생 시점",
+        example = "2025-04-06T15:04:05.000Z"
+    )
+    Instant timestamp,
+
+    @Schema(
+        description = "발생한 에러 코드",
+        example = "USER_NOT_FOUND"
+    )
+    String code,
+
+    @Schema(
+        description = "에러 메시지",
+        example = "User not found"
+    )
+    String message,
+
+    @Schema(
+        description = "관련 추가 정보",
+        example = "{\"userId\": 123}"
+    )
+    Map<String, Object> details,
+
+    @Schema(
+        description = "발생한 예외 클래스명",
+        example = "DeokhugamException"
+    )
+    String exceptionType,
+
+    @Schema(
+        description = "HTTP 상태 코드",
+        example = "400"
+    )
+    int status
 ) {
+
 }

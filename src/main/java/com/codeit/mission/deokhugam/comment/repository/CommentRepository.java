@@ -15,13 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentRepositoryCustom {
+
   // 리뷰의 댓글 수
-  int countByReviewId(UUID reviewId);
+  long countByReviewId(UUID reviewId);
 
   // 파워 유저 집계할 때 기간 별 댓글 개수를 가져오는 레포지토리 메서드
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.users.dto.UserCommentCount(
+          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserCommentCount(
               c.userId,
               count(c.id)
           )
@@ -33,10 +34,11 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
   List<UserCommentCount> findUserCommentCounts(
       @Param("periodStart") LocalDateTime periodStart,
       @Param("periodEnd") LocalDateTime periodEnd);
+
   // 인기 리뷰를 집계할 때 기간 별 리뷰에 다린 댓글 개수를 가져오는 레포지토리 메서드
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.reviews.dto.ReviewCommentCount(
+          select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewCommentCount(
               c.reviewId,
               count(c.id)
           )
@@ -61,4 +63,10 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
   @Transactional
   @Query(value = "DELETE FROM comments WHERE review_id IN (SELECT id FROM reviews WHERE user_id IN :userIds)", nativeQuery = true)
   void deleteByReviewUserIds(@Param("userIds") List<UUID> userIds);
+
+  // 삭제 대상 리뷰에 달린 댓글 일괄 삭제
+  @Modifying(clearAutomatically = true)
+  @Transactional
+  @Query(value = "DELETE FROM Comment comment WHERE comment.reviewId IN :reviewIds")
+  void deleteByReviewIdIn(@Param("reviewIds") List<UUID> reviewIds);
 }

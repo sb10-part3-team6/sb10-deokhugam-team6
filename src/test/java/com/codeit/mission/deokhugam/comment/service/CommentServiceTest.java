@@ -17,6 +17,7 @@ import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
+import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,7 +60,7 @@ public class CommentServiceTest {
   private UUID userId;
   private UUID reviewId;
   private UUID commentId;
-  private String userNickName;
+  private String userNickname;
   private Comment comment;
   private User user;
   private Review review;
@@ -67,29 +68,25 @@ public class CommentServiceTest {
   private CommentFindAllRequest findAllRequest;
 
   @BeforeEach
-  void setup() {
+  void setUp() {
     userId = UUID.randomUUID();
     reviewId = UUID.randomUUID();
     commentId = UUID.randomUUID();
-    userNickName = "testUser";
-
-    user = mock(User.class);
-    when(user.getId()).thenReturn(userId);
-    when(user.getNickname()).thenReturn(userNickName);
-    when(user.getStatus()).thenReturn(UserStatus.ACTIVE);
-
-    review = mock(Review.class);
-    when(review.getId()).thenReturn(reviewId);
-    when(review.getStatus()).thenReturn(ReviewStatus.ACTIVE);
+    userNickname = "testUser";
 
     comment = Comment.builder()
         .reviewId(reviewId)
         .userId(userId)
         .content("test content")
+        .status(CommentStatus.ACTIVE)
         .build();
 
-    commentDto = mock(CommentDto.class);
-    findAllRequest = mock(CommentFindAllRequest.class);
+    ReflectionTestUtils.setField(comment, "id", commentId);
+    ReflectionTestUtils.setField(
+        comment,
+        "createdAt",
+        LocalDateTime.of(2026, 4, 21, 10, 0, 0)
+    );
   }
 
   @Test
@@ -97,41 +94,82 @@ public class CommentServiceTest {
   void createCommentSuccess() {
     // given
     CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "test content");
-    given(reviewRepository.existsById(eq(reviewId))).willReturn(true);
-    given(reviewRepository.findById(eq(reviewId))).willReturn(Optional.of(review));
-    given(userRepository.existsById(eq(userId))).willReturn(true);
-    given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
+
+    Review review = mock(Review.class);
+    given(review.getId()).willReturn(reviewId);
+    given(review.getStatus()).willReturn(ReviewStatus.ACTIVE);
+
+    User user = mock(User.class);
+    given(user.getStatus()).willReturn(UserStatus.ACTIVE);
+    given(user.getNickname()).willReturn(userNickname);
 
     Comment savedComment = Comment.builder()
         .reviewId(reviewId)
         .userId(userId)
-        .content(request.content())
+        .content("test content")
+        .status(CommentStatus.ACTIVE)
         .build();
 
-    given(commentMapper.toDto(savedComment, userNickName)).willReturn(commentDto);
+    CommentDto commentDto = mock(CommentDto.class);
+
+    given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(commentRepository.saveAndFlush(any(Comment.class))).willReturn(savedComment);
+    given(commentMapper.toDto(savedComment, userNickname)).willReturn(commentDto);
 
     // when
     CommentDto result = commentService.createComment(request);
 
     // then
     assertThat(result).isEqualTo(commentDto);
-    verify(commentRepository).save(any(Comment.class));
+    verify(reviewRepository).findById(reviewId);
+    verify(userRepository).findById(userId);
+    verify(commentRepository).saveAndFlush(any(Comment.class));
+    verify(reviewRepository).incrementCommentCount(reviewId);
+    verify(commentMapper).toDto(savedComment, userNickname);
   }
 
   @Test
   @DisplayName("댓글 생성 실패 - 리뷰가 존재하지 않음")
-  void createCommentFail() {
+  void createCommentFailByReviewNotFound() {
     // given
-    UUID wrongReviewId = UUID.randomUUID();
-    CommentCreateRequest request = new CommentCreateRequest(wrongReviewId, userId, "test content");
-    given(reviewRepository.existsById(eq(wrongReviewId))).willReturn(false);
-    given(reviewRepository.findById(eq(wrongReviewId))).willReturn(Optional.empty());
+    CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "test content");
+    given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
 
-    // when
-
-    // then
+    // when & then
     assertThatThrownBy(() -> commentService.createComment(request))
         .isInstanceOf(ReviewNotFoundException.class);
+
+    verify(reviewRepository).findById(reviewId);
+    verify(userRepository, never()).findById(any());
+    verify(commentRepository, never()).saveAndFlush(any());
+    verify(reviewRepository, never()).incrementCommentCount(any());
+  }
+
+  @Test
+  @DisplayName("댓글 생성 실패 - 유저가 삭제 상태")
+  void createCommentFailByDeletedUser() {
+    // given
+    CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "test content");
+
+    Review review = mock(Review.class);
+    given(review.getStatus()).willReturn(ReviewStatus.ACTIVE);
+
+    User deletedUser = mock(User.class);
+    given(deletedUser.getId()).willReturn(userId);
+    given(deletedUser.getStatus()).willReturn(UserStatus.DELETED);
+
+    given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
+    given(userRepository.findById(userId)).willReturn(Optional.of(deletedUser));
+
+    // when & then
+    assertThatThrownBy(() -> commentService.createComment(request))
+        .isInstanceOf(UserNotFoundException.class);
+
+    verify(reviewRepository).findById(reviewId);
+    verify(userRepository).findById(userId);
+    verify(commentRepository, never()).saveAndFlush(any());
+    verify(reviewRepository, never()).incrementCommentCount(any());
   }
 
   @Test
@@ -139,102 +177,143 @@ public class CommentServiceTest {
   void updateCommentSuccess() {
     // given
     CommentUpdateRequest request = new CommentUpdateRequest("updated content");
-    given(commentRepository.existsById(eq(commentId))).willReturn(true);
-    given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
-    given(commentRepository.save(any(Comment.class))).willReturn(comment);
-    given(commentMapper.toDto(comment, userNickName)).willReturn(commentDto);
-    given(userRepository.existsById(eq(userId))).willReturn(true);
-    given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
+
+    User user = mock(User.class);
+    given(user.getStatus()).willReturn(UserStatus.ACTIVE);
+    given(user.getNickname()).willReturn(userNickname);
+
+    CommentDto commentDto = mock(CommentDto.class);
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(commentRepository.save(comment)).willReturn(comment);
+    given(commentMapper.toDto(comment, userNickname)).willReturn(commentDto);
 
     // when
     CommentDto result = commentService.updateComment(commentId, userId, request);
 
     // then
     assertThat(result).isEqualTo(commentDto);
+    assertThat(comment.getContent()).isEqualTo("updated content");
+    verify(userRepository).findById(userId);
+    verify(commentRepository).findById(commentId);
+    verify(commentRepository).save(comment);
+    verify(commentMapper).toDto(comment, userNickname);
   }
 
   @Test
   @DisplayName("댓글 수정 실패 - 댓글 존재하지 않음")
-  void updateCommentFail() {
+  void updateCommentFailByCommentNotFound() {
     // given
     CommentUpdateRequest request = new CommentUpdateRequest("updated content");
-    given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
-    given(commentRepository.existsById(eq(commentId))).willReturn(false);
-    given(commentRepository.findById(eq(commentId))).willReturn(Optional.empty());
 
-    // when
+    User user = mock(User.class);
+    given(user.getStatus()).willReturn(UserStatus.ACTIVE);
 
-    // then
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+
+    // when & then
     assertThatThrownBy(() -> commentService.updateComment(commentId, userId, request))
         .isInstanceOf(CommentNotFoundException.class);
+
+    verify(userRepository).findById(userId);
+    verify(commentRepository).findById(commentId);
+    verify(commentRepository, never()).save(any());
   }
 
   @Test
   @DisplayName("댓글 수정 실패 - 작성자 불일치")
-  void upDateCommentFailByAuthorMismatch() {
+  void updateCommentFailByAuthorMismatch() {
     // given
     UUID otherUserId = UUID.randomUUID();
     CommentUpdateRequest request = new CommentUpdateRequest("updated content");
-    given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(user));
-    given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
 
-    // when
+    User otherUser = mock(User.class);
+    given(otherUser.getStatus()).willReturn(UserStatus.ACTIVE);
 
-    // then
+    given(userRepository.findById(otherUserId)).willReturn(Optional.of(otherUser));
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+    // when & then
     assertThatThrownBy(() -> commentService.updateComment(commentId, otherUserId, request))
         .isInstanceOf(CommentAuthorException.class);
+
+    verify(userRepository).findById(otherUserId);
+    verify(commentRepository).findById(commentId);
+    verify(commentRepository, never()).save(any());
   }
 
   @Test
   @DisplayName("댓글 상세 조회 성공")
   void findCommentSuccess() {
     // given
-    given(commentRepository.existsById(eq(commentId))).willReturn(true);
-    given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
-    given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
-    given(commentMapper.toDto(comment, userNickName)).willReturn(commentDto);
+    User user = mock(User.class);
+    given(user.getNickname()).willReturn(userNickname);
+
+    CommentDto commentDto = mock(CommentDto.class);
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(commentMapper.toDto(comment, userNickname)).willReturn(commentDto);
 
     // when
     CommentDto result = commentService.findComment(commentId);
 
     // then
     assertThat(result).isEqualTo(commentDto);
+    verify(commentRepository).findById(commentId);
+    verify(userRepository).findById(userId);
+    verify(commentMapper).toDto(comment, userNickname);
   }
 
   @Test
   @DisplayName("댓글 상세 조회 실패 - 댓글 존재하지 않음")
   void findCommentFail() {
     // given
-    given(commentRepository.existsById(eq(commentId))).willReturn(false);
-    given(commentRepository.findById(eq(commentId))).willReturn(Optional.empty());
+    given(commentRepository.findById(commentId)).willReturn(Optional.empty());
 
-    // when
-
-    // then
+    // when & then
     assertThatThrownBy(() -> commentService.findComment(commentId))
         .isInstanceOf(CommentNotFoundException.class);
+
+    verify(commentRepository).findById(commentId);
+    verify(userRepository, never()).findById(any());
   }
 
   @Test
-  @DisplayName("댓글 목록 조회 성공")
-  void findAllCommentsCommentSuccess() {
+  @DisplayName("댓글 목록 조회 성공 - 마지막 페이지")
+  void findAllCommentsSuccessLastPage() {
     // given
+    CommentFindAllRequest findAllRequest = mock(CommentFindAllRequest.class);
+
+    Review review = mock(Review.class);
+    given(review.getStatus()).willReturn(ReviewStatus.ACTIVE);
+
     UUID secondUserId = UUID.randomUUID();
     UUID secondCommentId = UUID.randomUUID();
 
+    User firstUser = mock(User.class);
+    given(firstUser.getId()).willReturn(userId);
+    given(firstUser.getNickname()).willReturn(userNickname);
+
     User secondUser = mock(User.class);
-    when(secondUser.getId()).thenReturn(secondUserId);
-    when(secondUser.getNickname()).thenReturn("secondUser");
+    given(secondUser.getId()).willReturn(secondUserId);
+    given(secondUser.getNickname()).willReturn("secondUser");
 
     Comment secondComment = Comment.builder()
         .reviewId(reviewId)
         .userId(secondUserId)
         .content("second content")
+        .status(CommentStatus.ACTIVE)
         .build();
 
     ReflectionTestUtils.setField(secondComment, "id", secondCommentId);
-    ReflectionTestUtils.setField(secondComment, "createdAt",
-        LocalDateTime.of(2026, 4, 21, 9, 59, 0));
+    ReflectionTestUtils.setField(
+        secondComment,
+        "createdAt",
+        LocalDateTime.of(2026, 4, 21, 9, 59, 0)
+    );
 
     CommentDto firstCommentDto = mock(CommentDto.class);
     CommentDto secondCommentDto = mock(CommentDto.class);
@@ -242,14 +321,14 @@ public class CommentServiceTest {
     given(findAllRequest.reviewId()).willReturn(reviewId);
     given(findAllRequest.limit()).willReturn(2);
 
-    given(reviewRepository.findById(eq(reviewId))).willReturn(Optional.of(review));
-    given(commentRepository.findAllByCursor(eq(findAllRequest)))
+    given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
+    given(commentRepository.findAllByCursor(findAllRequest))
         .willReturn(List.of(comment, secondComment));
-    given(commentRepository.countByReviewId(eq(reviewId))).willReturn(2);
+    given(commentRepository.countByReviewId(reviewId)).willReturn(2L);
     given(userRepository.findAllById(any()))
-        .willReturn(List.of(user, secondUser));
+        .willReturn(List.of(firstUser, secondUser));
 
-    given(commentMapper.toDto(comment, userNickName)).willReturn(firstCommentDto);
+    given(commentMapper.toDto(comment, userNickname)).willReturn(firstCommentDto);
     given(commentMapper.toDto(secondComment, "secondUser")).willReturn(secondCommentDto);
 
     // when
@@ -259,26 +338,91 @@ public class CommentServiceTest {
     assertThat(result.content()).isEqualTo(List.of(firstCommentDto, secondCommentDto));
     assertThat(result.size()).isEqualTo(2);
     assertThat(result.totalElements()).isEqualTo(2);
-    assertThat(result.hasNext()).isEqualTo(false);
-    assertThat(result.nextCursor()).isEqualTo(null);
-    assertThat(result.nextAfter()).isEqualTo(null);
+    assertThat(result.hasNext()).isFalse();
+    assertThat(result.nextCursor()).isNull();
+    assertThat(result.nextAfter()).isNull();
+  }
 
-    verify(reviewRepository).findById(reviewId);
-    verify(commentRepository).findAllByCursor(findAllRequest);
-    verify(commentRepository).countByReviewId(reviewId);
-    verify(userRepository).findAllById(any());
-    verify(commentMapper).toDto(comment, userNickName);
-    verify(commentMapper).toDto(secondComment, "secondUser");
+  @Test
+  @DisplayName("댓글 목록 조회 성공 - 다음 페이지 존재")
+  void findAllCommentsSuccessHasNext() {
+    // given
+    CommentFindAllRequest findAllRequest = mock(CommentFindAllRequest.class);
+
+    Review review = mock(Review.class);
+    given(review.getStatus()).willReturn(ReviewStatus.ACTIVE);
+
+    UUID secondUserId = UUID.randomUUID();
+    UUID thirdUserId = UUID.randomUUID();
+    UUID secondCommentId = UUID.randomUUID();
+    UUID thirdCommentId = UUID.randomUUID();
+
+    User firstUser = mock(User.class);
+    given(firstUser.getId()).willReturn(userId);
+    given(firstUser.getNickname()).willReturn(userNickname);
+
+    User secondUser = mock(User.class);
+    given(secondUser.getId()).willReturn(secondUserId);
+    given(secondUser.getNickname()).willReturn("secondUser");
+
+    Comment secondComment = Comment.builder()
+        .reviewId(reviewId)
+        .userId(secondUserId)
+        .content("second content")
+        .status(CommentStatus.ACTIVE)
+        .build();
+
+    Comment thirdComment = Comment.builder()
+        .reviewId(reviewId)
+        .userId(thirdUserId)
+        .content("third content")
+        .status(CommentStatus.ACTIVE)
+        .build();
+
+    LocalDateTime secondCreatedAt = LocalDateTime.of(2026, 4, 21, 9, 59, 0);
+    LocalDateTime thirdCreatedAt = LocalDateTime.of(2026, 4, 21, 9, 58, 0);
+
+    ReflectionTestUtils.setField(secondComment, "id", secondCommentId);
+    ReflectionTestUtils.setField(secondComment, "createdAt", secondCreatedAt);
+    ReflectionTestUtils.setField(thirdComment, "id", thirdCommentId);
+    ReflectionTestUtils.setField(thirdComment, "createdAt", thirdCreatedAt);
+
+    CommentDto firstCommentDto = mock(CommentDto.class);
+    CommentDto secondCommentDto = mock(CommentDto.class);
+
+    given(findAllRequest.reviewId()).willReturn(reviewId);
+    given(findAllRequest.limit()).willReturn(2);
+
+    given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
+    given(commentRepository.findAllByCursor(findAllRequest))
+        .willReturn(List.of(comment, secondComment, thirdComment));
+    given(commentRepository.countByReviewId(reviewId)).willReturn(3L);
+    given(userRepository.findAllById(any()))
+        .willReturn(List.of(firstUser, secondUser));
+
+    given(commentMapper.toDto(comment, userNickname)).willReturn(firstCommentDto);
+    given(commentMapper.toDto(secondComment, "secondUser")).willReturn(secondCommentDto);
+
+    // when
+    CursorPageResponseCommentDto result = commentService.findAllComments(findAllRequest);
+
+    // then
+    assertThat(result.content()).isEqualTo(List.of(firstCommentDto, secondCommentDto));
+    assertThat(result.size()).isEqualTo(2);
+    assertThat(result.totalElements()).isEqualTo(3);
+    assertThat(result.hasNext()).isTrue();
+    assertThat(result.nextCursor()).isEqualTo(secondCommentId.toString());
+    assertThat(result.nextAfter()).isEqualTo(secondCreatedAt);
   }
 
   @Test
   @DisplayName("댓글 목록 조회 실패 - 리뷰 정보 없음")
-  void findAllCommentsCommentFailByReviewNotFound() {
+  void findAllCommentsFailByReviewNotFound() {
     // given
-    given(findAllRequest.reviewId()).willReturn(reviewId);
-    given(findAllRequest.limit()).willReturn(10);
+    CommentFindAllRequest findAllRequest = mock(CommentFindAllRequest.class);
 
-    given(reviewRepository.findById(eq(reviewId))).willReturn(Optional.empty());
+    given(findAllRequest.reviewId()).willReturn(reviewId);
+    given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> commentService.findAllComments(findAllRequest))
@@ -292,58 +436,53 @@ public class CommentServiceTest {
   @DisplayName("댓글 논리 삭제 성공")
   void softDeleteCommentSuccess() {
     // given
-    given(commentRepository.existsById(eq(commentId))).willReturn(true);
-    given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
-    given(userRepository.existsById(eq(userId))).willReturn(true);
-    given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
+    User user = mock(User.class);
+    given(user.getStatus()).willReturn(UserStatus.ACTIVE);
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
     commentService.softDelete(commentId, userId);
 
     // then
+    assertThat(comment.getStatus()).isEqualTo(CommentStatus.DELETED);
     verify(commentRepository).findById(commentId);
     verify(userRepository).findById(userId);
-    assertThat(comment.getStatus()).isEqualTo(CommentStatus.DELETED);
+    verify(reviewRepository).decrementCommentCount(reviewId);
     verify(commentRepository, never()).deleteById(any(UUID.class));
-
   }
 
   @Test
-  @DisplayName("댓글 논리 삭제 실패")
+  @DisplayName("댓글 논리 삭제 실패 - 작성자 불일치")
   void softDeleteCommentFail() {
     // given
     UUID otherUserId = UUID.randomUUID();
 
     User otherUser = mock(User.class);
-    when(otherUser.getId()).thenReturn(otherUserId);
-    when(otherUser.getStatus()).thenReturn(UserStatus.ACTIVE);
+    given(otherUser.getStatus()).willReturn(UserStatus.ACTIVE);
 
-    given(commentRepository.existsById(eq(commentId))).willReturn(true);
-    given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(otherUserId)).willReturn(Optional.of(otherUser));
 
-    given(userRepository.existsById(eq(otherUserId))).willReturn(true);
-    given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));
-
-    // when
-
-    // then
+    // when & then
     assertThatThrownBy(() -> commentService.softDelete(commentId, otherUserId))
         .isInstanceOf(CommentAuthorException.class);
 
     verify(commentRepository).findById(commentId);
     verify(userRepository).findById(otherUserId);
-
+    verify(reviewRepository, never()).decrementCommentCount(any());
   }
 
   @Test
   @DisplayName("댓글 물리 삭제 성공")
   void hardDeleteCommentSuccess() {
     // given
-    given(commentRepository.existsById(eq(commentId))).willReturn(true);
-    given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+    User user = mock(User.class);
+    given(user.getStatus()).willReturn(UserStatus.ACTIVE);
 
-    given(userRepository.existsById(eq(userId))).willReturn(true);
-    given(userRepository.findById(eq(userId))).willReturn(Optional.of(user));
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
     commentService.hardDelete(commentId, userId);
@@ -352,33 +491,28 @@ public class CommentServiceTest {
     verify(commentRepository).findById(commentId);
     verify(userRepository).findById(userId);
     verify(commentRepository).deleteById(commentId);
+    verify(reviewRepository).decrementCommentCount(reviewId);
   }
 
   @Test
-  @DisplayName("댓글 물리 삭제 실패")
+  @DisplayName("댓글 물리 삭제 실패 - 작성자 불일치")
   void hardDeleteCommentFail() {
     // given
     UUID otherUserId = UUID.randomUUID();
 
     User otherUser = mock(User.class);
-    when(otherUser.getId()).thenReturn(otherUserId);
-    when(otherUser.getStatus()).thenReturn(UserStatus.ACTIVE);
+    given(otherUser.getStatus()).willReturn(UserStatus.ACTIVE);
 
-    given(commentRepository.existsById(eq(commentId))).willReturn(true);
-    given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(otherUserId)).willReturn(Optional.of(otherUser));
 
-    given(userRepository.existsById(eq(otherUserId))).willReturn(true);
-    given(userRepository.findById(eq(otherUserId))).willReturn(Optional.of(otherUser));
-
-    // when
-
-    // then
+    // when & then
     assertThatThrownBy(() -> commentService.hardDelete(commentId, otherUserId))
         .isInstanceOf(CommentAuthorException.class);
 
     verify(commentRepository).findById(commentId);
     verify(userRepository).findById(otherUserId);
     verify(commentRepository, never()).deleteById(any(UUID.class));
-
+    verify(reviewRepository, never()).decrementCommentCount(any());
   }
 }
