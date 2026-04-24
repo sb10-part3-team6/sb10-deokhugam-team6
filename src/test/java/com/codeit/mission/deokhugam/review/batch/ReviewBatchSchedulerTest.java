@@ -58,7 +58,6 @@ class ReviewBatchSchedulerTest {
   @DisplayName("스케줄러 실행 중 예외가 발생해도 서버 종료 없이 예외를 처리")
   void run_review_hard_delete_job_exception_handled() throws Exception {
     // given
-
     given(jobLauncher.run(eq(reviewHardDeleteJob), any(JobParameters.class)))
         .willThrow(new RuntimeException("Job execution failed."));
 
