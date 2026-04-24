@@ -41,7 +41,7 @@ public record ErrorResponse(
 
     @Schema(
         description = "HTTP 상태 코드",
-        example = "200"
+        example = "400"
     )
     int status
 ) {
