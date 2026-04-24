@@ -5,6 +5,7 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
@@ -13,19 +14,26 @@ import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(of = "id")
 @Table(
     name = "review_likes",
     uniqueConstraints = {
-      @UniqueConstraint(
-          name = "uk_review_user_like",
-          columnNames = {"review_id", "user_id"})
-    })
+        @UniqueConstraint(
+            name = "uk_review_user_like",
+            columnNames = {"review_id", "user_id"})
+    },
+    indexes = {
+        @Index(name = "idx_review_likes_liked_at_review_id", columnList = "liked_at, review_id"),
+        @Index(name = "idx_review_likes_liked_at_user_id", columnList= "liked_at, user_id")
+    }
+    )
 public class ReviewLike extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)

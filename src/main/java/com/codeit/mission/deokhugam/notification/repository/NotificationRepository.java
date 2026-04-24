@@ -1,8 +1,8 @@
 package com.codeit.mission.deokhugam.notification.repository;
 
 import com.codeit.mission.deokhugam.notification.entity.Notification;
-import java.util.List;
 import com.codeit.mission.deokhugam.notification.repository.custom.NotificationRepositoryCustom;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -25,4 +25,17 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   @Transactional
   @Query(value = "DELETE FROM notifications WHERE review_id IN (SELECT id FROM reviews WHERE user_id IN :userIds)", nativeQuery = true)
   void deleteByReviewUserIds(@Param("userIds") List<UUID> userIds);
+
+  // 알림 상태를 읽음으로 벌크 업데이트
+  // 업데이트 된 레코드 수를 파악하기 위해 리턴 타입을 int로 지정
+  @Modifying(clearAutomatically = true)
+  @Transactional
+  @Query("UPDATE Notification n SET n.confirmed = true WHERE n.user.id = :userId AND n.confirmed = false")
+  int updateAllAsConfirmed(@Param("userId") UUID userId);
+
+  // 삭제 대상 리뷰에 관한 알림 일괄 삭제
+  @Modifying(clearAutomatically = true)
+  @Transactional
+  @Query(value = "DELETE FROM Notification notification WHERE notification.review.id IN :reviewIds")
+  void deleteByReviewIdIn(@Param("reviewIds") List<UUID> reviewIds);
 }
