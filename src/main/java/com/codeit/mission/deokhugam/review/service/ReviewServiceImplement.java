@@ -19,6 +19,7 @@ import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
+import com.codeit.mission.deokhugam.review.mapper.ReviewLikeMapper;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
@@ -59,6 +60,7 @@ public class ReviewServiceImplement implements ReviewService {
   private final NotificationRepository notificationRepository;
 
   private final ReviewMapper reviewMapper;
+  private final ReviewLikeMapper reviewLikeMapper;
 
   // 리뷰 상세 조회
   @Override
@@ -275,11 +277,7 @@ public class ReviewServiceImplement implements ReviewService {
     boolean isLiked = executeToggleWithConcurrencyHandle(targetReview, requestUser);
 
     // 4. 응답 DTO 생성 및 반환
-    return ReviewLikeDto.builder()
-        .reviewId(targetReview.getId())
-        .userId(requestUser.getId())
-        .liked(isLiked)
-        .build();
+    return reviewLikeMapper.toDto(targetReview, requestUser, isLiked);
   }
 
   // 좋아요 추가 및 생성 동시성 문제 해결을 위한 메서드
@@ -310,7 +308,7 @@ public class ReviewServiceImplement implements ReviewService {
   // 좋아요 수 증가
   private void processAddLike(Review review, User user) {
     // 1. 좋아요 생성
-    ReviewLike createdReviewLike = createReviewLike(review, user);
+    ReviewLike createdReviewLike = reviewLikeMapper.toEntity(review, user);
     reviewLikeRepository.saveAndFlush(createdReviewLike);
 
     // 2. 특정 리뷰의 좋아요 수 증가
@@ -318,14 +316,6 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 3. 로그 기록
     log.info("[ADD_REVIEW_LIKE] Add Like Id: {}", createdReviewLike.getId());
-  }
-
-  // 리뷰 좋아요 생성
-  private ReviewLike createReviewLike(Review review, User user) {
-    return ReviewLike.builder()
-        .review(review)
-        .user(user)
-        .build();
   }
 
   // 좋아요 수 감소
