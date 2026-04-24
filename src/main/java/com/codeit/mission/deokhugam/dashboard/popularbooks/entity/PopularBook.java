@@ -8,6 +8,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.Builder;
 import lombok.Getter;
 
 @Entity
@@ -46,4 +47,27 @@ public class PopularBook extends BaseEntity {
 
   @Column(name = "snapshot_id", nullable = false)
   private UUID snapshotId;
+
+  @Builder
+  public PopularBook(
+      UUID bookId,
+      LocalDateTime periodStart,
+      LocalDateTime periodEnd,
+      Long reviewCount,
+      Long commentCount,
+      double score,
+      Long rank,
+      PeriodType periodType,
+      UUID snapshotId
+  ){
+    this.bookId = bookId;
+    this.periodEnd = periodEnd;
+    this.periodStart = periodStart;
+    this.reviewCount = reviewCount;
+    this.commentCount = commentCount;
+    this.score = score;
+    this.rank = rank;
+    this.periodType = periodType;
+    this.snapshotId = snapshotId;
+  }
 }
