@@ -46,7 +46,7 @@ class ReviewBatchConfigTest {
 
   @Test
   @DisplayName("Chunk 데이터(UUID 리스트)에 담긴 리뷰와 연관 데이터 삭제 성공")
-  void reviewHardDeleteWriter_Success() throws Exception {
+  void review_hard_delete_writer_Success() throws Exception {
     // given
     ItemWriter<UUID> writer = reviewBatchConfig.reviewHardDeleteWriter();
 
@@ -80,7 +80,7 @@ class ReviewBatchConfigTest {
 
   @Test
   @DisplayName("Writer 실행 도중 데이터베이스 오류가 발생한 경우, 예외를 반환")
-  void reviewHardDeleteWriter_Fail_DbError() throws Exception {
+  void review_hard_delete_writer_fail_db_error() throws Exception {
     // given
     ItemWriter<UUID> writer = reviewBatchConfig.reviewHardDeleteWriter();
     List<UUID> targetIds = List.of(UUID.randomUUID());
