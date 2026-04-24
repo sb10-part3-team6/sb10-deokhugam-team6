@@ -69,6 +69,7 @@ public class BookController {
         return ResponseEntity.status(204).build();
     }
 
+    @GetMapping
     public ResponseEntity<CursorPageResponseBookDto> getBooks(
             @RequestParam String keyword,
             @RequestParam String orderBy,
