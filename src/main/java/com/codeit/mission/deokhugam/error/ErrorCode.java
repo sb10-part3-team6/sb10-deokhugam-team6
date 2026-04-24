@@ -52,6 +52,7 @@ public enum ErrorCode {
     EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "external api error"),
     OCR_DETECT_FAILED(HttpStatus.BAD_REQUEST, "OCR detection failed"),
     S3_URL_PARSE_FAILED(HttpStatus.BAD_REQUEST, "S3 url parsing failed"),
+    ILLEGAL_LIMIT_VALUE(HttpStatus.BAD_REQUEST, "Limit value must be bigger than 0"),
 
     // 댓글
     FORBIDDEN_COMMENT_UPDATE(HttpStatus.FORBIDDEN, "Permission denied to edit this comment");

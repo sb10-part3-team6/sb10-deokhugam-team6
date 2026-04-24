@@ -331,6 +331,9 @@ public class BookService {
             String after,
             int limit
     ) {
+        if (limit <= 0) {
+            throw new IllegalLimitException();
+        }
 
         LocalDateTime afterValue = parseAfter(after);
         Object cursorValue = parseCursor(orderBy, cursor);
