@@ -97,8 +97,12 @@ class ReviewBatchConfigTest {
     assertThatThrownBy(() -> writer.write(chunk))
         .isInstanceOf(RuntimeException.class)
         .hasMessageContaining("DataBase Timeout Error");
-
-    // Repository 메서드가 호출되긴 했는지 검증
-    verify(reviewRepository, times(1)).deleteAllByIdInBatch(targetIds);
+    
+    InOrder inOrder = inOrder(commentRepository, reviewLikeRepository, notificationRepository,
+        reviewRepository);
+    inOrder.verify(commentRepository, times(1)).deleteByReviewIdIn(targetIds);
+    inOrder.verify(reviewLikeRepository, times(1)).deleteByReviewIdIn(targetIds);
+    inOrder.verify(notificationRepository, times(1)).deleteByReviewIdIn(targetIds);
+    inOrder.verify(reviewRepository, times(1)).deleteAllByIdInBatch(targetIds);
   }
 }
