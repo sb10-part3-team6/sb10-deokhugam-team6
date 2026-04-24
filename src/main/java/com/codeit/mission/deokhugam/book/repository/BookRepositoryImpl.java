@@ -1,6 +1,6 @@
 package com.codeit.mission.deokhugam.book.repository;
 
-import com.codeit.mission.deokhugam.book.entity.AssertDirection;
+import com.codeit.mission.deokhugam.book.entity.SortDirection;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.QBook;
 import com.querydsl.core.BooleanBuilder;
@@ -25,7 +25,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     public List<Book> findAllByCursor(
             String keyword,
             String orderBy,
-            AssertDirection direction,
+            SortDirection direction,
             Object cursor,
             LocalDateTime after,
             int limit
@@ -70,7 +70,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     private BooleanBuilder buildCursorCondition(
             QBook book,
             String orderBy,
-            AssertDirection direction,
+            SortDirection direction,
             Object cursor,
             LocalDateTime after
     ) {
@@ -83,7 +83,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
             case "title" -> {
                 String value = (String) cursor;
 
-                if (direction == AssertDirection.ASC) {
+                if (direction == SortDirection.ASC) {
                     builder.or(book.title.gt(value));
                     builder.or(book.title.eq(value).and(book.createdAt.gt(after)));
                 } else {
@@ -95,7 +95,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
             case "publishedDate" -> {
                 LocalDate value = (LocalDate) cursor;
 
-                if (direction == AssertDirection.ASC) {
+                if (direction == SortDirection.ASC) {
                     builder.or(book.publishedDate.gt(value));
                     builder.or(book.publishedDate.eq(value).and(book.createdAt.gt(after)));
                 } else {
@@ -107,7 +107,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
             case "rating" -> {
                 Double value = (Double) cursor;
 
-                if (direction == AssertDirection.ASC) {
+                if (direction == SortDirection.ASC) {
                     builder.or(book.rating.gt(value));
                     builder.or(book.rating.eq(value).and(book.createdAt.gt(after)));
                 } else {
@@ -119,7 +119,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
             case "reviewCount" -> {
                 Integer value = (Integer) cursor;
 
-                if (direction == AssertDirection.ASC) {
+                if (direction == SortDirection.ASC) {
                     builder.or(book.reviewCount.gt(value));
                     builder.or(book.reviewCount.eq(value).and(book.createdAt.gt(after)));
                 } else {
@@ -134,14 +134,14 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
         return builder;
     }
 
-    private OrderSpecifier<?> getOrder(String orderBy, AssertDirection direction) {
-        Order order = direction == AssertDirection.ASC ? Order.ASC : Order.DESC;
+    private OrderSpecifier<?> getOrder(String orderBy, SortDirection direction) {
+        Order order = direction == SortDirection.ASC ? Order.ASC : Order.DESC;
         return new OrderSpecifier(order, getField(QBook.book, orderBy));
     }
 
-    private OrderSpecifier<LocalDateTime> createdAtOrder(AssertDirection direction) {
+    private OrderSpecifier<LocalDateTime> createdAtOrder(SortDirection direction) {
         return new OrderSpecifier<>(
-                direction == AssertDirection.ASC ? Order.ASC : Order.DESC,
+                direction == SortDirection.ASC ? Order.ASC : Order.DESC,
                 QBook.book.createdAt
         );
     }

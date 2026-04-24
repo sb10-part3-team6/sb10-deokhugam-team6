@@ -1,6 +1,6 @@
 package com.codeit.mission.deokhugam.book.repository;
 
-import com.codeit.mission.deokhugam.book.entity.AssertDirection;
+import com.codeit.mission.deokhugam.book.entity.SortDirection;
 import com.codeit.mission.deokhugam.book.entity.Book;
 
 import java.time.LocalDateTime;
@@ -10,7 +10,7 @@ public interface BookRepositoryCustom {
     List<Book> findAllByCursor(
             String keyword,
             String orderBy,
-            AssertDirection direction,
+            SortDirection direction,
             Object cursor,
             LocalDateTime after,
             int limit

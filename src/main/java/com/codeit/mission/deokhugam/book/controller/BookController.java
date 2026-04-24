@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.book.controller;
 
 import com.codeit.mission.deokhugam.book.dto.*;
-import com.codeit.mission.deokhugam.book.entity.AssertDirection;
+import com.codeit.mission.deokhugam.book.entity.SortDirection;
 import com.codeit.mission.deokhugam.book.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -73,7 +73,7 @@ public class BookController {
     public ResponseEntity<CursorPageResponseBookDto> getBooks(
             @RequestParam String keyword,
             @RequestParam String orderBy,
-            @RequestParam AssertDirection direction,
+            @RequestParam SortDirection direction,
             @RequestParam String cursor,
             @RequestParam String after,
             @RequestParam int limit

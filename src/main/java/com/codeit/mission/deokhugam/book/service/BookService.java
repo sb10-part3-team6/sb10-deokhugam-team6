@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.dto.*;
-import com.codeit.mission.deokhugam.book.entity.AssertDirection;
+import com.codeit.mission.deokhugam.book.entity.SortDirection;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.event.BookDeletedEvent;
@@ -326,7 +326,7 @@ public class BookService {
     public CursorPageResponseBookDto findAllBooks(
             String keyword,
             String orderBy,
-            AssertDirection direction,
+            SortDirection direction,
             String cursor,
             String after,
             int limit
