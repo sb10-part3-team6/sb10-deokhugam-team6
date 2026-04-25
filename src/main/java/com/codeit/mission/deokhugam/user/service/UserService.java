@@ -1,5 +1,8 @@
 package com.codeit.mission.deokhugam.user.service;
 
+import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
+import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.dto.request.UserLoginRequest;
 import com.codeit.mission.deokhugam.user.dto.request.UserRegisterRequest;
 import com.codeit.mission.deokhugam.user.dto.request.UserUpdateRequest;
@@ -10,6 +13,8 @@ import com.codeit.mission.deokhugam.user.exception.LoginFailedException;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.mapper.UserMapper;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
   private final UserRepository userRepository;
+  private final ReviewRepository reviewRepository;
+  private final CommentRepository commentRepository;
+  private final NotificationRepository notificationRepository;
   private final UserMapper userMapper;
 
   @Transactional
@@ -68,9 +76,26 @@ public class UserService {
 
   @Transactional
   public void hardDeleteUser(UUID id) {
-    if (userRepository.hardDeleteById(id) == 0) {
+    // 0. 대상 유저가 실제로 존재하고 'DELETED' 상태인지 확인 (외래 키 제약 위반 방지 및 안전한 삭제를 위함)
+    if (!userRepository.existsByDeletedUser(id)) {
       throw new UserNotFoundException(id);
     }
+
+    List<UUID> userIds = Collections.singletonList(id);
+
+    // 1. 삭제 대상 유저가 작성한 리뷰에 달린 연관 데이터 먼저 삭제 (자식의 자식)
+    reviewRepository.deleteLikesByReviewUserIds(userIds);
+    commentRepository.deleteByReviewUserIds(userIds);
+    notificationRepository.deleteByReviewUserIds(userIds);
+
+    // 2. 유저 본인의 활동 데이터 삭제
+    reviewRepository.deleteLikesByUserIds(userIds);
+    commentRepository.deleteByUserIds(userIds);
+    notificationRepository.deleteByUserIds(userIds);
+    reviewRepository.deleteByUserIds(userIds);
+
+    // 3. 최종 유저 본인 삭제 (이미 상태 체크를 했으므로 무조건 1이어야 함)
+    userRepository.hardDeleteById(id);
   }
 
   private User findUserById(UUID id) {
