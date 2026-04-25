@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.error.ErrorCode;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -292,16 +295,19 @@ class UserServiceTest {
       userService.hardDeleteUser(userId);
 
       // then
-      verify(reviewRepository).deleteLikesByReviewUserIds(userIds);
-      verify(commentRepository).deleteByReviewUserIds(userIds);
-      verify(notificationRepository).deleteByReviewUserIds(userIds);
+      InOrder inOrder = inOrder(reviewRepository, commentRepository, notificationRepository,
+          userRepository);
 
-      verify(reviewRepository).deleteLikesByUserIds(userIds);
-      verify(commentRepository).deleteByUserIds(userIds);
-      verify(notificationRepository).deleteByUserIds(userIds);
-      verify(reviewRepository).deleteByUserIds(userIds);
+      inOrder.verify(reviewRepository).deleteLikesByReviewUserIds(userIds);
+      inOrder.verify(commentRepository).deleteByReviewUserIds(userIds);
+      inOrder.verify(notificationRepository).deleteByReviewUserIds(userIds);
 
-      verify(userRepository).hardDeleteById(userId);
+      inOrder.verify(reviewRepository).deleteLikesByUserIds(userIds);
+      inOrder.verify(commentRepository).deleteByUserIds(userIds);
+      inOrder.verify(notificationRepository).deleteByUserIds(userIds);
+      inOrder.verify(reviewRepository).deleteByUserIds(userIds);
+
+      inOrder.verify(userRepository).hardDeleteById(userId);
     }
 
     @Test
@@ -316,6 +322,7 @@ class UserServiceTest {
           .isInstanceOf(UserNotFoundException.class);
 
       verify(userRepository, never()).hardDeleteById(any(UUID.class));
+      verifyNoInteractions(reviewRepository, commentRepository, notificationRepository);
     }
 
     @Test
