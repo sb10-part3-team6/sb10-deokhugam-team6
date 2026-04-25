@@ -95,7 +95,10 @@ public class UserService {
     reviewRepository.deleteByUserIds(userIds);
 
     // 3. 최종 유저 본인 삭제 (이미 상태 체크를 했으므로 무조건 1이어야 함)
-    userRepository.hardDeleteById(id);
+    int deletedCount = userRepository.hardDeleteById(id);
+    if (deletedCount != 1) {
+      throw new IllegalStateException("삭제 대상 유저가 존재하지 않거나 이미 삭제되었습니다. ID: " + id);
+    }
   }
 
   private User findUserById(UUID id) {

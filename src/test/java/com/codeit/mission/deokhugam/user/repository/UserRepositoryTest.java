@@ -96,6 +96,52 @@ class UserRepositoryTest {
     assertThat(countById(recentDeletedUser.getId())).isEqualTo(1);
   }
 
+  @Test
+  @DisplayName("existsByDeletedUser: 상태가 DELETED인 유저만 존재 여부를 확인하는지 검증")
+  void existsByDeletedUser_Success() {
+    // given
+    User deletedUser = createUser("deleted@example.com", "탈퇴자");
+    User activeUser = createUser("active@example.com", "활동중");
+
+    userRepository.saveAll(List.of(deletedUser, activeUser));
+    entityManager.flush();
+
+    updateUserStatusAndTime(deletedUser.getId(), UserStatus.DELETED, LocalDateTime.now());
+    entityManager.clear();
+
+    // when & then
+    assertThat(userRepository.existsByDeletedUser(deletedUser.getId())).isTrue();
+    assertThat(userRepository.existsByDeletedUser(activeUser.getId())).isFalse();
+    assertThat(userRepository.existsByDeletedUser(UUID.randomUUID())).isFalse();
+  }
+
+  @Test
+  @DisplayName("hardDeleteById: 상태가 DELETED인 유저만 물리 삭제하고 삭제 건수를 반환하는지 검증")
+  void hardDeleteById_Success() {
+    // given
+    User deletedUser = createUser("deleted@example.com", "탈퇴자");
+    User activeUser = createUser("active@example.com", "활동중");
+
+    userRepository.saveAll(List.of(deletedUser, activeUser));
+    entityManager.flush();
+
+    updateUserStatusAndTime(deletedUser.getId(), UserStatus.DELETED, LocalDateTime.now());
+    entityManager.clear();
+
+    // when
+    int deletedCount = userRepository.hardDeleteById(deletedUser.getId());
+    int activeDeletedCount = userRepository.hardDeleteById(activeUser.getId());
+    int nonExistentDeletedCount = userRepository.hardDeleteById(UUID.randomUUID());
+
+    // then
+    assertThat(deletedCount).isEqualTo(1);
+    assertThat(activeDeletedCount).isEqualTo(0);
+    assertThat(nonExistentDeletedCount).isEqualTo(0);
+
+    assertThat(countById(deletedUser.getId())).isZero();
+    assertThat(countById(activeUser.getId())).isEqualTo(1);
+  }
+
   private int countById(UUID id) {
     Number count = (Number) entityManager.createNativeQuery(
             "SELECT count(*) FROM users WHERE id = ?1")

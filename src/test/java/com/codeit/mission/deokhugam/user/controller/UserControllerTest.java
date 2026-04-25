@@ -301,4 +301,57 @@ class UserControllerTest {
       verify(userService).deleteUser(userId);
     }
   }
+
+  @Nested
+  @DisplayName("회원 물리 삭제 API")
+  class HardDeleteUserApiTest {
+
+    @Test
+    @DisplayName("성공: 204 No Content를 반환")
+    void hardDeleteUser_Success() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      doNothing().when(userService).hardDeleteUser(userId);
+
+      // when & then
+      mockMvc.perform(delete("/api/users/{userId}/hard", userId))
+          .andDo(print())
+          .andExpect(status().isNoContent());
+
+      verify(userService).hardDeleteUser(userId);
+    }
+
+    @Test
+    @DisplayName("실패: 존재하지 않는 유저 (404 Not Found)")
+    void hardDeleteUser_Fail_NotFound() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      doThrow(new UserNotFoundException(userId)).when(userService).hardDeleteUser(userId);
+
+      // when & then
+      mockMvc.perform(delete("/api/users/{userId}/hard", userId))
+          .andDo(print())
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
+
+      verify(userService).hardDeleteUser(userId);
+    }
+
+    @Test
+    @DisplayName("실패: 서버 내부 오류 (500 Internal Server Error)")
+    void hardDeleteUser_Fail_InternalError() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      doThrow(new IllegalStateException("삭제 대상 유저가 존재하지 않거나 이미 삭제되었습니다."))
+          .when(userService).hardDeleteUser(userId);
+
+      // when & then
+      mockMvc.perform(delete("/api/users/{userId}/hard", userId))
+          .andDo(print())
+          .andExpect(status().isInternalServerError())
+          .andExpect(jsonPath("$.code").value("INTERNAL_SERVER_ERROR"));
+
+      verify(userService).hardDeleteUser(userId);
+    }
+  }
 }
