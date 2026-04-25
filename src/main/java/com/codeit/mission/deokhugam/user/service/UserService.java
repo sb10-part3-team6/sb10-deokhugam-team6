@@ -68,10 +68,9 @@ public class UserService {
 
   @Transactional
   public void hardDeleteUser(UUID id) {
-    if (!userRepository.existsById(id)) {
+    if (userRepository.hardDeleteById(id) == 0) {
       throw new UserNotFoundException(id);
     }
-    userRepository.hardDeleteById(id);
   }
 
   private User findUserById(UUID id) {

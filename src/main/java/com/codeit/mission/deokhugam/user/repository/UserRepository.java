@@ -39,5 +39,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   @Modifying
   @Transactional
   @Query(value = "DELETE FROM users WHERE id = :id", nativeQuery = true)
-  void hardDeleteById(@Param("id") UUID id);
+  int hardDeleteById(@Param("id") UUID id);
 }
