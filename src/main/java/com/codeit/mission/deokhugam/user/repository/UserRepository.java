@@ -35,4 +35,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   @Transactional
   @Query(value = "DELETE FROM users WHERE id IN :ids AND status = 'DELETED' AND updated_at <= :threshold", nativeQuery = true)
   void hardDeleteByIds(@Param("ids") List<UUID> ids, @Param("threshold") LocalDateTime threshold);
+
+  @Modifying
+  @Transactional
+  @Query(value = "DELETE FROM users WHERE id = :id", nativeQuery = true)
+  void hardDeleteById(@Param("id") UUID id);
 }

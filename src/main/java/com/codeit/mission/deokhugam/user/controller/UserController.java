@@ -1,9 +1,9 @@
 package com.codeit.mission.deokhugam.user.controller;
 
-import com.codeit.mission.deokhugam.user.dto.UserDto;
-import com.codeit.mission.deokhugam.user.dto.UserLoginRequest;
-import com.codeit.mission.deokhugam.user.dto.UserRegisterRequest;
-import com.codeit.mission.deokhugam.user.dto.UserUpdateRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserLoginRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserRegisterRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserUpdateRequest;
+import com.codeit.mission.deokhugam.user.dto.response.UserDto;
 import com.codeit.mission.deokhugam.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -115,6 +115,23 @@ public class UserController {
   @DeleteMapping("/{userId}")
   public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
     userService.deleteUser(userId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Operation(
+      summary = "사용자 물리 삭제",
+      operationId = "permanentDeleteUser",
+      description = "사용자를 물리적으로 삭제합니다."
+  )
+  @ApiResponses({
+      @ApiResponse(responseCode = "204", description = "사용자 삭제 성공"),
+      @ApiResponse(responseCode = "403", description = "사용자 삭제 권한 없음"),
+      @ApiResponse(responseCode = "404", description = "사용자 정보 없음"),
+      @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+  })
+  @DeleteMapping("/{userId}/hard")
+  public ResponseEntity<Void> hardDeleteUser(@PathVariable UUID userId) {
+    userService.hardDeleteUser(userId);
     return ResponseEntity.noContent().build();
   }
 }

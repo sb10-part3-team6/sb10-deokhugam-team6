@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +19,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "users")
-@SQLDelete(sql = "UPDATE users SET status = 'DELETED', updated_at = NOW() WHERE id = ?")
+@SQLDelete(sql = "UPDATE users SET status = 'DELETED', updated_at = NOW(), deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("status != 'DELETED'")
 public class User extends BaseEntity {
 
@@ -34,6 +35,9 @@ public class User extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private UserStatus status;
+
+  @Column
+  private Instant deletedAt;
 
 
   @Builder

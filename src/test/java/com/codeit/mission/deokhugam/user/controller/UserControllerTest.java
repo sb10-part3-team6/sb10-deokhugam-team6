@@ -14,10 +14,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.codeit.mission.deokhugam.error.GlobalExceptionHandler;
-import com.codeit.mission.deokhugam.user.dto.UserDto;
-import com.codeit.mission.deokhugam.user.dto.UserLoginRequest;
-import com.codeit.mission.deokhugam.user.dto.UserRegisterRequest;
-import com.codeit.mission.deokhugam.user.dto.UserUpdateRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserLoginRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserRegisterRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserUpdateRequest;
+import com.codeit.mission.deokhugam.user.dto.response.UserDto;
 import com.codeit.mission.deokhugam.user.exception.EmailDuplicationException;
 import com.codeit.mission.deokhugam.user.exception.LoginFailedException;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;

@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.user.mapper;
 
-import com.codeit.mission.deokhugam.user.dto.UserDto;
-import com.codeit.mission.deokhugam.user.dto.UserRegisterRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserRegisterRequest;
+import com.codeit.mission.deokhugam.user.dto.response.UserDto;
 import com.codeit.mission.deokhugam.user.entity.User;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;

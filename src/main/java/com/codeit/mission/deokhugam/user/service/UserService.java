@@ -1,9 +1,9 @@
 package com.codeit.mission.deokhugam.user.service;
 
-import com.codeit.mission.deokhugam.user.dto.UserDto;
-import com.codeit.mission.deokhugam.user.dto.UserLoginRequest;
-import com.codeit.mission.deokhugam.user.dto.UserRegisterRequest;
-import com.codeit.mission.deokhugam.user.dto.UserUpdateRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserLoginRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserRegisterRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserUpdateRequest;
+import com.codeit.mission.deokhugam.user.dto.response.UserDto;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.EmailDuplicationException;
 import com.codeit.mission.deokhugam.user.exception.LoginFailedException;
@@ -64,6 +64,14 @@ public class UserService {
     User user = findUserById(id);
 
     userRepository.delete(user);
+  }
+
+  @Transactional
+  public void hardDeleteUser(UUID id) {
+    if (!userRepository.existsById(id)) {
+      throw new UserNotFoundException(id);
+    }
+    userRepository.hardDeleteById(id);
   }
 
   private User findUserById(UUID id) {

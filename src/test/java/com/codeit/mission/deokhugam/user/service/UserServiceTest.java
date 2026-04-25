@@ -8,10 +8,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.codeit.mission.deokhugam.error.ErrorCode;
-import com.codeit.mission.deokhugam.user.dto.UserDto;
-import com.codeit.mission.deokhugam.user.dto.UserLoginRequest;
-import com.codeit.mission.deokhugam.user.dto.UserRegisterRequest;
-import com.codeit.mission.deokhugam.user.dto.UserUpdateRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserLoginRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserRegisterRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserUpdateRequest;
+import com.codeit.mission.deokhugam.user.dto.response.UserDto;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.EmailDuplicationException;
 import com.codeit.mission.deokhugam.user.exception.LoginFailedException;
