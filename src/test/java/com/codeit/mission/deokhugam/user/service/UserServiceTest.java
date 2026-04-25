@@ -21,6 +21,8 @@ import com.codeit.mission.deokhugam.user.exception.LoginFailedException;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.mapper.UserMapper;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -282,6 +284,7 @@ class UserServiceTest {
     void hardDeleteUser_Success() {
       // given
       UUID userId = UUID.randomUUID();
+      List<UUID> userIds = Collections.singletonList(userId);
       given(userRepository.existsByDeletedUser(userId)).willReturn(true);
       given(userRepository.hardDeleteById(userId)).willReturn(1);
 
@@ -289,6 +292,15 @@ class UserServiceTest {
       userService.hardDeleteUser(userId);
 
       // then
+      verify(reviewRepository).deleteLikesByReviewUserIds(userIds);
+      verify(commentRepository).deleteByReviewUserIds(userIds);
+      verify(notificationRepository).deleteByReviewUserIds(userIds);
+
+      verify(reviewRepository).deleteLikesByUserIds(userIds);
+      verify(commentRepository).deleteByUserIds(userIds);
+      verify(notificationRepository).deleteByUserIds(userIds);
+      verify(reviewRepository).deleteByUserIds(userIds);
+
       verify(userRepository).hardDeleteById(userId);
     }
 
