@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,7 @@ public class PopularBookAggregationService {
   private ReviewRepository reviewRepository;
 
   // 한 번 실행하면 도서로부터 인기 도서 집계에 필요한 지수들을 Fetch
+  @Transactional(readOnly = true)
   public Map<UUID, PopularBookStat> loadBookStat(PeriodType periodType, LocalDateTime aggregatedAt){
     List<LocalDateTime> periods = Utils.calculatePeriod(periodType, aggregatedAt);
     // 집계 기간 범위
@@ -66,6 +68,17 @@ public class PopularBookAggregationService {
     return statsByBookId;
   }
 
+  @Transactional
+  public void rankPopularBooks(PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId){
+    List<LocalDateTime> periods = Utils.calculatePeriod(periodType, aggregatedAt);
+    LocalDateTime periodStart = periods.get(0);
+    LocalDateTime periodEnd = periods.get(1);
+
+    List<PopularBook> popularBooks = popularBookRepository.findByPeriodAndSnapshotIdDescByScore(
+        periodType, periodStart, periodEnd, snapshotId);
+
+  }
+
   // 정보들을 바탕으로 인기 도서로 가공하는 메서드
   public PopularBook toPopularBook(
       UUID bookId,
@@ -86,8 +99,16 @@ public class PopularBookAggregationService {
         .reviewCount(stat.reviewCount())
         .avgRating(stat.reviewAvgRating())
         .build();
-
   }
+
+  public PopularBookStat emptyStat(UUID bookId){
+    return new PopularBookStat(
+        bookId,
+        0L,
+        0.0
+    );
+  }
+
   private double calculateScore(long reviewCount, double avgRating){
     return reviewCount * REVIEW_WEIGHT + avgRating * AVERAGE_RATING_WEIGHT;
   }

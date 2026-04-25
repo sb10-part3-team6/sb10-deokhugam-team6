@@ -37,7 +37,8 @@ public class DashboardBatchScheduler {
     // DomainType을 순회
     for (DomainType domainType : List.of(
         DomainType.POWER_USER,
-        DomainType.POPULAR_REVIEW)) {
+        DomainType.POPULAR_REVIEW,
+        DomainType.)) {
 
       // Domain 별 주기를 순회
       for (PeriodType periodType : List.of(
