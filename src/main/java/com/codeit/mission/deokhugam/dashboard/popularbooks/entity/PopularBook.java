@@ -20,7 +20,8 @@ import lombok.NoArgsConstructor;
 @Table(
     name = "popular_books",
     indexes = {
-        @Index(name="idx_book_id_period_type_snap_shot_id", columnList = "book_id, period_type, snapshot_id")
+        @Index(name="idx_book_id_period_type_snap_shot_id", columnList = "book_id, period_type, snapshot_id"),
+        @Index(name="idx_period_snapshot_window_score", columnList = "period_type, snapshot_id, period_start, period_end, score")
     }
 )
 
