@@ -23,7 +23,7 @@ public class RankPopularBookTasklet implements Tasklet {
 
   @Value("#{jobParameters['periodType']}") private String periodTypeValue;
   @Value("#{jobParameters['aggregatedAt']}") private String aggregatedAtValue;
-  @Value("#{jobParameters['snapshotId']}") private String snapshotIdValue;
+  @Value("#{jobExecutionContext['snapshotId']}") private String snapshotIdValue;
 
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)

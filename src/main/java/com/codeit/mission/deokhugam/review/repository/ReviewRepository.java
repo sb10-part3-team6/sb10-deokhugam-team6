@@ -126,6 +126,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   List<BookReviewAvgRating> avgRatingsPerBook(
       @Param("periodStart") LocalDateTime periodStart,
       @Param("periodEnd") LocalDateTime periodEnd,
-      @Param("status") ReviewStatus status,
-  )
+      @Param("status") ReviewStatus status
+  );
 }

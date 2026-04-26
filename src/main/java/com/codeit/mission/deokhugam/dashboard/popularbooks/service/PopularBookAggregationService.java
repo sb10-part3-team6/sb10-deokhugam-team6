@@ -28,8 +28,8 @@ public class PopularBookAggregationService {
   private final static double REVIEW_WEIGHT = 0.4;
   private final static double AVERAGE_RATING_WEIGHT = 0.6;
 
-  private PopularBookRepository popularBookRepository;
-  private ReviewRepository reviewRepository;
+  private final PopularBookRepository popularBookRepository;
+  private final ReviewRepository reviewRepository;
 
   // 한 번 실행하면 도서로부터 인기 도서 집계에 필요한 지수들을 Fetch
   @Transactional(readOnly = true)
@@ -77,6 +77,18 @@ public class PopularBookAggregationService {
     List<PopularBook> popularBooks = popularBookRepository.findByPeriodAndSnapshotIdDescByScore(
         periodType, periodStart, periodEnd, snapshotId);
 
+    long rank = 1L;
+    double previousScore = Double.NaN;
+    long index = 1L;
+
+    for (PopularBook popularBook : popularBooks) {
+      if (index == 1L || Double.compare(popularBook.getScore(), previousScore) != 0) {
+        rank = index;
+        previousScore = popularBook.getScore();
+      }
+      popularBook.updateRank(rank);
+      index++;
+    }
   }
 
   // 정보들을 바탕으로 인기 도서로 가공하는 메서드
@@ -98,6 +110,8 @@ public class PopularBookAggregationService {
         .snapshotId(snapshotId)
         .reviewCount(stat.reviewCount())
         .avgRating(stat.reviewAvgRating())
+        .score(calculateScore(stat.reviewCount(), stat.reviewAvgRating()))
+        .rank(0L)
         .build();
   }
 

@@ -72,4 +72,6 @@ public class PopularBook extends BaseEntity {
     this.periodType = periodType;
     this.snapshotId = snapshotId;
   }
+
+  public void updateRank(long rank) {this.rank = rank;}
 }

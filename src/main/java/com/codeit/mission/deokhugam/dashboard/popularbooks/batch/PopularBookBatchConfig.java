@@ -41,22 +41,23 @@ public class PopularBookBatchConfig {
   }
 
   @Bean
-  public Step aggregatePopularBookStep(
+  public Step aggregatePopularBooksStep(
       @Qualifier("bookReader") JpaPagingItemReader<Book> itemReader,
       @Qualifier("bookProcessor") PopularBookItemProcessor processor,
       @Qualifier("bookWriter") JpaItemWriter<PopularBook> writer)
   {
     return new StepBuilder("aggregatePopularBookStep",jobRepository)
-        .<Book, PopularBook>chunk(100, transactionManager)
-        .reader(itemReader)
-        .processor(processor)
-        .writer(writer)
+        .<Book, PopularBook>chunk(100, transactionManager) // 100 청크 사이즈만큼 처리
+        .reader(itemReader) // 요소를 읽어들이는 리더
+        .processor(processor) // 요소를 가공하는 프로세서
+        .writer(writer) // 요소를 쓰는 라이터
         .build();
   }
 
   @Bean
-  public Step rankPopularBookStep(RankPopularBookTasklet rankPopularBookTasklet){
-    return new StepBuilder("rankPopularBookStep",jobRepository)
+  // 랭크를 부여하는 스텝임.
+  public Step rankPopularBooksStep(RankPopularBookTasklet rankPopularBookTasklet){
+    return new StepBuilder("rankPopularBooksStep",jobRepository)
         .tasklet(rankPopularBookTasklet, transactionManager)
         .build();
   }

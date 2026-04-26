@@ -17,12 +17,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 // 대시보드 도메인 관련 배치 작업 스케쥴러
+// Job을 총괄하는 역할?
 public class DashboardBatchScheduler {
 
   private final JobLauncher jobLauncher;
   private final Job powerUserAggregationJob; // 파워 유저 집계 Job
-  private final Job popularReviewAggregationJob;
-//  private final Job popularBookAggregationJob;
+  private final Job popularReviewAggregationJob; // 인기 리뷰 집계 Job
+  private final Job popularBookAggregationJob; // 인기 도서 집계 Job
 
   // 매 00:00 에 배치 작업을 시작함.
   @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
@@ -38,7 +39,7 @@ public class DashboardBatchScheduler {
     for (DomainType domainType : List.of(
         DomainType.POWER_USER,
         DomainType.POPULAR_REVIEW,
-        DomainType.)) {
+        DomainType.POPULAR_BOOK)) {
 
       // Domain 별 주기를 순회
       for (PeriodType periodType : List.of(
@@ -59,6 +60,7 @@ public class DashboardBatchScheduler {
     Job job = switch (domainType) {
       case POWER_USER -> powerUserAggregationJob;
       case POPULAR_REVIEW -> popularReviewAggregationJob;
+      case POPULAR_BOOK -> popularBookAggregationJob;
     };
 
     // 집계에 필요한 파라미터들을 JobParameter로 전달한다.
