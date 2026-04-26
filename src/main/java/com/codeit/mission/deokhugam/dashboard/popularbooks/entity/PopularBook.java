@@ -4,6 +4,8 @@ import com.codeit.mission.deokhugam.base.BaseEntity;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -45,6 +47,7 @@ public class PopularBook extends BaseEntity {
   private Long rank;
 
   @Column(name = "period_type", nullable = false)
+  @Enumerated(EnumType.STRING)
   private PeriodType periodType;
 
   @Column(name = "snapshot_id", nullable = false)

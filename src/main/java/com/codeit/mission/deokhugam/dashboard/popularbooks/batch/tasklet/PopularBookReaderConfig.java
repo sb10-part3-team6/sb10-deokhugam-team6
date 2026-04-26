@@ -8,10 +8,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@StepScope
+
 public class PopularBookReaderConfig {
 
   @Bean
+  @StepScope
   JpaPagingItemReader<Book> bookReader(EntityManagerFactory emf){
     JpaPagingItemReader<Book> reader = new JpaPagingItemReader<>();
     reader.setName("bookReader");
