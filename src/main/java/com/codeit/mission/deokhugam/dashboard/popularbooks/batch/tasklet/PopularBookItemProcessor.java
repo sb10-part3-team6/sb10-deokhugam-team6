@@ -6,7 +6,7 @@ import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookStat;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.entity.PopularBook;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.service.PopularBookAggregationService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class PopularBookItemProcessor implements ItemProcessor<Book, PopularBook
   private final PopularBookAggregationService popularBookAggregateService;
 
   private PeriodType periodType;
-  private LocalDateTime aggregatedAt;
+  private Instant aggregatedAt;
   private UUID snapshotId;
   private Map<UUID, PopularBookStat> statsByBookId = Map.of();
 
@@ -45,14 +45,14 @@ public class PopularBookItemProcessor implements ItemProcessor<Book, PopularBook
     );
 
     this.periodType = JobParameterUtils.parseEnum("periodType", periodTypeStr, PeriodType.class);
-    this.aggregatedAt = JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtStr);
+    this.aggregatedAt = JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtStr);
     this.snapshotId = JobParameterUtils.parseUuid("snapshotId", snapshotIdStr);
 
     this.statsByBookId = popularBookAggregateService.loadBookStat(periodType, aggregatedAt);
   }
 
   @Override
-  public @Nullable PopularBook process(@NonNull Book item) throws Exception {
+  public @Nullable PopularBook process(@NonNull Book item) {
     PopularBookStat stat = statsByBookId.get(item.getId());
     if(stat == null){
       stat = popularBookAggregateService.emptyStat(item.getId());

@@ -10,7 +10,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -63,7 +62,7 @@ public class PowerUser extends BaseEntity {
   private long commentCount;
 
   @Column(name = "aggregated_at", nullable = false)
-  private LocalDateTime aggregatedAt;
+  private Instant aggregatedAt;
 
   @Column(name = "snapshot_id", nullable = false)
   private UUID snapshotId;
@@ -79,7 +78,7 @@ public class PowerUser extends BaseEntity {
       double reviewScoreSum,
       long likeCount,
       long commentCount,
-      LocalDateTime aggregatedAt,
+      Instant aggregatedAt,
       UUID snapshotId) {
     this.userId = userId;
     this.periodType = periodType;

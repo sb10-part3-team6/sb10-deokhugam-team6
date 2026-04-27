@@ -7,7 +7,7 @@ import com.codeit.mission.deokhugam.dashboard.exceptions.DomainTypeNotEqualExcep
 import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotIdNotEqualException;
 import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotFoundException;
 import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotStagedPublishException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,7 +26,7 @@ public class AggregateSnapshotService {
   public AggregateSnapshot createStagingSnapshot(
       DomainType domainType,
       PeriodType periodType,
-      LocalDateTime aggregatedAt
+      Instant aggregatedAt
   ) {
     snapshotRepository
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(

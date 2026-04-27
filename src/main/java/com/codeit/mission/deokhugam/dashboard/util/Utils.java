@@ -5,7 +5,6 @@ import com.codeit.mission.deokhugam.dashboard.dto.ParsedCursors;
 import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidCursorValueException;
 import java.time.DateTimeException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class Utils {
@@ -18,7 +17,7 @@ public class Utils {
       if(cursor == null){
         return new ParsedCursors(null, null);
       }
-      return new ParsedCursors(Long.parseLong(cursor), LocalDateTime.parse(after));
+      return new ParsedCursors(Long.parseLong(cursor), Instant.parse(after));
     } catch (NumberFormatException | DateTimeException e){
       throw new InvalidCursorValueException();
     }
