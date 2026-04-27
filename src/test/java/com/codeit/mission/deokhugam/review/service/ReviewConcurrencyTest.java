@@ -16,6 +16,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -98,7 +100,10 @@ public class ReviewConcurrencyTest {
 
     // 32개 스레드가 동시 수행 가능한 환경 풀 (Pool)
     ExecutorService executorService = Executors.newFixedThreadPool(32);
+    // 모든 작업이 끝날 때까지 메인 스레드를 대기시키는 객체
     CountDownLatch latch = new CountDownLatch(threadCount);
+    // 멀티 스레드 환경에서 실패 횟수를 집계하기 위한 원자적 변수
+    AtomicInteger failureCount = new AtomicInteger(0);
 
     // when
     for (int i = 0; i < threadCount; i++) {
@@ -108,6 +113,9 @@ public class ReviewConcurrencyTest {
         try {
           // 각 스레드가 동시에 좋아요 추가 요청 수행
           reviewServiceImplement.toggleLike(savedReview.getId(), liker.getId());
+        } catch (Exception e) {
+          // 예외 발생 시, 실패 카운트 증가
+          failureCount.incrementAndGet();
         } finally {
           // latch 카운트 1 감소
           latch.countDown();
@@ -115,10 +123,19 @@ public class ReviewConcurrencyTest {
       });
     }
 
-    // 모든 스레드 작업이 끝날 때까지 대기
-    latch.await();
+    // 모든 작업이 완료될 때까지 30초 대기 (무한 대기 방지)
+    boolean completed = latch.await(30, TimeUnit.SECONDS);
+    // 스레드 풀 닫기 (자원 누수 방지)
+    executorService.shutdown();
+
+    // 타임아웃 발생 시, 테스트 실패
+    if (!completed) {
+      throw new AssertionError("Test Timeout: Tasks did not complete within 30 seconds.");
+    }
 
     // then
+    assertEquals(0, failureCount.get(), "Some like requests failed during execution.");
+
     Review updatedReview = reviewRepository.findById(savedReview.getId()).orElseThrow();
     assertEquals(threadCount, updatedReview.getLikeCount());
   }
