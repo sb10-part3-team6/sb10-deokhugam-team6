@@ -33,7 +33,7 @@ public record NotificationDto(
     String reviewContent,
 
     @Schema(
-        description = "매사자",
+        description = "매시지",
         example = "string"
     )
     String message,
