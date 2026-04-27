@@ -16,8 +16,8 @@ cloud:
 
 # 외부 API 설정
 naverapi:
-  client-id: ${NAVER_CLIENT_ID}
-  client-secret: ${NAVER_CLIENT_SECRET}
+  client-id: ${NAVER_CLIENT_ID:}
+  client-secret: ${NAVER_CLIENT_SECRET:}
 ocr:
   url: https://api.ocr.space/parse/image
-  apikey: ${SPACE_OCR_API_KEY}
+  apikey: ${SPACE_OCR_API_KEY:}
