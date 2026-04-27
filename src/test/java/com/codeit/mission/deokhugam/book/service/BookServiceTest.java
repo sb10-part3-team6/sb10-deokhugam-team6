@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -204,4 +205,32 @@ class BookServiceTest {
 
         verify(bookDtoMapper, never()).toDto(any());
     }
+
+    @Test
+    @DisplayName("api에서 반환된 텍스트를 정제해 isbn 값만 내보낸다: isbn 문구가 있을 때")
+    void extractIsbnFromApiText_withIsbn() {
+        //given
+        String apiTest = "010-0000-0000\r\n0503405-5000\r\nubmedia@naver.com\r\nISBN 978-89-967241-5-5 (93010)\r\n";
+
+        //when & then
+        String result = ReflectionTestUtils.invokeMethod(bookService, "extractIsbn", apiTest);
+
+        //then
+        assertThat(result).isEqualTo("9788996724155");
+    }
+
+    @Test
+    @DisplayName("api에서 반환된 텍스트를 정제해 isbn 값만 내보낸다: isbn 문구가 없을 때")
+    void extractIsbnFromApiText_withoutIsbn(){
+        //given
+        String apiTest = "010-0000-0000\r\n0503405-5000\r\nubmedia@naver.com\r\n978-89-967241-5-5 (93010)\r\n";
+
+        //when & then
+        String result = ReflectionTestUtils.invokeMethod(bookService, "extractIsbn", apiTest);
+
+        //then
+        assertThat(result).isEqualTo("9788996724155");
+    }
+
+
 }
