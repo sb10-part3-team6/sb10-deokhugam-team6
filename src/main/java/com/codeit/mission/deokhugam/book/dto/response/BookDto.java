@@ -1,7 +1,6 @@
-package com.codeit.mission.deokhugam.book.dto;
+package com.codeit.mission.deokhugam.book.dto.response;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 public record BookDto(
@@ -10,13 +9,13 @@ public record BookDto(
     String author,
     String description,
     String publisher,
-    LocalDate publishedDate,
+    Instant publishedDate,
     String isbn,
     String thumbnailUrl,
     int reviewCount,
     double rating,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt
+    Instant createdAt,
+    Instant updatedAt
 ) {
 
 }

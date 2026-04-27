@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.notification.dto;
+package com.codeit.mission.deokhugam.notification.dto.request;
 
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import jakarta.validation.constraints.Max;
@@ -18,9 +18,9 @@ public record NotificationRequestQuery(
 
 ) {
 
-    private static final int DEFAULT_LIMIT = 20;
+  private static final int DEFAULT_LIMIT = 20;
 
-    public int getLimitOrDefault() {
-        return limit == null ? DEFAULT_LIMIT : limit;
-    }
+  public int getLimitOrDefault() {
+    return limit == null ? DEFAULT_LIMIT : limit;
+  }
 }

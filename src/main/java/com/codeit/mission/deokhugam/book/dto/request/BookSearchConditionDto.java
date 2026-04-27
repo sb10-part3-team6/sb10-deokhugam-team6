@@ -1,14 +1,14 @@
-package com.codeit.mission.deokhugam.book.dto;
+package com.codeit.mission.deokhugam.book.dto.request;
 
 import com.codeit.mission.deokhugam.book.entity.SortDirection;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record BookSearchConditionDto(
     String keyword,
     String orderBy,
     SortDirection direction,
     Object cursor,
-    LocalDateTime after,
+    Instant after,
     int limit
 ) {
 

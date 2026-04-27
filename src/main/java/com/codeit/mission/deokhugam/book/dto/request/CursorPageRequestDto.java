@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.book.dto;
+package com.codeit.mission.deokhugam.book.dto.request;
 
 import com.codeit.mission.deokhugam.book.entity.SortDirection;
 

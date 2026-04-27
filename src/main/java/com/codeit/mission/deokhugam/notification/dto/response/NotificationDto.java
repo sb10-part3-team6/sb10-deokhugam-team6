@@ -1,6 +1,6 @@
-package com.codeit.mission.deokhugam.notification.dto;
+package com.codeit.mission.deokhugam.notification.dto.response;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
 
@@ -12,8 +12,8 @@ public record NotificationDto(
     String reviewContent,
     String message,
     boolean confirmed,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt
+    Instant createdAt,
+    Instant updatedAt
 ) {
 
 }

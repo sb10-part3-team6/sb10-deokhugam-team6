@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.notification.dto;
+package com.codeit.mission.deokhugam.notification.dto.response;
 
 import java.time.Instant;
 import java.util.List;

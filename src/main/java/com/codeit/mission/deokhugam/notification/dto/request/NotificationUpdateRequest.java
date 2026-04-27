@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.notification.dto;
+package com.codeit.mission.deokhugam.notification.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 
