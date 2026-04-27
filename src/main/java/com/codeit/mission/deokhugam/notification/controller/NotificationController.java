@@ -1,9 +1,9 @@
 package com.codeit.mission.deokhugam.notification.controller;
 
-import com.codeit.mission.deokhugam.notification.dto.CursorPageResponseNotificationDto;
-import com.codeit.mission.deokhugam.notification.dto.NotificationDto;
-import com.codeit.mission.deokhugam.notification.dto.NotificationRequestQuery;
-import com.codeit.mission.deokhugam.notification.dto.NotificationUpdateRequest;
+import com.codeit.mission.deokhugam.notification.dto.response.CursorPageResponseNotificationDto;
+import com.codeit.mission.deokhugam.notification.dto.response.NotificationDto;
+import com.codeit.mission.deokhugam.notification.dto.request.NotificationRequestQuery;
+import com.codeit.mission.deokhugam.notification.dto.request.NotificationUpdateRequest;
 import com.codeit.mission.deokhugam.notification.service.NotificationService;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -25,36 +25,36 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final NotificationService notificationService;
+  private final NotificationService notificationService;
 
-    @GetMapping
-    public ResponseEntity<CursorPageResponseNotificationDto> findByUserId(
-        @RequestParam(name = "userId") UUID userId,
-        @Valid @ParameterObject @ModelAttribute NotificationRequestQuery query) {
+  @GetMapping
+  public ResponseEntity<CursorPageResponseNotificationDto> findByUserId(
+      @RequestParam(name = "userId") UUID userId,
+      @Valid @ParameterObject @ModelAttribute NotificationRequestQuery query) {
 
-        return ResponseEntity.ok(notificationService.findByUserId(userId, query));
+    return ResponseEntity.ok(notificationService.findByUserId(userId, query));
 
-    }
+  }
 
-    // 알림 읽음 상태 업데이트
-    @PatchMapping("/{notificationId}")
-    public ResponseEntity<NotificationDto> updateById(
-        @PathVariable UUID notificationId,
-        @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
-        @Valid @RequestBody NotificationUpdateRequest requestDto) {
+  // 알림 읽음 상태 업데이트
+  @PatchMapping("/{notificationId}")
+  public ResponseEntity<NotificationDto> updateById(
+      @PathVariable UUID notificationId,
+      @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
+      @Valid @RequestBody NotificationUpdateRequest requestDto) {
 
-        return ResponseEntity.ok(
-            notificationService.updateById(notificationId, requestUserId,
-                requestDto));
-    }
+    return ResponseEntity.ok(
+        notificationService.updateById(notificationId, requestUserId,
+            requestDto));
+  }
 
-    // 모든 알림 읽음 처리
-    @PatchMapping("/read-all")
-    public ResponseEntity<Void> updateAllAsRead(
-        @RequestHeader("Deokhugam-Request-User-ID") UUID userId) {
+  // 모든 알림 읽음 처리
+  @PatchMapping("/read-all")
+  public ResponseEntity<Void> updateAllAsRead(
+      @RequestHeader("Deokhugam-Request-User-ID") UUID userId) {
 
-        notificationService.updateByUserId(userId);
-        return ResponseEntity.noContent().build();
-    }
+    notificationService.updateByUserId(userId);
+    return ResponseEntity.noContent().build();
+  }
 
 }

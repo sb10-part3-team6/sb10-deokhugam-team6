@@ -13,10 +13,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
-import com.codeit.mission.deokhugam.notification.dto.CursorPageResponseNotificationDto;
-import com.codeit.mission.deokhugam.notification.dto.NotificationDto;
-import com.codeit.mission.deokhugam.notification.dto.NotificationRequestQuery;
-import com.codeit.mission.deokhugam.notification.dto.NotificationUpdateRequest;
+import com.codeit.mission.deokhugam.notification.dto.response.CursorPageResponseNotificationDto;
+import com.codeit.mission.deokhugam.notification.dto.response.NotificationDto;
+import com.codeit.mission.deokhugam.notification.dto.request.NotificationRequestQuery;
+import com.codeit.mission.deokhugam.notification.dto.request.NotificationUpdateRequest;
 import com.codeit.mission.deokhugam.notification.entity.Notification;
 import com.codeit.mission.deokhugam.notification.exception.NotificationNotOwnedException;
 import com.codeit.mission.deokhugam.notification.mapper.NotificationMapper;
@@ -29,6 +29,7 @@ import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -67,22 +68,22 @@ public class NotificationServiceTest {
 
   private User createUser(String nickname) {
     return User.builder()
-      .nickname(nickname)
-      .build();
+        .nickname(nickname)
+        .build();
   }
 
   private Review createReview(User user) {
     Book book = Book.builder()
-      .title("제목")
-      .rating(5)
-      .build();
+        .title("제목")
+        .rating(5)
+        .build();
 
     return Review.builder()
-      .user(user)
-      .book(book)
-      .content("리뷰 내용")
-      .rating(5)
-      .build();
+        .user(user)
+        .book(book)
+        .content("리뷰 내용")
+        .rating(5)
+        .build();
   }
 
   @Nested
@@ -120,7 +121,7 @@ public class NotificationServiceTest {
       assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");
       assertThat(saved.isConfirmed()).isFalse();
       assertThat(saved.getMessage())
-        .isEqualTo("[" + actor.getNickname() + "]님이 나의 리뷰를 좋아합니다.");
+          .isEqualTo("[" + actor.getNickname() + "]님이 나의 리뷰를 좋아합니다.");
     }
 
     @Test
@@ -153,7 +154,7 @@ public class NotificationServiceTest {
       assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");
       assertThat(saved.isConfirmed()).isFalse();
       assertThat(saved.getMessage())
-        .isEqualTo("[" + actor.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.");
+          .isEqualTo("[" + actor.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.");
     }
 
     @Test
@@ -183,7 +184,7 @@ public class NotificationServiceTest {
       assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");
       assertThat(saved.isConfirmed()).isFalse();
       assertThat(saved.getMessage())
-        .isEqualTo("나의 리뷰가 인기 리뷰로 등록되었습니다.");
+          .isEqualTo("나의 리뷰가 인기 리뷰로 등록되었습니다.");
     }
 
     @Test
@@ -198,7 +199,7 @@ public class NotificationServiceTest {
 
       // when & then
       assertThatThrownBy(() ->
-        notificationService.createByLike(actorId, receiverId, reviewId)
+          notificationService.createByLike(actorId, receiverId, reviewId)
       ).isInstanceOf(UserNotFoundException.class);
     }
 
@@ -217,7 +218,7 @@ public class NotificationServiceTest {
 
       // when & then
       assertThatThrownBy(() ->
-        notificationService.createByLike(actorId, receiverId, reviewId)
+          notificationService.createByLike(actorId, receiverId, reviewId)
       ).isExactlyInstanceOf(UserNotFoundException.class);
     }
 
@@ -239,7 +240,7 @@ public class NotificationServiceTest {
 
       // when & then
       assertThatThrownBy(() ->
-        notificationService.createByLike(actorId, receiverId, reviewId)
+          notificationService.createByLike(actorId, receiverId, reviewId)
       ).isInstanceOf(ReviewNotFoundException.class);
     }
   }
@@ -256,9 +257,9 @@ public class NotificationServiceTest {
       userId = UUID.randomUUID();
 
       query = NotificationRequestQuery.builder()
-        .limit(1)
-        .direction(DirectionEnum.DESC)
-        .build();
+          .limit(1)
+          .direction(DirectionEnum.DESC)
+          .build();
     }
 
     // limit=1로 두개의 데이터 중 하나만 조회하는 경우를 테스트합니다.
@@ -269,21 +270,21 @@ public class NotificationServiceTest {
       Notification n1 = mock(Notification.class);
       Notification n2 = mock(Notification.class);
 
-      LocalDateTime time1 = LocalDateTime.now();
-      LocalDateTime time2 = time1.minusSeconds(10);
+      Instant time1 = Instant.now();
+      Instant time2 = time1.minusSeconds(10);
 
       given(n1.getCreatedAt()).willReturn(time1);
 
       List<Notification> notifications = List.of(n1);
 
       Slice<Notification> slice =
-        new SliceImpl<>(notifications, PageRequest.of(0, 1), true);
+          new SliceImpl<>(notifications, PageRequest.of(0, 1), true);
 
       given(notificationRepository.findByUserWithCursor(userId, query))
-        .willReturn(slice);
+          .willReturn(slice);
 
       given(notificationRepository.countByUserId(userId))
-        .willReturn(2L);
+          .willReturn(2L);
 
       NotificationDto dto1 = mock(NotificationDto.class);
       NotificationDto dto2 = mock(NotificationDto.class);
@@ -292,15 +293,15 @@ public class NotificationServiceTest {
 
       // when
       CursorPageResponseNotificationDto result =
-        notificationService.findByUserId(userId, query);
+          notificationService.findByUserId(userId, query);
 
       // then
       assertThat(result.content()).hasSize(1);
       assertThat(result.size()).isEqualTo(1);
       assertThat(result.totalElements()).isEqualTo(2);
       assertThat(result.hasNext()).isTrue();
-      assertThat(result.nextCursor()).isEqualTo(time1.toInstant(ZoneOffset.UTC).toString());
-      assertThat(result.nextAfter()).isEqualTo(time1.toInstant(ZoneOffset.UTC));
+      assertThat(result.nextCursor()).isEqualTo(time1.toString());
+      assertThat(result.nextAfter()).isEqualTo(time1);
     }
 
     @Test
@@ -308,17 +309,17 @@ public class NotificationServiceTest {
     void findByUserIdNoContent() {
       // given
       Slice<Notification> slice =
-        new SliceImpl<>(List.of(), PageRequest.of(0, 2), false);
+          new SliceImpl<>(List.of(), PageRequest.of(0, 2), false);
 
       given(notificationRepository.findByUserWithCursor(userId, query))
-        .willReturn(slice);
+          .willReturn(slice);
 
       given(notificationRepository.countByUserId(userId))
-        .willReturn(0L);
+          .willReturn(0L);
 
       // when
       CursorPageResponseNotificationDto result =
-        notificationService.findByUserId(userId, query);
+          notificationService.findByUserId(userId, query);
 
       // then
       assertThat(result.content()).isEmpty();
@@ -334,28 +335,33 @@ public class NotificationServiceTest {
       Instant after = Instant.parse("2026-01-01T00:00:00Z");
 
       NotificationRequestQuery query = NotificationRequestQuery.builder()
-        .after(after)
-        .limit(2)
-        .build();
+          .after(after)
+          .limit(2)
+          .build();
 
       Notification n1 = mock(Notification.class);
       Notification n2 = mock(Notification.class);
 
-      LocalDateTime t1 = LocalDateTime.of(2025, 12, 31, 23, 59, 50);
-      LocalDateTime t2 = LocalDateTime.of(2025, 12, 31, 23, 59, 40);
+      Instant t1 = LocalDateTime.of(2025, 12, 31, 23, 59, 50)
+          .atZone(ZoneId.of("Asia/Seoul"))
+          .toInstant();
+
+      Instant t2 = LocalDateTime.of(2025, 12, 31, 23, 59, 40)
+          .atZone(ZoneId.of("Asia/Seoul"))
+          .toInstant();
 
       given(n2.getCreatedAt()).willReturn(t2);
 
       List<Notification> notifications = List.of(n1, n2);
 
       Slice<Notification> slice =
-        new SliceImpl<>(notifications, PageRequest.of(0, 2), true);
+          new SliceImpl<>(notifications, PageRequest.of(0, 2), true);
 
       given(notificationRepository.findByUserWithCursor(userId, query))
-        .willReturn(slice);
+          .willReturn(slice);
 
       given(notificationRepository.countByUserId(userId))
-        .willReturn(50L);
+          .willReturn(50L);
 
       NotificationDto dto1 = mock(NotificationDto.class);
       NotificationDto dto2 = mock(NotificationDto.class);
@@ -365,15 +371,15 @@ public class NotificationServiceTest {
 
       // when
       CursorPageResponseNotificationDto result =
-        notificationService.findByUserId(userId, query);
+          notificationService.findByUserId(userId, query);
 
       // then
       // Repository에 after 포함된 query 전달 확인
       verify(notificationRepository).findByUserWithCursor(userId, query);
 
       // nextCursor / nextAfter 계산 검증 (마지막 요소 기준)
-      assertThat(result.nextAfter()).isEqualTo(t2.toInstant(ZoneOffset.UTC));
-      assertThat(result.nextCursor()).isEqualTo(t2.toInstant(ZoneOffset.UTC).toString());
+      assertThat(result.nextAfter()).isEqualTo(t2);
+      assertThat(result.nextCursor()).isEqualTo(t2.toString());
 
       // 기타 값 검증
       assertThat(result.content()).hasSize(2);
@@ -401,19 +407,19 @@ public class NotificationServiceTest {
 
       // 알림 대상이 된 리뷰
       Review review = Review.builder()
-        .user(requestUser)
-        .content("review content")
-        .rating(5)
-        .build();
+          .user(requestUser)
+          .content("review content")
+          .rating(5)
+          .build();
       ReflectionTestUtils.setField(review, "id", reviewId);
 
       // 알림
       Notification notification = Notification.builder()
-        .user(requestUser)
-        .review(review)
-        .reviewContent("review content")
-        .message("noti message")
-        .build();
+          .user(requestUser)
+          .review(review)
+          .reviewContent("review content")
+          .message("noti message")
+          .build();
       ReflectionTestUtils.setField(notification, "id", notificationId);
 
       // 알림을 읽음으로 갱신
@@ -421,19 +427,19 @@ public class NotificationServiceTest {
 
       // 응답 dto
       NotificationDto expectedDto = NotificationDto.builder()
-        .userId(requestUserId)
-        .confirmed(true)
-        .reviewId(reviewId)
-        .reviewContent("review content")
-        .message("noti message")
-        .build();
+          .userId(requestUserId)
+          .confirmed(true)
+          .reviewId(reviewId)
+          .reviewContent("review content")
+          .message("noti message")
+          .build();
 
       given(notificationRepository.findById(notificationId)).willReturn(Optional.of(notification));
       given(notificationMapper.toDto(notification)).willReturn(expectedDto);
 
       // when
       NotificationDto result = notificationService.updateById(notificationId, requestUserId,
-        requestDto);
+          requestDto);
 
       // then
       assertThat(notification.isConfirmed()).isTrue();
@@ -458,8 +464,8 @@ public class NotificationServiceTest {
 
       // 알림
       Notification notification = Notification.builder()
-        .user(receiverUser)
-        .build();
+          .user(receiverUser)
+          .build();
       ReflectionTestUtils.setField(notification, "id", notificationId);
 
       // 알림을 읽음으로 갱신
@@ -470,7 +476,7 @@ public class NotificationServiceTest {
       // when & then
       // 예외 발생 검증
       assertThrows(NotificationNotOwnedException.class, () ->
-        notificationService.updateById(notificationId, requestUserId, requestDto)
+          notificationService.updateById(notificationId, requestUserId, requestDto)
       );
 
       // 알림 상태가 갱신되지 않았음을 검증
@@ -504,7 +510,7 @@ public class NotificationServiceTest {
 
       // when & then
       assertThatThrownBy(() ->
-        notificationService.updateByUserId(userId)
+          notificationService.updateByUserId(userId)
       ).isInstanceOf(UserNotFoundException.class);
 
       // 핵심: update 쿼리는 실행되면 안 됨
