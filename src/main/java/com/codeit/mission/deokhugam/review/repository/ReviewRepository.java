@@ -4,10 +4,13 @@ import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +22,11 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
 
   // 중복 검사: 특정 도서에 대한 사용자 리뷰 존재 유무
   boolean existsByBookIdAndUserId(UUID bookId, UUID userId);
+
+  // 비관적 락이 적용된 리뷰 조회
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT review FROM Review review WHERE review.id = :id")
+  Optional<Review> findByIdWithPessimisticLock(@Param("id") UUID id);
 
   // 좋아요 수 증가
   @Modifying(flushAutomatically = true, clearAutomatically = true)
