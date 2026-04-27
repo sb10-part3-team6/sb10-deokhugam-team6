@@ -240,7 +240,7 @@ class PopularReviewServiceTest {
   @Test
   @DisplayName("발행된 스냅샷이 없으면 빈 Content를 반환한다.")
   void getReviews_snapshotNotFound() {
-    // when
+    // given
     when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
         DomainType.POPULAR_REVIEW, PeriodType.MONTHLY, StagingType.PUBLISHED))
         .thenReturn(Optional.empty());
@@ -248,7 +248,7 @@ class PopularReviewServiceTest {
     // when
     CursorPageResponsePopularReviewDto result = popularReviewService.getReviews(PeriodType.MONTHLY, DirectionEnum.DESC, null, null, 1);
 
-    assertEquals(0, result.content().size()); // content가 비어있는지 확인
+    // then
     assertTrue(result.content().isEmpty()); // content는 비어있음.
     assertEquals(0L, result.totalElements()); // 총 요소의 개수도 0
     assertFalse(result.hasNext()); // next도 없으며

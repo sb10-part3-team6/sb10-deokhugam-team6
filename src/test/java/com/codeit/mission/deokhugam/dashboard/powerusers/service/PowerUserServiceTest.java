@@ -236,12 +236,13 @@ class PowerUserServiceTest {
         DomainType.POWER_USER, PeriodType.MONTHLY, StagingType.PUBLISHED))
         .thenReturn(Optional.empty());
 
+    // when
     CursorPageResponsePowerUserDto result =
         powerUserService.getLatestRankings(
             PeriodType.MONTHLY, DirectionEnum.ASC, null, null, 20);
 
-    // when + then
-    assertEquals(0, result.content().size());
+    // then
+    assertTrue(result.content().isEmpty());
     assertEquals(20, result.size());
     assertEquals(0L, result.totalElements());
     assertFalse(result.hasNext());
