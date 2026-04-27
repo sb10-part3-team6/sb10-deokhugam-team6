@@ -50,3 +50,9 @@ logging:
   level:
     root: info
     com.codeit.mission.deokhugam: info
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

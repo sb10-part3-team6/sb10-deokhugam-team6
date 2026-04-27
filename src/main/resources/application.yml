@@ -1,16 +1,20 @@
 spring:
   application:
     name: sb10-deokhugam-team6
+
+  # 배치 설정
   batch:
     job:
       enabled: false
 
+# AWS S3 설정
 cloud:
   aws:
     s3:
       region: ap-northeast-2
       bucket: sb10-deokhugam-team6 #임시로 작성
 
+# 외부 API 설정
 naverapi:
   client-id: ${NAVER_CLIENT_ID}
   client-secret: ${NAVER_CLIENT_SECRET}
