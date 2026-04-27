@@ -8,7 +8,6 @@ import com.codeit.mission.deokhugam.dashboard.StagingType;
 import com.codeit.mission.deokhugam.dashboard.dto.ParsedCursors;
 import com.codeit.mission.deokhugam.dashboard.dto.StringCursors;
 import com.codeit.mission.deokhugam.dashboard.exceptions.CursorAfterNotProvidedTogetherException;
-import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotFoundException;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.CursorPageResponsePopularBookDto;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.repository.PopularBookRepository;
@@ -17,7 +16,9 @@ import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotReposito
 import com.codeit.mission.deokhugam.dashboard.util.Utils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -60,12 +61,21 @@ public class PopularBookService {
     LocalDateTime afterDate = cursors.after();
 
     // 찾고자하는 기간에 해당하는 스냅샷의 ID를 구합니다.
-    UUID publishedSnapshotId = getPublishedSnapshotId(periodType);
+    Optional<UUID> publishedSnapshotId = getPublishedSnapshotId(periodType);
+    if (publishedSnapshotId.isEmpty()) {
+      return new CursorPageResponsePopularBookDto(
+          Collections.emptyList(),
+          null,
+          null,
+          pageSize,
+          0L,
+          false);
+    }
 
     // 커서 페이지 응답에 content 안에 들어갈 PopularBookDto 리스트
     List<PopularBookDto> rows = (direction == DirectionEnum.ASC)
-        ? popularBookRepository.findRankingDtosBySnapshotIdAsc(publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1))
-        : popularBookRepository.findRankingDtosBySnapshotIdDesc(publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
+        ? popularBookRepository.findRankingDtosBySnapshotIdAsc(publishedSnapshotId.get(), cursorLong, afterDate, PageRequest.of(0, pageSize + 1))
+        : popularBookRepository.findRankingDtosBySnapshotIdDesc(publishedSnapshotId.get(), cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
 
     // 뽑아온 rows의 사이즈가 한 페이지의 사이즈보다 크면 다음 페이지가 존재합니다.
     boolean hasNext = rows.size() > pageSize;
@@ -80,7 +90,7 @@ public class PopularBookService {
     String nextAfter = nextCursors.after();
 
     // 스냅샷에 해당하는 요소들의 총 개수를 센다.
-    long totalElements = popularBookRepository.countRankingsBySnapshotId(publishedSnapshotId);
+    long totalElements = popularBookRepository.countRankingsBySnapshotId(publishedSnapshotId.get());
 
     return new CursorPageResponsePopularBookDto(
         content,
@@ -91,13 +101,12 @@ public class PopularBookService {
         hasNext);
   }
 
-  // periodType과 DomainType=인기 도서로 snapshotid를 뽑아옵니다.
-  private UUID getPublishedSnapshotId(PeriodType periodType) {
+  // periodType과 DomainType=인기 도서로 snapshot ID를 뽑아옵니다.
+  private Optional<UUID> getPublishedSnapshotId(PeriodType periodType) {
     return aggregateSnapshotRepository
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
             DomainType.POPULAR_BOOK, periodType, StagingType.PUBLISHED)
-        .map(AggregateSnapshot::getSnapshotId)
-        .orElseThrow(SnapshotNotFoundException::new);
+        .map(AggregateSnapshot::getSnapshotId);
   }
 
   private StringCursors getNextCursors(boolean hasNext, List<PopularBookDto> content){
