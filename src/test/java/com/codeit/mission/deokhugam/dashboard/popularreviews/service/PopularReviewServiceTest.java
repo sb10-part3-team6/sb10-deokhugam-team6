@@ -248,7 +248,7 @@ class PopularReviewServiceTest {
     // when
     CursorPageResponsePopularReviewDto result = popularReviewService.getReviews(PeriodType.MONTHLY, DirectionEnum.DESC, null, null, 1);
 
-    assertEquals(0, result.content().isEmpty()); // content가 비어있는지 확인
+    assertEquals(0, result.content().size()); // content가 비어있는지 확인
     assertTrue(result.content().isEmpty()); // content는 비어있음.
     assertEquals(0L, result.totalElements()); // 총 요소의 개수도 0
     assertFalse(result.hasNext()); // next도 없으며
