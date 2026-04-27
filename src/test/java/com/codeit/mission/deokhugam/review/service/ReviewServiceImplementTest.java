@@ -26,7 +26,9 @@ import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -181,7 +183,9 @@ public class ReviewServiceImplementTest {
     );
 
     // 페이징을 위한 정보
-    LocalDateTime sameTime = LocalDateTime.of(2026, 4, 22, 15, 0, 0);
+    Instant sameTime = LocalDateTime.of(2026, 4, 22, 15, 0, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
     UUID review1Id = UUID.randomUUID();
     UUID review2Id = UUID.randomUUID();
     UUID review3Id = UUID.randomUUID();
@@ -246,7 +250,7 @@ public class ReviewServiceImplementTest {
 
     // 서비스가 계산해야 하는 커서 값
     String expectedNextCursor = "2_5_" + review2Id.toString();
-    LocalDateTime expectedNextAfter = sameTime;
+    Instant expectedNextAfter = sameTime;
 
     CursorPageResponseReviewDto<ReviewDto> expectedResponse = CursorPageResponseReviewDto.<ReviewDto>builder()
         .content(dtoList)
@@ -343,7 +347,7 @@ public class ReviewServiceImplementTest {
         "rating",
         "desc",
         "meow-meow",
-        LocalDateTime.now(),
+        Instant.now(),
         10
     );
 
@@ -379,7 +383,7 @@ public class ReviewServiceImplementTest {
         "createdAt",
         "desc",
         "meow-meow",
-        LocalDateTime.now(),
+        Instant.now(),
         10
     );
 

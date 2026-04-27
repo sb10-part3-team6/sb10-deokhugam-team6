@@ -1,9 +1,9 @@
 package com.codeit.mission.deokhugam.review.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Instant;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Schema(description = "리뷰 응답")
@@ -77,15 +77,15 @@ public record ReviewDto(
 
     @Schema(
         description = "생성 시점",
-        example = "2026-04-24T02:49:51.932"
+        example = "2026-04-24T02:49:51.932z"
     )
-    LocalDateTime createdAt,
+    Instant createdAt,
 
     @Schema(
         description = "수정 시점",
-        example = "2026-04-24T02:49:51.932"
+        example = "2026-04-24T02:49:51.932z"
     )
-    LocalDateTime updatedAt
+    Instant updatedAt
 ) {
 
 }

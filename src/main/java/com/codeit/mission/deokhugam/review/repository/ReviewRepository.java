@@ -7,7 +7,7 @@ import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import jakarta.persistence.LockModeType;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -64,8 +64,8 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
           group by r.user.id
           """)
   List<UserReviewAggregate> findUserReviewAggregates(
-      @Param("periodStart") LocalDateTime periodStart,
-      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("periodStart") Instant periodStart,
+      @Param("periodEnd") Instant periodEnd,
       @Param("status") ReviewStatus status);
 
   // 사용자가 누른 '좋아요' 기록들을 일괄 삭제 (외래 키 제약 조건 해결용)
@@ -98,42 +98,42 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
       group by rl.review.id
       """)
   List<ReviewLikeCount> countReviewLikes(
-      @Param("periodStart") LocalDateTime periodStart,
-      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("periodStart") Instant periodStart,
+      @Param("periodEnd") Instant periodEnd,
       @Param("status") ReviewStatus status);
 
   // 기간 내 책 별 리뷰 개수를 뽑는 쿼리
   @Query("""
-    select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewCount(
-      b.id,
-      count(r)
-    ) from Book b
-    join Review r on r.book.id = b.id
-    where r.createdAt >= :periodStart 
-    and r.createdAt < :periodEnd
-    and r.status = :status
-    group by b.id
-""")
+          select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewCount(
+            b.id,
+            count(r)
+          ) from Book b
+          join Review r on r.book.id = b.id
+          where r.createdAt >= :periodStart 
+          and r.createdAt < :periodEnd
+          and r.status = :status
+          group by b.id
+      """)
   List<BookReviewCount> countReviewsPerBook(
-      @Param("periodStart") LocalDateTime periodStart,
-      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("periodStart") Instant periodStart,
+      @Param("periodEnd") Instant periodEnd,
       @Param("status") ReviewStatus status);
 
   // 기간 내 책 리뷰의 평균을 구하는 쿼리
   @Query("""
-    select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewAvgRating(
-      r.book.id,
-      avg(r.rating * 1.0)
-    )
-    from Review r
-    where r.createdAt >= :periodStart
-    and r.createdAt < :periodEnd
-    and r.status = :status
-    group by r.book.id
-""")
+          select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewAvgRating(
+            r.book.id,
+            avg(r.rating * 1.0)
+          )
+          from Review r
+          where r.createdAt >= :periodStart
+          and r.createdAt < :periodEnd
+          and r.status = :status
+          group by r.book.id
+      """)
   List<BookReviewAvgRating> avgRatingsPerBook(
-      @Param("periodStart") LocalDateTime periodStart,
-      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("periodStart") Instant periodStart,
+      @Param("periodEnd") Instant periodEnd,
       @Param("status") ReviewStatus status
   );
 }

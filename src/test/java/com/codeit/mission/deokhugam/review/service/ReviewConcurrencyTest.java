@@ -71,7 +71,7 @@ public class ReviewConcurrencyTest {
         .title("book")
         .author(author.getNickname())
         .isbn("1234567890")
-        .publishedDate(java.time.LocalDate.now())
+        .publishedDate(java.time.Instant.now())
         .publisher("codeit")
         .description("holymoly")
         .build();

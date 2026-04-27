@@ -2,7 +2,7 @@ package com.codeit.mission.deokhugam.review.repository;
 
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserLikeCount;
 import com.codeit.mission.deokhugam.review.entity.ReviewLike;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,8 +30,8 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, UUID> {
           """
   )
   List<PowerUserLikeCount> findUserLikeCounts(
-      @Param("periodStart") LocalDateTime periodStart,
-      @Param("periodEnd") LocalDateTime periodEnd);
+      @Param("periodStart") Instant periodStart,
+      @Param("periodEnd") Instant periodEnd);
 
   // 리뷰 ID 및 사용자 ID를 통한 리뷰 좋아요 조회
   Optional<ReviewLike> findByReviewIdAndUserId(UUID reviewId, UUID userId);
