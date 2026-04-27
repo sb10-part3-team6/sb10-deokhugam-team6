@@ -15,7 +15,9 @@ import com.codeit.mission.deokhugam.dashboard.powerusers.repository.PowerUserRep
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -51,15 +53,24 @@ public class PowerUserService {
       throw new InvalidCursorValueException();
     }
 
-    UUID publishedSnapshotId = getPublishedSnapshotId(periodType);
+    Optional<UUID> publishedSnapshotId = getPublishedSnapshotId(periodType);
+    if (publishedSnapshotId.isEmpty()) {
+      return new CursorPageResponsePowerUserDto(
+          Collections.emptyList(),
+          null,
+          null,
+          pageSize,
+          0L,
+          false);
+    }
 
     List<PowerUserDto> rows = new ArrayList<>();
     if (direction == DirectionEnum.ASC) {
       rows = powerUserRepository.findRankingDtosBySnapshotIdAsc(
-          publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
+          publishedSnapshotId.get(), cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
     } else {
       rows = powerUserRepository.findRankingDtosBySnapshotIdDesc(
-          publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
+          publishedSnapshotId.get(), cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
     }
 
     boolean hasNext = rows.size() > pageSize;
@@ -73,7 +84,7 @@ public class PowerUserService {
       nextAfter = last.createdAt().toString();
     }
 
-    long totalElements = powerUserRepository.countRankingsBySnapshotId(publishedSnapshotId);
+    long totalElements = powerUserRepository.countRankingsBySnapshotId(publishedSnapshotId.get());
 
     return new CursorPageResponsePowerUserDto(
         content,
@@ -84,11 +95,10 @@ public class PowerUserService {
         hasNext);
   }
 
-  private UUID getPublishedSnapshotId(PeriodType periodType) {
+  private Optional<UUID> getPublishedSnapshotId(PeriodType periodType) {
     return aggregateSnapshotRepository
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
             DomainType.POWER_USER, periodType, StagingType.PUBLISHED)
-        .map(AggregateSnapshot::getSnapshotId)
-        .orElseThrow(SnapshotNotFoundException::new);
+        .map(AggregateSnapshot::getSnapshotId);
   }
 }
