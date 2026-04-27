@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -41,10 +42,10 @@ public class PowerUser extends BaseEntity {
   private PeriodType periodType;
 
   @Column(name = "period_start", nullable = false)
-  private LocalDateTime periodStart;
+    private Instant periodStart;
 
   @Column(name = "period_end", nullable = false)
-  private LocalDateTime periodEnd;
+  private Instant periodEnd;
 
   @Column(nullable = false)
   private long rank;
@@ -71,8 +72,8 @@ public class PowerUser extends BaseEntity {
   public PowerUser(
       UUID userId,
       PeriodType periodType,
-      LocalDateTime periodStart,
-      LocalDateTime periodEnd,
+      Instant periodStart,
+      Instant periodEnd,
       long rank,
       double score,
       double reviewScoreSum,
