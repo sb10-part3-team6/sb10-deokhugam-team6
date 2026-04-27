@@ -5,6 +5,9 @@ import java.util.List;
 
 @Schema(description = "네이버 도서 API 응답")
 public record NaverResponseDto(
+    @Schema(
+        description = "도서 목록"
+    )
     List<Item> items
 ) {
 
