@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.user.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Schema(description = "유저 응답")
@@ -26,9 +26,9 @@ public record UserDto(
 
     @Schema(
         description = "생성 시점",
-        example = "2026-04-24T05:19:10.913"
+        example = "2026-04-24T05:19:10.913z"
     )
-    LocalDateTime createdAt
+    Instant createdAt
 ) {
 
 }

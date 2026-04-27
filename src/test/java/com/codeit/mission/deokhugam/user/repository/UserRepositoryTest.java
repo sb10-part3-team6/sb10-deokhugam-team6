@@ -7,7 +7,8 @@ import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import jakarta.persistence.EntityManager;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +34,7 @@ class UserRepositoryTest {
   @DisplayName("논리 삭제 후 1일이 지난 유저만 정확히 조회되는지 확인")
   void findDeletedUserIdsOlderThan_Success() {
     // given
-    LocalDateTime now = LocalDateTime.now();
+    Instant now = Instant.now();
     User oldDeletedUser = createUser("old@example.com", "오래된탈퇴자");
     User recentDeletedUser = createUser("recent@example.com", "최근탈퇴자");
     User activeUser = createUser("active@example.com", "활동중유저");
@@ -43,14 +44,14 @@ class UserRepositoryTest {
 
     // 직접 쿼리로 상태와 시간을 조작
     updateUserStatusAndTime(oldDeletedUser.getId(), UserStatus.DELETED,
-        now.minusDays(2));
+        now.minus(2, ChronoUnit.DAYS));
     updateUserStatusAndTime(recentDeletedUser.getId(), UserStatus.DELETED,
-        now.minusHours(1));
+        now.minus(1, ChronoUnit.HOURS));
 
     entityManager.clear();
 
     // when
-    LocalDateTime threshold = now.minusDays(1);
+    Instant threshold = now.minus(1, ChronoUnit.DAYS);
     Page<UUID> deletedIds = userRepository.findDeletedUserIdsOlderThan(threshold,
         PageRequest.of(0, 10));
 
@@ -71,7 +72,7 @@ class UserRepositoryTest {
   @DisplayName("물리 삭제(Hard Delete) 쿼리가 대상 유저만 정확히 삭제하는지 확인")
   void hardDeleteByIds_Success() {
     // given
-    LocalDateTime now = LocalDateTime.now();
+    Instant now = Instant.now();
     User targetUser = createUser("target@example.com", "오래된탈퇴자");
     User activeUser = createUser("active@example.com", "활동중유저");
     User recentDeletedUser = createUser("recent@example.com", "최근탈퇴자");
@@ -80,13 +81,13 @@ class UserRepositoryTest {
     entityManager.flush();
 
     updateUserStatusAndTime(targetUser.getId(), UserStatus.DELETED,
-        now.minusDays(2));
+        now.minus(2, ChronoUnit.DAYS));
     updateUserStatusAndTime(recentDeletedUser.getId(), UserStatus.DELETED,
         now);
     entityManager.clear();
 
     // when
-    LocalDateTime threshold = now.minusDays(1);
+    Instant threshold = now.minus(1, ChronoUnit.DAYS);
     userRepository.hardDeleteByIds(
         List.of(targetUser.getId(), activeUser.getId(), recentDeletedUser.getId()), threshold);
 
@@ -106,7 +107,7 @@ class UserRepositoryTest {
     userRepository.saveAll(List.of(deletedUser, activeUser));
     entityManager.flush();
 
-    updateUserStatusAndTime(deletedUser.getId(), UserStatus.DELETED, LocalDateTime.now());
+    updateUserStatusAndTime(deletedUser.getId(), UserStatus.DELETED, Instant.now());
     entityManager.clear();
 
     // when & then
@@ -125,7 +126,7 @@ class UserRepositoryTest {
     userRepository.saveAll(List.of(deletedUser, activeUser));
     entityManager.flush();
 
-    updateUserStatusAndTime(deletedUser.getId(), UserStatus.DELETED, LocalDateTime.now());
+    updateUserStatusAndTime(deletedUser.getId(), UserStatus.DELETED, Instant.now());
     entityManager.clear();
 
     // when
@@ -159,10 +160,10 @@ class UserRepositoryTest {
   }
 
   @Transactional
-  protected void updateUserStatusAndTime(UUID id, UserStatus status, LocalDateTime time) {
+  protected void updateUserStatusAndTime(UUID id, UserStatus status, Instant time) {
     entityManager.createNativeQuery("UPDATE users SET status = ?1, updated_at = ?2 WHERE id = ?3")
         .setParameter(1, status.name())
-        .setParameter(2, java.sql.Timestamp.valueOf(time))
+        .setParameter(2, java.sql.Timestamp.from(time))
         .setParameter(3, id)
         .executeUpdate();
   }

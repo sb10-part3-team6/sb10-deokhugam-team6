@@ -4,7 +4,8 @@ import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -54,7 +55,7 @@ public class UserHardDeleteJobConfig {
     return new JobExecutionListener() {
       @Override
       public void beforeJob(JobExecution jobExecution) {
-        LocalDateTime threshold = LocalDateTime.now().minusDays(1);
+        Instant threshold = Instant.now().minus(1, ChronoUnit.DAYS);
         jobExecution.getExecutionContext().put("threshold", threshold.toString());
         log.info("[Batch] 탈퇴 유저 물리 삭제 기준 시간 설정: {}", threshold);
       }
@@ -80,7 +81,7 @@ public class UserHardDeleteJobConfig {
   @StepScope
   public RepositoryItemReader<UUID> userHardDeleteReader(
       @Value("#{jobExecutionContext['threshold']}") String thresholdStr) {
-    LocalDateTime threshold = LocalDateTime.parse(thresholdStr);
+    Instant threshold = Instant.parse(thresholdStr);
 
     return new RepositoryItemReaderBuilder<UUID>()
         .name("userHardDeleteReader")
@@ -99,7 +100,7 @@ public class UserHardDeleteJobConfig {
   @StepScope
   public ItemWriter<UUID> userHardDeleteWriter(
       @Value("#{jobExecutionContext['threshold']}") String thresholdStr) {
-    LocalDateTime threshold = LocalDateTime.parse(thresholdStr);
+    Instant threshold = Instant.parse(thresholdStr);
 
     return chunk -> {
       List<UUID> userIds = (List<UUID>) chunk.getItems();
