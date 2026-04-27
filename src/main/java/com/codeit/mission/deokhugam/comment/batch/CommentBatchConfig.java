@@ -90,6 +90,7 @@ public class CommentBatchConfig {
                 .entityManagerFactory(entityManagerFactory)
                 .queryString("SELECT comment.id FROM Comment comment WHERE comment.status = :status AND comment.updatedAt <= :threshold")
                 .parameterValues(Map.of("status", CommentStatus.DELETED, "threshold", threshold))
+                .saveState(false)
                 .build();
     }
 
