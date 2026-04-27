@@ -2,7 +2,6 @@ package com.codeit.mission.deokhugam.comment.batch;
 
 import com.codeit.mission.deokhugam.comment.entity.CommentStatus;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
-import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +37,6 @@ public class CommentBatchConfig {
     private final EntityManagerFactory entityManagerFactory;
 
     private final CommentRepository commentRepository;
-    private final ReviewRepository reviewRepository;
 
     private static final int CHUNK_SIZE = 100;
 
@@ -69,7 +67,7 @@ public class CommentBatchConfig {
     // step 설정 : Job 내부에서 수행될 읽기 (Reader) / 쓰기 (Writer) 조합
     @Bean
     public Step commentHardDeleteStep(
-            JpaCursorItemReader commentHardDeleteReader,
+            JpaCursorItemReader<UUID> commentHardDeleteReader,
             ItemWriter<UUID> commentHardDeleteWriter
     ) {
         return new StepBuilder("commentHardDeleteStep", jobRepository)
