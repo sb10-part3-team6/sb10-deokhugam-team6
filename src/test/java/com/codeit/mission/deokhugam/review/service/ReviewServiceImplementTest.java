@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.review.service;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
@@ -25,7 +26,11 @@ import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,6 +96,7 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 상세 조회 요청자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
+    ReflectionTestUtils.setField(mockBook, "status", BookStatus.ACTIVE);
     User requestUser = User.builder().build();
     ReflectionTestUtils.setField(requestUser, "id",
         requestUserId);                                             // NPE 방지를 위한 id 강제 주입
@@ -872,7 +878,7 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(savedReview, "status",
         ReviewStatus.ACTIVE);                                     // status 강제 주입
 
-    given(reviewRepository.findById(reviewId)).willReturn(
+    given(reviewRepository.findByIdWithPessimisticLock(reviewId)).willReturn(
         Optional.of(savedReview));                                // savedReview 반환
     given(userRepository.findById(userId)).willReturn(
         Optional.of(mockUser));                                   // mockUser 반환
@@ -944,7 +950,7 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(savedReview, "status",
         ReviewStatus.ACTIVE);                                       // status 강제 주입
 
-    given(reviewRepository.findById(reviewId)).willReturn(
+    given(reviewRepository.findByIdWithPessimisticLock(reviewId)).willReturn(
         Optional.of(savedReview));                                  // savedReview 반환
     given(userRepository.findById(userId)).willReturn(
         Optional.of(mockUser));                                     // mockUser 반환
@@ -1003,7 +1009,8 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(savedReview, "id",
         reviewId);                                                   // NPE 방지를 위한 id 강제 주입
 
-    given(reviewRepository.findById(reviewId)).willReturn(Optional.of(savedReview));
+    given(reviewRepository.findByIdWithPessimisticLock(reviewId)).willReturn(
+        Optional.of(savedReview));
     given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
 
     given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(true);
@@ -1059,7 +1066,7 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(savedReview, "status",
         ReviewStatus.ACTIVE);                                          // status 강제 주입
 
-    given(reviewRepository.findById(reviewId)).willReturn(
+    given(reviewRepository.findByIdWithPessimisticLock(reviewId)).willReturn(
         Optional.of(savedReview));                                    // savedReview 반환
     given(userRepository.findById(userId)).willReturn(
         Optional.of(mockUser));                                       // mockUser 반환
