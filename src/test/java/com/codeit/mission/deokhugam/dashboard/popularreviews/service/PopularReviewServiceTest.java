@@ -238,22 +238,18 @@ class PopularReviewServiceTest {
   }
 
   @Test
-  @DisplayName("발행된 스냅샷이 없으면 예외가 발생한다")
+  @DisplayName("발행된 스냅샷이 없으면 빈 Content를 반환한다.")
   void getReviews_snapshotNotFound() {
-    // when + then
+    // when
     when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
         DomainType.POPULAR_REVIEW, PeriodType.MONTHLY, StagingType.PUBLISHED))
         .thenReturn(Optional.empty());
 
-    DeokhugamException exception =
-        assertThrows(
-            DeokhugamException.class,
-            () ->
-                popularReviewService.getReviews(
-                    PeriodType.MONTHLY, DirectionEnum.ASC, null, null, 20));
+    // when
+    CursorPageResponsePopularReviewDto result = popularReviewService.getReviews(PeriodType.MONTHLY, DirectionEnum.DESC, null, null, 1);
 
-    assertEquals(ErrorCode.SNAPSHOT_NOT_FOUND, exception.getErrorCode());
-    verify(aggregateSnapshotRepository)
+    assertEquals(0, result.content().size()); // content는 비어있음.
+    verify(aggregateSnapshotRepository) // 도메인 타입과 period, 스냅샷 스테이징 상태를 통한 조회 쿼리 메서드를 실행했는가?
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
             DomainType.POPULAR_REVIEW, PeriodType.MONTHLY, StagingType.PUBLISHED);
     verifyNoInteractions(popularReviewRepository);
