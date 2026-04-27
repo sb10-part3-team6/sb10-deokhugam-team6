@@ -245,6 +245,9 @@ class PowerUserServiceTest {
     assertEquals(20, result.size());
     assertEquals(0L, result.totalElements());
     assertFalse(result.hasNext());
+    assertNull(result.nextCursor());
+    assertNull(result.nextAfter());
+
     verify(aggregateSnapshotRepository)
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
             DomainType.POWER_USER, PeriodType.MONTHLY, StagingType.PUBLISHED);

@@ -248,7 +248,13 @@ class PopularReviewServiceTest {
     // when
     CursorPageResponsePopularReviewDto result = popularReviewService.getReviews(PeriodType.MONTHLY, DirectionEnum.DESC, null, null, 1);
 
-    assertEquals(0, result.content().size()); // content는 비어있음.
+    assertEquals(0, result.content().isEmpty()); // content가 비어있는지 확인
+    assertTrue(result.content().isEmpty()); // content는 비어있음.
+    assertEquals(0L, result.totalElements()); // 총 요소의 개수도 0
+    assertFalse(result.hasNext()); // next도 없으며
+    assertNull(result.nextCursor()); // 커서도 없다.
+    assertNull(result.nextAfter());
+
     verify(aggregateSnapshotRepository) // 도메인 타입과 period, 스냅샷 스테이징 상태를 통한 조회 쿼리 메서드를 실행했는가?
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
             DomainType.POPULAR_REVIEW, PeriodType.MONTHLY, StagingType.PUBLISHED);
