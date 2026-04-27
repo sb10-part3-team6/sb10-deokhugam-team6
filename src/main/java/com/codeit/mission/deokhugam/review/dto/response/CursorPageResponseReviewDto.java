@@ -22,7 +22,7 @@ public record CursorPageResponseReviewDto<T>(
 
     @Schema(
         description = "마지막 요소의 생성 시간",
-        example = "2025-04-06T15:04:05.000z"
+        example = "2025-04-06T15:04:05.000Z"
     )
     Instant nextAfter,
 
