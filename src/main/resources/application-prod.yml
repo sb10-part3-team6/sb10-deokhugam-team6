@@ -30,13 +30,7 @@ spring:
     jdbc:
       initialize-schema: never
 
-management:
-  endpoint:
-    health:
-      show-details: never
-  info:
-    env:
-      enabled: false
+
 
 # AWS S3 설정
 cloud:
@@ -58,3 +52,9 @@ logging:
   level:
     root: info
     com.codeit.mission.deokhugam: info
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
