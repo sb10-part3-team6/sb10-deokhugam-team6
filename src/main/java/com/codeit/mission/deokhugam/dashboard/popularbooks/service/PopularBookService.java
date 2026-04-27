@@ -35,7 +35,7 @@ public class PopularBookService {
   // 인기 도서를 조회하는 서비스 계층 메서드
   @Transactional(readOnly = true)
   public CursorPageResponsePopularBookDto get(
-      PeriodType periodType, DirectionEnum direction, String cursor, String after, int size
+      PeriodType periodType, DirectionEnum direction, String cursor, String after, int pageSize
   ){
 
     // 커서와 보조 커서는 항상 같이 제공되어야 합니다.
@@ -44,7 +44,7 @@ public class PopularBookService {
     }
 
     // 페이지 사이즈가 0 이하거나 최대 페이지 사이즈를 넘어가면 커스텀 예외를 발행
-    if(size > MAX_PAGE_SIZE || size <= 0){
+    if(pageSize > MAX_PAGE_SIZE || pageSize <= 0){
       throw new IllegalLimitException();
     }
 
