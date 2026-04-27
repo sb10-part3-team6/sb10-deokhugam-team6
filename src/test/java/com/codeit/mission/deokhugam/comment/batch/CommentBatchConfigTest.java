@@ -16,6 +16,7 @@ import java.util.UUID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 public class CommentBatchConfigTest {
@@ -51,6 +52,7 @@ public class CommentBatchConfigTest {
 
         // when & then
         writer.write(chunk);
+        verifyNoInteractions(commentRepository);
     }
 
     @Test

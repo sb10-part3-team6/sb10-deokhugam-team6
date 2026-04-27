@@ -111,7 +111,7 @@ public class CommentBatchConfig {
             commentRepository.deleteAllByIdInBatch(commentIds);
 
             // 로그 기록
-            log.info("[COMMENT_BATCH] 보관 기간 만료된 리뷰 {}개 물리 삭제 진행", chunk.size());
+            log.info("[COMMENT_BATCH] 보관 기간 만료된 댓글 {}개 물리 삭제 진행", chunk.size());
         };
     }
 }
