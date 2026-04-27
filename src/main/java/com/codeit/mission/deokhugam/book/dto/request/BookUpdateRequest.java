@@ -2,7 +2,7 @@ package com.codeit.mission.deokhugam.book.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.time.Instant;
+import java.time.LocalDate;
 
 public record BookUpdateRequest(
     //제목
@@ -23,7 +23,7 @@ public record BookUpdateRequest(
 
     //출판일
     @NotNull(message = "출판 일자를 적어주세요.")
-    Instant publishedDate
+    LocalDate publishedDate
 ) {
 
 }

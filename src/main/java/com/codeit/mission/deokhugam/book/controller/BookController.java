@@ -1,11 +1,11 @@
 package com.codeit.mission.deokhugam.book.controller;
 
-import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
-import com.codeit.mission.deokhugam.book.dto.BookDto;
-import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
-import com.codeit.mission.deokhugam.book.dto.CursorPageRequestDto;
-import com.codeit.mission.deokhugam.book.dto.CursorPageResponseBookDto;
-import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
+import com.codeit.mission.deokhugam.book.dto.request.BookCreateRequest;
+import com.codeit.mission.deokhugam.book.dto.response.BookDto;
+import com.codeit.mission.deokhugam.book.dto.request.BookUpdateRequest;
+import com.codeit.mission.deokhugam.book.dto.request.CursorPageRequestDto;
+import com.codeit.mission.deokhugam.book.dto.response.CursorPageResponseBookDto;
+import com.codeit.mission.deokhugam.book.dto.response.NaverBookDto;
 import com.codeit.mission.deokhugam.book.service.BookService;
 import jakarta.validation.Valid;
 import java.util.UUID;

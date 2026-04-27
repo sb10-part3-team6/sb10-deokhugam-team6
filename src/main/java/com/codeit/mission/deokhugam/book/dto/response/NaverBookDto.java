@@ -1,6 +1,6 @@
 package com.codeit.mission.deokhugam.book.dto.response;
 
-import java.time.Instant;
+import java.time.LocalDate;
 import lombok.Builder;
 
 @Builder
@@ -9,7 +9,7 @@ public record NaverBookDto(
     String author,
     String description,
     String publisher,
-    Instant publishedDate,
+    LocalDate publishedDate,
     String isbn,
     byte[] thumbnailImage
 ) {
