@@ -1,5 +1,7 @@
 package com.codeit.mission.deokhugam.review.repository;
 
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewAvgRating;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewCount;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
@@ -91,4 +93,39 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
       @Param("periodStart") LocalDateTime periodStart,
       @Param("periodEnd") LocalDateTime periodEnd,
       @Param("status") ReviewStatus status);
+
+  // 기간 내 책 별 리뷰 개수를 뽑는 쿼리
+  @Query("""
+    select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewCount(
+      b.id,
+      count(r)
+    ) from Book b
+    join Review r on r.book.id = b.id
+    where r.createdAt >= :periodStart 
+    and r.createdAt < :periodEnd
+    and r.status = :status
+    group by b.id
+""")
+  List<BookReviewCount> countReviewsPerBook(
+      @Param("periodStart") LocalDateTime periodStart,
+      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("status") ReviewStatus status);
+
+  // 기간 내 책 리뷰의 평균을 구하는 쿼리
+  @Query("""
+    select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewAvgRating(
+      r.book.id,
+      avg(r.rating * 1.0)
+    )
+    from Review r
+    where r.createdAt >= :periodStart
+    and r.createdAt < :periodEnd
+    and r.status = :status
+    group by r.book.id
+""")
+  List<BookReviewAvgRating> avgRatingsPerBook(
+      @Param("periodStart") LocalDateTime periodStart,
+      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("status") ReviewStatus status
+  );
 }
