@@ -2,6 +2,7 @@ package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.BookDto;
+import com.codeit.mission.deokhugam.book.dto.BookSearchConditionDto;
 import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
 import com.codeit.mission.deokhugam.book.dto.CursorPageRequestDto;
 import com.codeit.mission.deokhugam.book.dto.CursorPageResponseBookDto;
@@ -359,7 +360,7 @@ public class BookService {
     Object cursorValue = parseCursor(orderBy, cursor);
 
     List<Book> books = bookRepository.findAllByCursor(
-        new CursorPageRequestDto(
+        new BookSearchConditionDto(
             keyword,
             orderBy,
             direction,
