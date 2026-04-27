@@ -41,7 +41,7 @@ REQUEST_USER_MISMATCH(HttpStatus.BAD_REQUEST, "Parameter and Header requestUserI
 CURSOR_AFTER_NOT_PROVIDED_TOGETHER(HttpStatus.BAD_REQUEST, "Cursor and after must be provided together"),
 CURSOR_OR_AFTER_FORMAT_NOT_VALID(HttpStatus.BAD_REQUEST, "Invalid cursor or after format"),
 INVALID_CURSOR_FORMAT(HttpStatus.BAD_REQUEST, "cursor format is invalid"),
-ILLEGAL_LIMIT_VALUE(HttpStatus.BAD_REQUEST, "Limit value must be greater than 0"),
+ILLEGAL_LIMIT_VALUE(HttpStatus.BAD_REQUEST, "Limit value must be greater than 0 and less than maximum size"),
 
 // 배치 작업
 JOB_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Batch Job has failed"),
