@@ -1,7 +1,8 @@
 spring:
   application:
     name: sb10-deokhugam-team6
-
+  profiles:
+    active: dev
   # 배치 설정
   batch:
     job:

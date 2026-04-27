@@ -53,7 +53,7 @@ public class PopularBookService {
     }
 
 
-    // 커서가 존재하면 String으로 부터 Long,LocalDate로 파싱
+    // 커서가 존재하면 String으로 부터 Long,LocalDateTime으로 파싱
     // 존재하지 않다면 둘 다 null로 초기화
     ParsedCursors cursors = Utils.parseCursors(cursor, after);
     Long cursorLong = cursors.cursor();
