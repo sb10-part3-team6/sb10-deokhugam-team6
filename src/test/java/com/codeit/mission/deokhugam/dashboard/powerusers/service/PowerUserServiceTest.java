@@ -228,7 +228,7 @@ class PowerUserServiceTest {
   }
 
   @Test
-  @DisplayName("스냅샷을 찾을 수 없을 때")
+  @DisplayName("스냅샷을 찾을 수 없을 때 빈 content를 가진 CursorPageResponse 반환")
   void getLatestRankings_snapshotNotFound() {
     // given
     // 스냅샷 레포지토리에서 해당 PeriodType을 가진 publish된 스냅샷을 찾지 못함
@@ -236,15 +236,19 @@ class PowerUserServiceTest {
         DomainType.POWER_USER, PeriodType.MONTHLY, StagingType.PUBLISHED))
         .thenReturn(Optional.empty());
 
-    DeokhugamException exception =
-        assertThrows(
-            DeokhugamException.class,
-            () ->
-                powerUserService.getLatestRankings(
-                    PeriodType.MONTHLY, DirectionEnum.ASC, null, null, 20));
+    // when
+    CursorPageResponsePowerUserDto result =
+        powerUserService.getLatestRankings(
+            PeriodType.MONTHLY, DirectionEnum.ASC, null, null, 20);
 
-    // when + then
-    assertEquals(ErrorCode.SNAPSHOT_NOT_FOUND, exception.getErrorCode());
+    // then
+    assertTrue(result.content().isEmpty());
+    assertEquals(20, result.size());
+    assertEquals(0L, result.totalElements());
+    assertFalse(result.hasNext());
+    assertNull(result.nextCursor());
+    assertNull(result.nextAfter());
+
     verify(aggregateSnapshotRepository)
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
             DomainType.POWER_USER, PeriodType.MONTHLY, StagingType.PUBLISHED);
