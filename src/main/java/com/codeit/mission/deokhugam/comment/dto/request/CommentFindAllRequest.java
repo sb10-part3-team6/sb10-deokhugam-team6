@@ -36,7 +36,7 @@ public record CommentFindAllRequest(
 
     @Schema(
         description = "보조 커서 (createdAt)",
-        example = "2025-04-06T15:04:05.000z"
+        example = "2025-04-06T15:04:05.000Z"
     )
     Instant after,
 
