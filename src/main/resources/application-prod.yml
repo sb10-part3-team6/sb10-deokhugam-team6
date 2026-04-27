@@ -30,8 +30,6 @@ spring:
     jdbc:
       initialize-schema: never
 
-
-
 # AWS S3 설정
 cloud:
   aws:
