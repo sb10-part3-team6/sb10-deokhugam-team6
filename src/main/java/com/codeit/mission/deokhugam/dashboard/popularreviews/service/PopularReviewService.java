@@ -6,19 +6,16 @@ import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
 import com.codeit.mission.deokhugam.dashboard.exceptions.CursorAfterNotProvidedTogetherException;
 import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidCursorValueException;
-import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotFoundException;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.CursorPageResponsePopularReviewDto;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.PopularReviewDto;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularReviewRepository;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import java.time.DateTimeException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +48,7 @@ public class PopularReviewService {
     // 존재하지 않다면 둘 다 null로 초기화
     ParsedCursors cursors = parseCursors(cursor, after);
     Long cursorLong = cursors.cursor();
-    LocalDateTime afterDate = cursors.after();
+    Instant afterDate = cursors.after();
 
     // 찾고자하는 기간에 해당하는 스냅샷의 ID를 구합니다.
     Optional<UUID> publishedSnapshotId = getPublishedSnapshotId(periodType);
@@ -102,7 +99,7 @@ public class PopularReviewService {
         .map(AggregateSnapshot::getSnapshotId);
   }
 
-  private record ParsedCursors(Long cursor, LocalDateTime after){}
+  private record ParsedCursors(Long cursor, Instant after){}
   private record StringCursors(String cursor, String after){}
 
   private ParsedCursors parseCursors(String cursor, String after){
@@ -110,7 +107,7 @@ public class PopularReviewService {
       if(cursor == null){
         return new ParsedCursors(null, null);
       }
-      return new ParsedCursors(Long.parseLong(cursor), LocalDateTime.parse(after));
+      return new ParsedCursors(Long.parseLong(cursor), Instant.parse(after));
     } catch (NumberFormatException | DateTimeException e){
       throw new InvalidCursorValueException();
     }
