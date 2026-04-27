@@ -3,7 +3,7 @@ package com.codeit.mission.deokhugam.dashboard.popularreviews.batch.tasklet;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.service.PopularReviewAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -19,15 +19,19 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @StepScope
 public class RankPopularReviewTasklet implements Tasklet {
+
   private final PopularReviewAggregateService popularReviewAggregateService;
 
   // 외부로부터 PeriodType 과 집계 날짜를 가져온다.
-  @Value("#{jobParameters['periodType']}") private String periodTypeValue;
-  @Value("#{jobParameters['aggregatedAt']}") private String aggregatedAtValue;
-  @Value("#{jobExecutionContext['snapshotId']}") private String snapshotIdValue;
+  @Value("#{jobParameters['periodType']}")
+  private String periodTypeValue;
+  @Value("#{jobParameters['aggregatedAt']}")
+  private String aggregatedAtValue;
+  @Value("#{jobExecutionContext['snapshotId']}")
+  private String snapshotIdValue;
 
   @Override
-  public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext){
+  public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 
     popularReviewAggregateService.rankPopularReviews(
         getPeriodType(),
@@ -38,15 +42,15 @@ public class RankPopularReviewTasklet implements Tasklet {
     return RepeatStatus.FINISHED;
   }
 
-  private UUID getSnapshotId(){
+  private UUID getSnapshotId() {
     return JobParameterUtils.parseUuid("snapshotId", snapshotIdValue);
   }
 
-  private LocalDateTime getAggregatedAt(){
+  private Instant getAggregatedAt() {
     return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
   }
 
-  private PeriodType getPeriodType(){
+  private PeriodType getPeriodType() {
     return JobParameterUtils.parseEnum("periodType", periodTypeValue, PeriodType.class);
   }
 }

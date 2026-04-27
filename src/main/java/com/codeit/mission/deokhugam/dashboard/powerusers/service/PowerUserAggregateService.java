@@ -15,7 +15,7 @@ import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,16 +43,18 @@ public class PowerUserAggregateService {
   // 소스별 집계를 분리해 조인으로 인한 중복 합산을 피하고,
   // process 단계의 per-user 조회를 제거한다.
   @Transactional(readOnly = true)
-  public Map<UUID, UserStat> loadUserStats(PeriodType periodType, LocalDateTime aggregatedAt) {
+  public Map<UUID, UserStat> loadUserStats(PeriodType periodType, Instant aggregatedAt) {
     // periodType과 aggregatedAt 기준으로 산정할 기간을 측정
-    List<LocalDateTime> periods = Utils.calculatePeriod(periodType,aggregatedAt);
+    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
 
     // <유저 ID, 댓글 수> 형태의 Map
     Map<UUID, Long> commentCounts = new HashMap<>();
 
     // commentRepository에서 User별 댓글 수를 뽑아온 다음, 순회
-    for (UserCommentCount commentCount : commentRepository.findUserCommentCounts(periods.get(0), periods.get(1))) {
-      commentCounts.put(commentCount.userId(), commentCount.commentCount()); // commentCounts 해쉬맵에 삽입
+    for (UserCommentCount commentCount : commentRepository.findUserCommentCounts(periods.get(0),
+        periods.get(1))) {
+      commentCounts.put(commentCount.userId(),
+          commentCount.commentCount()); // commentCounts 해쉬맵에 삽입
     }
 
     // <유저 ID, 유저 리뷰 점수> 형태의 Map
@@ -61,7 +62,8 @@ public class PowerUserAggregateService {
 
     // reviewRepository에서 User별 리뷰 점수의 합계를 뽑아온 다음 순회함.
     for (UserReviewAggregate reviewAggregate
-        : reviewRepository.findUserReviewAggregates(periods.get(0), periods.get(1), ReviewStatus.ACTIVE)) {
+        : reviewRepository.findUserReviewAggregates(periods.get(0), periods.get(1),
+        ReviewStatus.ACTIVE)) {
       reviewScoreSums.put(reviewAggregate.userId(), reviewAggregate.reviewScoreSum());
     }
 
@@ -69,7 +71,8 @@ public class PowerUserAggregateService {
     // 추후 리뷰 도메인 쪽에서 좋아요 관련 기능을 보고 더 고도화 할 예정
     Map<UUID, Long> likeCounts = new HashMap<>();
     // reviewLikeRepository에서 User별 누른 좋아요 수를 뽑아온 다음 순회함.
-    for (PowerUserLikeCount likeCount : reviewLikeRepository.findUserLikeCounts(periods.get(0), periods.get(1))) {
+    for (PowerUserLikeCount likeCount : reviewLikeRepository.findUserLikeCounts(periods.get(0),
+        periods.get(1))) {
       likeCounts.put(likeCount.userId(), likeCount.likeCount());
     }
 
@@ -103,11 +106,12 @@ public class PowerUserAggregateService {
   }
 
   @Transactional
-  public void rankPowerUsers(PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId) {
-    List<LocalDateTime> periods = Utils.calculatePeriod(periodType, aggregatedAt);
+  public void rankPowerUsers(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
+    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
 
     List<PowerUser> powers =
-        powerUserRepository.findByPeriodDescByScore(periodType, periods.get(0), periods.get(1), snapshotId);
+        powerUserRepository.findByPeriodDescByScore(periodType, periods.get(0), periods.get(1),
+            snapshotId);
     long rank = 1L;
     double previousScore = NaN;
     long index = 1L;
@@ -127,11 +131,11 @@ public class PowerUserAggregateService {
       User user,
       UserStat stat,
       PeriodType periodType,
-      LocalDateTime aggregatedAt,
+      Instant aggregatedAt,
       UUID snapshotId) {
 
-    LocalDateTime periodStart = periodType.calculateStart(aggregatedAt);
-    LocalDateTime periodEnd = periodType.calculateEnd(aggregatedAt);
+    Instant periodStart = periodType.calculateStart(aggregatedAt);
+    Instant periodEnd = periodType.calculateEnd(aggregatedAt);
 
     return PowerUser.builder()
         .userId(user.getId())

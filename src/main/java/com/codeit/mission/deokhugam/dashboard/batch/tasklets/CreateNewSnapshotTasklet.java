@@ -5,7 +5,7 @@ import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.StepContribution;
@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 @StepScope
 @RequiredArgsConstructor
 public class CreateNewSnapshotTasklet implements Tasklet {
+
   private final AggregateSnapshotService aggregateSnapshotService;
 
   // 외부로부터 변수를 받아온다.
@@ -36,7 +37,7 @@ public class CreateNewSnapshotTasklet implements Tasklet {
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     PeriodType periodType = getPeriodType();
-    LocalDateTime aggregatedAt = getAggregatedAt();
+    Instant aggregatedAt = getAggregatedAt();
     DomainType domainType = getDomainType();
 
     // 스냅샷 객체 생성 서비스 메서드를 호출함.
@@ -50,7 +51,8 @@ public class CreateNewSnapshotTasklet implements Tasklet {
         .getExecutionContext(); // Job 전체가 공유하는 Key-Value 저장소
 
     // 컨텍스트에 스냅샷 Id, 도메인 종류를 저장
-    context.putString("snapshotId", snapshot.getSnapshotId().toString()); // 에 snapshotId 이름으로 해당 Id를 저장
+    context.putString("snapshotId",
+        snapshot.getSnapshotId().toString()); // 에 snapshotId 이름으로 해당 Id를 저장
     context.putString("domainType", domainType.name()); // domainType 이름으로 해당 도메인 종류를 저장
 
     // 스텝 종료를 알림
@@ -61,7 +63,7 @@ public class CreateNewSnapshotTasklet implements Tasklet {
     return JobParameterUtils.parseEnum("periodType", periodTypeValue, PeriodType.class);
   }
 
-  private LocalDateTime getAggregatedAt() {
+  private Instant getAggregatedAt() {
     return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
   }
 

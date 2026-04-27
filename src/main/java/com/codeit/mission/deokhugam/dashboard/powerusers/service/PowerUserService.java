@@ -10,10 +10,9 @@ import com.codeit.mission.deokhugam.dashboard.powerusers.dto.CursorPageResponseP
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.exceptions.CursorAfterNotProvidedTogetherException;
 import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidCursorValueException;
-import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotFoundException;
 import com.codeit.mission.deokhugam.dashboard.powerusers.repository.PowerUserRepository;
 import java.time.DateTimeException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PowerUserService {
+
   private static final int MAX_PAGE_SIZE = 100;
 
   private final PowerUserRepository powerUserRepository;
@@ -42,12 +42,12 @@ public class PowerUserService {
     int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
 
     Long cursorLong = null;
-    LocalDateTime afterDate = null;
+    Instant afterDate = null;
 
     try {
       if (cursor != null) {
         cursorLong = Long.parseLong(cursor);
-        afterDate = LocalDateTime.parse(after);
+        afterDate = Instant.parse(after);
       }
     } catch (NumberFormatException | DateTimeException e) {
       throw new InvalidCursorValueException();

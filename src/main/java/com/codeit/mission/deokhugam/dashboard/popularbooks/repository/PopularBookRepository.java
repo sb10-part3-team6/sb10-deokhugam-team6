@@ -3,7 +3,7 @@ package com.codeit.mission.deokhugam.dashboard.popularbooks.repository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.entity.PopularBook;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
@@ -15,20 +15,20 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
 
 
   @Query("""
-    select pb
-        from PopularBook pb
-            where pb.periodType = :periodType
-            and pb.snapshotId = :snapshotId
-            and pb.periodStart >= :periodStart
-            and pb.periodEnd < :periodEnd
-        order by pb.score desc, pb.createdAt asc, pb.id asc
-    """)
+      select pb
+          from PopularBook pb
+              where pb.periodType = :periodType
+              and pb.snapshotId = :snapshotId
+              and pb.periodStart >= :periodStart
+              and pb.periodEnd < :periodEnd
+          order by pb.score desc, pb.createdAt asc, pb.id asc
+      """)
   List<PopularBook> findByPeriodAndSnapshotIdDescByScore(
       @Param("periodType") PeriodType periodType,
-      @Param("periodStart") LocalDateTime periodStart,
-      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("periodStart") Instant periodStart,
+      @Param("periodEnd") Instant periodEnd,
       @Param("snapshotId") UUID snapshotId
-      );
+  );
 
   @Query("""
       select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto(
@@ -54,7 +54,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
   List<PopularBookDto> findRankingDtosBySnapshotIdAsc(
       @Param("snapshotId") UUID snapshotId,
       @Param("cursor") Long cursor,
-      @Param("after") LocalDateTime after,
+      @Param("after") Instant after,
       Pageable pageable);
 
   @Query("""
@@ -81,7 +81,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
   List<PopularBookDto> findRankingDtosBySnapshotIdDesc(
       @Param("snapshotId") UUID snapshotId,
       @Param("cursor") Long cursor,
-      @Param("after") LocalDateTime after,
+      @Param("after") Instant after,
       Pageable pageable);
 
   @Query("""

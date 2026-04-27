@@ -3,7 +3,7 @@ package com.codeit.mission.deokhugam.dashboard.popularbooks.batch.tasklet;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.service.PopularBookAggregationService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -19,11 +19,15 @@ import org.springframework.stereotype.Component;
 @StepScope
 @RequiredArgsConstructor
 public class RankPopularBookTasklet implements Tasklet {
+
   private final PopularBookAggregationService popularBookAggregationService;
 
-  @Value("#{jobParameters['periodType']}") private String periodTypeValue;
-  @Value("#{jobParameters['aggregatedAt']}") private String aggregatedAtValue;
-  @Value("#{jobExecutionContext['snapshotId']}") private String snapshotIdValue;
+  @Value("#{jobParameters['periodType']}")
+  private String periodTypeValue;
+  @Value("#{jobParameters['aggregatedAt']}")
+  private String aggregatedAtValue;
+  @Value("#{jobExecutionContext['snapshotId']}")
+  private String snapshotIdValue;
 
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
@@ -37,15 +41,15 @@ public class RankPopularBookTasklet implements Tasklet {
     return RepeatStatus.FINISHED;
   }
 
-  private UUID getSnapshotId(){
+  private UUID getSnapshotId() {
     return JobParameterUtils.parseUuid("snapshotId", snapshotIdValue);
   }
 
-  private LocalDateTime getAggregatedAt(){
+  private Instant getAggregatedAt() {
     return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
   }
 
-  private PeriodType getPeriodType(){
+  private PeriodType getPeriodType() {
     return JobParameterUtils.parseEnum("periodType", periodTypeValue, PeriodType.class);
   }
 }

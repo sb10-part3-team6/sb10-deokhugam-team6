@@ -3,7 +3,7 @@ package com.codeit.mission.deokhugam.dashboard.powerusers.batch.tasklet;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -19,18 +19,22 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @StepScope
 public class RankPowerUsersTasklet implements Tasklet {
+
   private final PowerUserAggregateService powerUserAggregateService;
 
   // 외부로부터 PeriodType 과 집계 날짜를 가져온다.
-  @Value("#{jobParameters['periodType']}") private String periodTypeValue;
-  @Value("#{jobParameters['aggregatedAt']}") private String aggregatedAtValue;
-  @Value("#{jobExecutionContext['snapshotId']}") private String snapshotIdValue;
+  @Value("#{jobParameters['periodType']}")
+  private String periodTypeValue;
+  @Value("#{jobParameters['aggregatedAt']}")
+  private String aggregatedAtValue;
+  @Value("#{jobExecutionContext['snapshotId']}")
+  private String snapshotIdValue;
 
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
       throws Exception {
 
-    LocalDateTime aggregatedAt = getAggregatedAt();
+    Instant aggregatedAt = getAggregatedAt();
     PeriodType periodType = getPeriodType();
     UUID snapshotId = getSnapshotId();
 
@@ -43,11 +47,11 @@ public class RankPowerUsersTasklet implements Tasklet {
     return JobParameterUtils.parseUuid("snapshotId", snapshotIdValue);
   }
 
-  private LocalDateTime getAggregatedAt(){
+  private Instant getAggregatedAt() {
     return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
   }
 
-  private PeriodType getPeriodType(){
+  private PeriodType getPeriodType() {
     return JobParameterUtils.parseEnum("periodType", periodTypeValue, PeriodType.class);
   }
 }

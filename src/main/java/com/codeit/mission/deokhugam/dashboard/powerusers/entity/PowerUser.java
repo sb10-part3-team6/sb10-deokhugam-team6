@@ -9,7 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -27,11 +27,12 @@ import lombok.NoArgsConstructor;
         @Index(name = "idx_power_users_snapshot_rank", columnList = "snapshot_id, rank")
     },
     uniqueConstraints = {
-      @UniqueConstraint(
-          name = "uk_power_users_period",
-          columnNames = {"user_id", "period_type", "period_start", "period_end"})
+        @UniqueConstraint(
+            name = "uk_power_users_period",
+            columnNames = {"user_id", "period_type", "period_start", "period_end"})
     })
 public class PowerUser extends BaseEntity {
+
   // PowerUser는 배치성 집계 데이터라 연관관계 매핑을 하면 더 복잡해지기만 한다고 하네요
   @Column(name = "user_id", nullable = false)
   private UUID userId;
@@ -41,10 +42,10 @@ public class PowerUser extends BaseEntity {
   private PeriodType periodType;
 
   @Column(name = "period_start", nullable = false)
-  private LocalDateTime periodStart;
+  private Instant periodStart;
 
   @Column(name = "period_end", nullable = false)
-  private LocalDateTime periodEnd;
+  private Instant periodEnd;
 
   @Column(nullable = false)
   private long rank;
@@ -62,7 +63,7 @@ public class PowerUser extends BaseEntity {
   private long commentCount;
 
   @Column(name = "aggregated_at", nullable = false)
-  private LocalDateTime aggregatedAt;
+  private Instant aggregatedAt;
 
   @Column(name = "snapshot_id", nullable = false)
   private UUID snapshotId;
@@ -71,14 +72,14 @@ public class PowerUser extends BaseEntity {
   public PowerUser(
       UUID userId,
       PeriodType periodType,
-      LocalDateTime periodStart,
-      LocalDateTime periodEnd,
+      Instant periodStart,
+      Instant periodEnd,
       long rank,
       double score,
       double reviewScoreSum,
       long likeCount,
       long commentCount,
-      LocalDateTime aggregatedAt,
+      Instant aggregatedAt,
       UUID snapshotId) {
     this.userId = userId;
     this.periodType = periodType;
@@ -93,7 +94,7 @@ public class PowerUser extends BaseEntity {
     this.snapshotId = snapshotId;
   }
 
-  public void updateRank(long rank){
+  public void updateRank(long rank) {
     this.rank = rank;
   }
 }

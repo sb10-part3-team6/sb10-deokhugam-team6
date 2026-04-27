@@ -6,10 +6,11 @@ import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUser;
-import com.codeit.mission.deokhugam.dashboard.powerusers.repository.PowerUserRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.EntityManager;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -38,8 +39,12 @@ class PowerUserRepositoryTest {
   @DisplayName("해당 스냅샷에 해당하는 PowerUser만 개수 세기")
   void countRankingsBySnapshotId_countsTargetSnapshotOnly() {
     // given
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = LocalDateTime.of(2026, 4, 14, 0, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
+    Instant periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
 
     // 유저 3명 생성 및 영속화
     User user1 = persistUser("user1@test.com", "user1");
@@ -64,8 +69,12 @@ class PowerUserRepositoryTest {
   @Test
   @DisplayName("한 스냅샷 내에서 동점자가 발생햇을 때 오름차순으로 정렬 테스트")
   void findRankingDtosBySnapshotIdAsc_ordersByRankThenCreatedAt() {
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = LocalDateTime.of(2026, 4, 14, 0, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
+    Instant periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
 
     User user1 = persistUser("a@test.com", "a");
     User user2 = persistUser("b@test.com", "b");
@@ -93,8 +102,12 @@ class PowerUserRepositoryTest {
   @DisplayName("한 스냅샷 내에서 동점이 생길 때의 내림차 순 정렬 테스트")
   void findRankingDtosBySnapshotIdDesc_appliesCursorAndTieBreak() {
     // given
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = LocalDateTime.of(2026, 4, 14, 0, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
+    Instant periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
 
     // 두 명의 유저의 랭크가 2인 상황
     User rankThreeUser = persistUser("rank3@test.com", "rank3");
@@ -118,11 +131,14 @@ class PowerUserRepositoryTest {
     em.clear();
 
     // when
+    Instant instant = LocalDateTime.of(2026, 4, 21, 0, 1)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
     List<PowerUserDto> result =
         powerUserRepository.findRankingDtosBySnapshotIdDesc(
             SNAPSHOT_ID,
             2L,
-            LocalDateTime.of(2026, 4, 21, 0, 1),
+            instant,
             PageRequest.of(0, 10));
 
     // then
@@ -143,8 +159,8 @@ class PowerUserRepositoryTest {
       User user,
       long rank,
       double score,
-      LocalDateTime periodStart,
-      LocalDateTime periodEnd,
+      Instant periodStart,
+      Instant periodEnd,
       UUID snapshotId) {
     PowerUser powerUser =
         PowerUser.builder()
@@ -166,7 +182,8 @@ class PowerUserRepositoryTest {
 
   // createdAt을 수정하는 메서드
   private void updateCreatedAt(UUID id, LocalDateTime createdAt) {
-    int updatedRows = em.createQuery("update PowerUser pu set pu.createdAt = :createdAt where pu.id = :id")
+    int updatedRows = em.createQuery(
+            "update PowerUser pu set pu.createdAt = :createdAt where pu.id = :id")
         .setParameter("createdAt", createdAt)
         .setParameter("id", id)
         .executeUpdate();

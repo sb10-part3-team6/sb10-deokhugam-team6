@@ -7,12 +7,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,10 +17,10 @@ import lombok.Getter;
 @Getter
 @Entity
 @Table(name = "power_user_snapshot",
-indexes = {
-    // periodType별, stagingType 별로 찾기 때문에 해당 컬럼에 인덱스를 설정하였음.
-    @Index(name = "idx_power_user_snapshots_period_status", columnList = "period_type, staging_type")
-})
+    indexes = {
+        // periodType별, stagingType 별로 찾기 때문에 해당 컬럼에 인덱스를 설정하였음.
+        @Index(name = "idx_power_user_snapshots_period_status", columnList = "period_type, staging_type")
+    })
 public class PowerUserSnapshot extends BaseEntity {
 
   @Column(name = "snapshot_id", nullable = false, unique = true)
@@ -34,7 +31,7 @@ public class PowerUserSnapshot extends BaseEntity {
   PeriodType periodType;
 
   @Column(name = "aggregated_at", nullable = false)
-  LocalDateTime aggregatedAt;
+  Instant aggregatedAt;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "staging_type", nullable = false)
@@ -44,9 +41,9 @@ public class PowerUserSnapshot extends BaseEntity {
   public PowerUserSnapshot(
       UUID snapshotId,
       PeriodType periodType,
-      LocalDateTime aggregatedAt,
+      Instant aggregatedAt,
       StagingType stagingType
-  ){
+  ) {
     this.snapshotId = snapshotId;
     this.periodType = periodType;
     this.aggregatedAt = aggregatedAt;
@@ -56,13 +53,15 @@ public class PowerUserSnapshot extends BaseEntity {
   public PowerUserSnapshot() {
   }
 
-  public void publish(){
+  public void publish() {
     this.stagingType = StagingType.PUBLISHED;
   }
 
-  public void archive() {this.stagingType = StagingType.ARCHIVED; }
+  public void archive() {
+    this.stagingType = StagingType.ARCHIVED;
+  }
 
-  public void fail(){
+  public void fail() {
     this.stagingType = StagingType.FAILED;
   }
 }

@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.popularbooks.dto;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 public record PopularBookDto(
@@ -14,7 +14,7 @@ public record PopularBookDto(
     double score,
     Long reviewCount,
     double rating,
-    LocalDateTime createdAt
+    Instant createdAt
 ) {
 
 }

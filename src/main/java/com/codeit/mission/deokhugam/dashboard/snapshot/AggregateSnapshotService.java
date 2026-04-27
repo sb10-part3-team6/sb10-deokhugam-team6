@@ -4,13 +4,11 @@ import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
 import com.codeit.mission.deokhugam.dashboard.exceptions.DomainTypeNotEqualException;
-import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotIdNotEqualException;
 import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotFoundException;
 import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotStagedPublishException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AggregateSnapshotService {
+
   private final AggregateSnapshotRepository snapshotRepository;
 
   // 새로운 스냅샷을 생성하는 서비스 -> Batch Job의 CreateNewSnapshot
@@ -26,7 +25,7 @@ public class AggregateSnapshotService {
   public AggregateSnapshot createStagingSnapshot(
       DomainType domainType,
       PeriodType periodType,
-      LocalDateTime aggregatedAt
+      Instant aggregatedAt
   ) {
     snapshotRepository
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(

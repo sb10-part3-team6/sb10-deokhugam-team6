@@ -6,7 +6,7 @@ import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookStat;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.entity.PopularBook;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.service.PopularBookAggregationService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,22 +24,25 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Qualifier("bookProcessor")
 public class PopularBookItemProcessor implements ItemProcessor<Book, PopularBook> {
+
   private final PopularBookAggregationService popularBookAggregateService;
 
   private PeriodType periodType;
-  private LocalDateTime aggregatedAt;
+  private Instant aggregatedAt;
   private UUID snapshotId;
   private Map<UUID, PopularBookStat> statsByBookId = Map.of();
 
   @BeforeStep
-  void beforeStep(StepExecution stepExecution){
-    String periodTypeStr = stepExecution.getJobExecution().getJobParameters().getString("periodType");
-    String aggregatedAtStr = stepExecution.getJobExecution().getJobParameters().getString("aggregatedAt");
-    String snapshotIdStr = stepExecution.getJobExecution().getExecutionContext().getString("snapshotId");
-
+  void beforeStep(StepExecution stepExecution) {
+    String periodTypeStr = stepExecution.getJobExecution().getJobParameters()
+        .getString("periodType");
+    String aggregatedAtStr = stepExecution.getJobExecution().getJobParameters()
+        .getString("aggregatedAt");
+    String snapshotIdStr = stepExecution.getJobExecution().getExecutionContext()
+        .getString("snapshotId");
 
     JobParameterUtils.validateRequired(
-        JobParameterUtils.parameter("periodType",periodTypeStr),
+        JobParameterUtils.parameter("periodType", periodTypeStr),
         JobParameterUtils.parameter("aggregatedAt", aggregatedAtStr),
         JobParameterUtils.parameter("snapshotId", snapshotIdStr)
     );
@@ -54,7 +57,7 @@ public class PopularBookItemProcessor implements ItemProcessor<Book, PopularBook
   @Override
   public @Nullable PopularBook process(@NonNull Book item) throws Exception {
     PopularBookStat stat = statsByBookId.get(item.getId());
-    if(stat == null){
+    if (stat == null) {
       stat = popularBookAggregateService.emptyStat(item.getId());
     }
     return popularBookAggregateService.toPopularBook(

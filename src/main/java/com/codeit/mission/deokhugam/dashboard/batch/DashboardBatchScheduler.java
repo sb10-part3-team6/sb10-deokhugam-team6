@@ -3,8 +3,9 @@ package com.codeit.mission.deokhugam.dashboard.batch;
 import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.exceptions.DashboardBatchJobFailException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -29,11 +30,12 @@ public class DashboardBatchScheduler {
   @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
   public void runDashboardAggregation() {
     // 집계 시작 시간은 00:00.00.0
-    LocalDateTime aggregatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
+    Instant aggregatedAt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
         .withHour(0)
         .withMinute(0)
         .withSecond(0)
-        .withNano(0);
+        .withNano(0)
+        .toInstant();
 
     // DomainType을 순회
     for (DomainType domainType : List.of(
@@ -55,7 +57,7 @@ public class DashboardBatchScheduler {
   }
 
   // Job을 실행하는 실질적인 주체
-  private void runJob(DomainType domainType, PeriodType periodType, LocalDateTime aggregatedAt) {
+  private void runJob(DomainType domainType, PeriodType periodType, Instant aggregatedAt) {
     // DomainType에 따라 Job이 달라진다.
     Job job = switch (domainType) {
       case POWER_USER -> powerUserAggregationJob;

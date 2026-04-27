@@ -12,7 +12,7 @@ import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularR
 import com.codeit.mission.deokhugam.dashboard.util.Utils;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,11 +37,12 @@ public class PopularReviewAggregateService {
 
   // 일괄적으로 리뷰의 점수를 로드
   @Transactional(readOnly = true)
-  public Map<UUID, ReviewStat> loadReviewStat(PeriodType periodType, LocalDateTime aggregatedAt) {
-    List<LocalDateTime> periods = Utils.calculatePeriod(periodType, aggregatedAt);
+  public Map<UUID, ReviewStat> loadReviewStat(PeriodType periodType, Instant aggregatedAt) {
+    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
 
     Map<UUID, Long> reviewCommentCounts = new HashMap<>();
-    for (ReviewCommentCount item : commentRepository.findReviewCommentCounts(periods.get(0), periods.get(1))) {
+    for (ReviewCommentCount item : commentRepository.findReviewCommentCounts(periods.get(0),
+        periods.get(1))) {
       reviewCommentCounts.put(item.reviewId(), item.commentCount());
     }
 
@@ -67,8 +68,8 @@ public class PopularReviewAggregateService {
   }
 
   @Transactional
-  public void rankPopularReviews(PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId) {
-    List<LocalDateTime> periods = Utils.calculatePeriod(periodType, aggregatedAt);
+  public void rankPopularReviews(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
+    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
 
     List<PopularReview> popularReviews =
         popularReviewRepository.findByPeriodDescByScore(
@@ -91,11 +92,11 @@ public class PopularReviewAggregateService {
       UUID reviewId,
       ReviewStat stat,
       PeriodType periodType,
-      LocalDateTime aggregatedAt,
+      Instant aggregatedAt,
       UUID snapshotId
   ) {
-    LocalDateTime periodStart = periodType.calculateStart(aggregatedAt);
-    LocalDateTime periodEnd = periodType.calculateEnd(aggregatedAt);
+    Instant periodStart = periodType.calculateStart(aggregatedAt);
+    Instant periodEnd = periodType.calculateEnd(aggregatedAt);
 
     return PopularReview.builder()
         .reviewId(reviewId)

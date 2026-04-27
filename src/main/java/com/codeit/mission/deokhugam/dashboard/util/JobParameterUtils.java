@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.util;
 
 import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidJobParameterException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -9,9 +9,12 @@ import java.util.UUID;
 
 public final class JobParameterUtils {
 
-  private JobParameterUtils() {}
+  private JobParameterUtils() {
+  }
 
-  public record ParameterValue(String name, String value) {}
+  public record ParameterValue(String name, String value) {
+
+  }
 
   public static ParameterValue parameter(String name, String value) {
     return new ParameterValue(name, value);
@@ -41,11 +44,11 @@ public final class JobParameterUtils {
     }
   }
 
-  public static LocalDateTime parseLocalDateTime(String name, String rawValue) {
+  public static Instant parseLocalDateTime(String name, String rawValue) {
     String value = requireText(name, rawValue);
 
     try {
-      return LocalDateTime.parse(value);
+      return Instant.parse(value);
     } catch (DateTimeParseException e) {
       throw invalid(name, value);
     }

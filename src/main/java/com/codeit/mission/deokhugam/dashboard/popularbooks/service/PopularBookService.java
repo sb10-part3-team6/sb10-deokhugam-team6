@@ -14,7 +14,7 @@ import com.codeit.mission.deokhugam.dashboard.popularbooks.repository.PopularBoo
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import com.codeit.mission.deokhugam.dashboard.util.Utils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PopularBookService {
+
   private static final int MAX_PAGE_SIZE = 100; // 페이지의 최대 사이즈는 100으로 고정
 
   private final PopularBookRepository popularBookRepository;
@@ -37,7 +38,7 @@ public class PopularBookService {
   @Transactional(readOnly = true)
   public CursorPageResponsePopularBookDto get(
       PeriodType periodType, DirectionEnum direction, String cursor, String after, int pageSize
-  ){
+  ) {
 
     // 커서와 보조 커서는 항상 같이 제공되어야 합니다.
     if ((cursor == null) != (after == null)) {
@@ -45,20 +46,19 @@ public class PopularBookService {
     }
 
     // 페이지 사이즈가 0 이하거나 최대 페이지 사이즈를 넘어가면 커스텀 예외를 발행
-    if(pageSize > MAX_PAGE_SIZE || pageSize <= 0){
+    if (pageSize > MAX_PAGE_SIZE || pageSize <= 0) {
       throw new IllegalLimitException();
     }
 
-    if(direction == null || periodType == null){
+    if (direction == null || periodType == null) {
       throw new IllegalArgumentException("periodType과 Direction은 무조건 필수입니다!");
     }
-
 
     // 커서가 존재하면 String으로 부터 Long,LocalDateTime으로 파싱
     // 존재하지 않다면 둘 다 null로 초기화
     ParsedCursors cursors = Utils.parseCursors(cursor, after);
     Long cursorLong = cursors.cursor();
-    LocalDateTime afterDate = cursors.after();
+    Instant afterDate = cursors.after();
 
     // 찾고자하는 기간에 해당하는 스냅샷의 ID를 구합니다.
     Optional<UUID> publishedSnapshotId = getPublishedSnapshotId(periodType);
@@ -74,8 +74,10 @@ public class PopularBookService {
 
     // 커서 페이지 응답에 content 안에 들어갈 PopularBookDto 리스트
     List<PopularBookDto> rows = (direction == DirectionEnum.ASC)
-        ? popularBookRepository.findRankingDtosBySnapshotIdAsc(publishedSnapshotId.get(), cursorLong, afterDate, PageRequest.of(0, pageSize + 1))
-        : popularBookRepository.findRankingDtosBySnapshotIdDesc(publishedSnapshotId.get(), cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
+        ? popularBookRepository.findRankingDtosBySnapshotIdAsc(publishedSnapshotId.get(),
+        cursorLong, afterDate, PageRequest.of(0, pageSize + 1))
+        : popularBookRepository.findRankingDtosBySnapshotIdDesc(publishedSnapshotId.get(),
+            cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
 
     // 뽑아온 rows의 사이즈가 한 페이지의 사이즈보다 크면 다음 페이지가 존재합니다.
     boolean hasNext = rows.size() > pageSize;
@@ -109,7 +111,7 @@ public class PopularBookService {
         .map(AggregateSnapshot::getSnapshotId);
   }
 
-  private StringCursors getNextCursors(boolean hasNext, List<PopularBookDto> content){
+  private StringCursors getNextCursors(boolean hasNext, List<PopularBookDto> content) {
     if (hasNext && !content.isEmpty()) {
       PopularBookDto last = content.get(content.size() - 1);
       return new StringCursors(String.valueOf(last.rank()), String.valueOf(last.createdAt()));
