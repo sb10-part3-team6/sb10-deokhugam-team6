@@ -85,8 +85,8 @@ public class NotificationService {
       Notification last = content.get(content.size() - 1);
 
       if (slice.hasNext()) {
-        nextCursor = last.getCreatedAt().toInstant(ZoneOffset.UTC).toString();
-        nextAfter = last.getCreatedAt().toInstant(ZoneOffset.UTC);
+        nextCursor = last.getCreatedAt().toString();
+        nextAfter = last.getCreatedAt();
       }
 
     }
