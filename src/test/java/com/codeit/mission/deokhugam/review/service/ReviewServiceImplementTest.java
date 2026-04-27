@@ -469,6 +469,7 @@ public class ReviewServiceImplementTest {
     assertEquals(expectedDto.content(),
         result.content());                                                  // 가짜 DTO 결과와 실제 실행 결과 비교
     assertEquals(expectedDto.rating(), result.rating());
+    verify(reviewMapper).toEntity(createRequest, mockBook, mockUser);
   }
 
   // [실패] 특정 리뷰에 대한 사용자의 리뷰 중복 생성 요청
@@ -556,6 +557,7 @@ public class ReviewServiceImplementTest {
       // try-catch 구문 예외 반환 확인
       reviewServiceImplement.create(createRequest);
     });
+    verify(reviewMapper).toEntity(createRequest, mockBook, mockUser);
   }
 
   /*
@@ -932,6 +934,7 @@ public class ReviewServiceImplementTest {
     assertEquals(reviewId,
         result.reviewId());                                                               // 요청 DTO 검증
     assertEquals(userId, result.userId());
+    verify(reviewLikeMapper).toEntity(savedReview, mockUser);
     verify(reviewLikeRepository, times(1)).saveAndFlush(any(ReviewLike.class));
     verify(reviewRepository, times(1)).incrementLikeCount(reviewId);
   }
@@ -1121,5 +1124,6 @@ public class ReviewServiceImplementTest {
       // try-catch 구문 예외 반환 확인
       reviewServiceImplement.toggleLike(savedReview.getId(), mockUser.getId());
     });
+    verify(reviewLikeMapper).toEntity(savedReview, mockUser);
   }
 }
