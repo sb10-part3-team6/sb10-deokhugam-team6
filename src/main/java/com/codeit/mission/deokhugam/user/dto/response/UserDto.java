@@ -26,7 +26,7 @@ public record UserDto(
 
     @Schema(
         description = "생성 시점",
-        example = "2026-04-24T05:19:10.913z"
+        example = "2026-04-24T05:19:10.913Z"
     )
     Instant createdAt
 ) {
