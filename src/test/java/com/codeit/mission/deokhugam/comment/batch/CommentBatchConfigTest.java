@@ -4,6 +4,7 @@ import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.item.Chunk;
@@ -22,7 +23,7 @@ public class CommentBatchConfigTest {
     @Mock
     private CommentRepository commentRepository;
 
-    @Mock
+    @InjectMocks
     private CommentBatchConfig commentBatchConfig;
 
     @Test
