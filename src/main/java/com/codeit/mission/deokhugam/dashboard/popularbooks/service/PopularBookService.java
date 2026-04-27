@@ -48,6 +48,11 @@ public class PopularBookService {
       throw new IllegalLimitException();
     }
 
+    if(direction == null || periodType == null){
+      throw new IllegalArgumentException("periodType과 Direction은 무조건 필수입니다!");
+    }
+
+
     // 커서가 존재하면 String으로 부터 Long,LocalDate로 파싱
     // 존재하지 않다면 둘 다 null로 초기화
     ParsedCursors cursors = Utils.parseCursors(cursor, after);
@@ -57,7 +62,7 @@ public class PopularBookService {
     // 찾고자하는 기간에 해당하는 스냅샷의 ID를 구합니다.
     UUID publishedSnapshotId = getPublishedSnapshotId(periodType);
 
-    // 커서 페이지 응답에 content 안에 들어갈 PopularReviewDto 리스트
+    // 커서 페이지 응답에 content 안에 들어갈 PopularBookDto 리스트
     List<PopularBookDto> rows = (direction == DirectionEnum.ASC)
         ? popularBookRepository.findRankingDtosBySnapshotIdAsc(publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1))
         : popularBookRepository.findRankingDtosBySnapshotIdDesc(publishedSnapshotId, cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
@@ -86,7 +91,7 @@ public class PopularBookService {
         hasNext);
   }
 
-  // periodType과 DomainType=인기 리뷰으로 snapshotid를 뽑아옵니다.
+  // periodType과 DomainType=인기 도서로 snapshotid를 뽑아옵니다.
   private UUID getPublishedSnapshotId(PeriodType periodType) {
     return aggregateSnapshotRepository
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
