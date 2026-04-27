@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.user.dto;
+package com.codeit.mission.deokhugam.user.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
