@@ -4,20 +4,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.error.ErrorCode;
-import com.codeit.mission.deokhugam.user.dto.UserDto;
-import com.codeit.mission.deokhugam.user.dto.UserLoginRequest;
-import com.codeit.mission.deokhugam.user.dto.UserRegisterRequest;
-import com.codeit.mission.deokhugam.user.dto.UserUpdateRequest;
+import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
+import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
+import com.codeit.mission.deokhugam.user.dto.request.UserLoginRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserRegisterRequest;
+import com.codeit.mission.deokhugam.user.dto.request.UserUpdateRequest;
+import com.codeit.mission.deokhugam.user.dto.response.UserDto;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.EmailDuplicationException;
 import com.codeit.mission.deokhugam.user.exception.LoginFailedException;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.mapper.UserMapper;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -36,6 +44,15 @@ class UserServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private ReviewRepository reviewRepository;
+
+  @Mock
+  private CommentRepository commentRepository;
+
+  @Mock
+  private NotificationRepository notificationRepository;
 
   @Spy
   private UserMapper userMapper = Mappers.getMapper(UserMapper.class);
@@ -258,6 +275,68 @@ class UserServiceTest {
           .isInstanceOf(UserNotFoundException.class);
 
       verify(userRepository, never()).delete(any(User.class));
+    }
+  }
+
+  @Nested
+  @DisplayName("회원 물리 삭제")
+  class HardDeleteUserTest {
+
+    @Test
+    @DisplayName("성공: 물리 삭제가 정상적으로 수행됨")
+    void hardDeleteUser_Success() {
+      // given
+      UUID userId = UUID.randomUUID();
+      List<UUID> userIds = Collections.singletonList(userId);
+      given(userRepository.existsByDeletedUser(userId)).willReturn(true);
+      given(userRepository.hardDeleteById(userId)).willReturn(1);
+
+      // when
+      userService.hardDeleteUser(userId);
+
+      // then
+      InOrder inOrder = inOrder(reviewRepository, commentRepository, notificationRepository,
+          userRepository);
+
+      inOrder.verify(reviewRepository).deleteLikesByReviewUserIds(userIds);
+      inOrder.verify(commentRepository).deleteByReviewUserIds(userIds);
+      inOrder.verify(notificationRepository).deleteByReviewUserIds(userIds);
+
+      inOrder.verify(reviewRepository).deleteLikesByUserIds(userIds);
+      inOrder.verify(commentRepository).deleteByUserIds(userIds);
+      inOrder.verify(notificationRepository).deleteByUserIds(userIds);
+      inOrder.verify(reviewRepository).deleteByUserIds(userIds);
+
+      inOrder.verify(userRepository).hardDeleteById(userId);
+    }
+
+    @Test
+    @DisplayName("실패: 삭제 대상 유저가 존재하지 않음 (existsByDeletedUser false)")
+    void hardDeleteUser_Fail_NotFound() {
+      // given
+      UUID userId = UUID.randomUUID();
+      given(userRepository.existsByDeletedUser(userId)).willReturn(false);
+
+      // when & then
+      assertThatThrownBy(() -> userService.hardDeleteUser(userId))
+          .isInstanceOf(UserNotFoundException.class);
+
+      verify(userRepository, never()).hardDeleteById(any(UUID.class));
+      verifyNoInteractions(reviewRepository, commentRepository, notificationRepository);
+    }
+
+    @Test
+    @DisplayName("실패: 물리 삭제 결과가 1이 아님 (IllegalStateException)")
+    void hardDeleteUser_Fail_DeletedCountNotOne() {
+      // given
+      UUID userId = UUID.randomUUID();
+      given(userRepository.existsByDeletedUser(userId)).willReturn(true);
+      given(userRepository.hardDeleteById(userId)).willReturn(0);
+
+      // when & then
+      assertThatThrownBy(() -> userService.hardDeleteUser(userId))
+          .isInstanceOf(IllegalStateException.class)
+          .hasMessageContaining("삭제 대상 유저가 존재하지 않거나 이미 삭제되었습니다.");
     }
   }
 }

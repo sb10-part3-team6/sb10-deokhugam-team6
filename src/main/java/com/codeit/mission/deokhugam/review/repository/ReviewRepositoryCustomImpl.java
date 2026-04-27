@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.review.repository;
 
+import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
@@ -234,9 +235,9 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
     }
 
     return new CaseBuilder()
-        .when(review.book.title.eq(keyword)
-            .or(review.user.nickname.eq(keyword))
-            .or(review.content.eq(keyword)))
+        .when(review.book.title.equalsIgnoreCase(keyword)
+            .or(review.user.nickname.equalsIgnoreCase(keyword))
+            .or(review.content.equalsIgnoreCase(keyword)))
         .then(1)           // 완전 일치 (1순위)
         .otherwise(2);  // 부분 일치 (2순위)
   }
@@ -264,6 +265,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
 
     // 2. 기본 상태 필터: 활성(ACTIVE)인 리뷰만 조회
     filterBuilder.and(review.status.eq(ReviewStatus.ACTIVE));
+    filterBuilder.and(review.book.bookStatus.eq(BookStatus.ACTIVE));
 
     // 3. [완전 일치 조건]: 특정 도서 ID 필터
     if (condition.bookId() != null) {
@@ -290,8 +292,8 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
 
     // 2. 키워드가 있을 때만 OR 조건 조립 | 책 제목, 사용자 닉네임, 리뷰 내용
     return new BooleanBuilder()
-        .or(review.content.contains(keyword))
-        .or(review.user.nickname.contains(keyword))
-        .or(review.book.title.contains(keyword));
+        .or(review.content.containsIgnoreCase(keyword))
+        .or(review.user.nickname.containsIgnoreCase(keyword))
+        .or(review.book.title.containsIgnoreCase(keyword));
   }
 }

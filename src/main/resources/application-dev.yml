@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # 데이터베이스 설정
+  datasource:
+    url: jdbc:h2:mem:deokhugam;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # JPA/Hibernate 운영 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+
+# 로깅 설정
+logging:
+  level:
+    com.codeit.mission.deokhugam: debug
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    groups-order: ASC
+    operations-sorter: alpha
+
+naverapi:
+  client-id: ${NAVER_CLIENT_ID:dummy-local}
+  client-secret: ${NAVER_CLIENT_SECRET:dummy-local}
+
+ocr:
+  url: https://api.ocr.space/parse/image
+  apikey: ${SPACE_OCR_API_KEY:dummy-local}

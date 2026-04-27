@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.review.service;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
@@ -18,10 +19,12 @@ import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
+import com.codeit.mission.deokhugam.review.mapper.ReviewLikeMapper;
 import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
+import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -57,15 +60,18 @@ public class ReviewServiceImplement implements ReviewService {
   private final NotificationRepository notificationRepository;
 
   private final ReviewMapper reviewMapper;
+  private final ReviewLikeMapper reviewLikeMapper;
 
   // 리뷰 상세 조회
   @Override
   public ReviewDto findById(UUID id, UUID requestUserId) {
-    // 1. 조정할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+    // 1. Review / User 조회 : 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / Book / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
+    validateUserActive(requestUser);
+    validateBookActive(targetReview.getBook());
     validateReviewActive(targetReview);
 
     // 3. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
@@ -92,24 +98,12 @@ public class ReviewServiceImplement implements ReviewService {
     String nextCursor = null;
     LocalDateTime nextAfter = null;
 
+    // 페이징 된 리뷰 목록이 있고 다음 페이지가 존재할 때만 기록
     if (!pagedReviews.isEmpty() && hasNext) {
       Review lastItem = pagedReviews.get(pagedReviews.size() - 1);
 
       nextAfter = lastItem.getCreatedAt();
-
-      String rank = "";
-      // 키워드가 존재할 경우, 가중치 (rank) 설정
-      if (StringUtils.hasText(condition.keyword())) {
-        // 책 제목, 사용자 닉네임, 키워드 중 하나라도 일치한다면
-        boolean isExact = lastItem.getBook().getTitle().equals(condition.keyword()) ||
-            lastItem.getUser().getNickname().equals(condition.keyword()) ||
-            lastItem.getContent().equals(condition.keyword());
-
-        rank = (isExact ? "1" : "2") + "_";
-      }
-      nextCursor = "rating".equals(condition.orderBy())
-          ? rank + lastItem.getRating() + "_" + lastItem.getId().toString()
-          : rank + lastItem.getId().toString();
+      nextCursor = generateNextCursor(lastItem, condition);
     }
 
     // 4. 페이징 된 리뷰 ID 목록 (최대 10개)
@@ -137,6 +131,31 @@ public class ReviewServiceImplement implements ReviewService {
     );
   }
 
+  // 커서 생성 로직
+  private String generateNextCursor(Review lastItem, ReviewSearchConditionDto condition) {
+    // 가중치 접두사 계산
+    String rankPrefix = generateRankPrefix(lastItem, condition.keyword());
+
+    return "rating".equals(condition.orderBy())
+        ? rankPrefix + lastItem.getRating() + "_" + lastItem.getId().toString()
+        : rankPrefix + lastItem.getId().toString();
+  }
+
+  // 가중치 (rank) 접두사 계산 로직
+  private String generateRankPrefix(Review lastItem, String keyword) {
+    // 1. 키워드가 존재할 경우, 가중치 (rank) 설정
+    if (!StringUtils.hasText(keyword)) {
+      return "";
+    }
+
+    // 책 제목, 사용자 닉네임, 키워드 중 하나라도 정확하게 일치한다면 완전 일치 (가중치 1) 부여
+    boolean isExact = lastItem.getBook().getTitle().equalsIgnoreCase(keyword) ||
+        lastItem.getUser().getNickname().equalsIgnoreCase(keyword) ||
+        lastItem.getContent().equalsIgnoreCase(keyword);
+
+    return (isExact ? "1" : "2") + "_";
+  }
+
   // 리뷰 등록
   @Override
   @Transactional
@@ -150,21 +169,20 @@ public class ReviewServiceImplement implements ReviewService {
       Book book = getBookEntityOrThrow(reviewCreateRequest.bookId());
       User user = getUserEntityOrThrow(reviewCreateRequest.userId());
 
-      // 4. 리뷰 생성
-      Review newReview = Review.builder()
-          .book(book)
-          .user(user)
-          .content(reviewCreateRequest.content())
-          .rating(reviewCreateRequest.rating())
-          .build();
+      // 4. Book / User 논리 삭제 여부 검증
+      validateBookActive(book);
+      validateUserActive(user);
 
-      // 5. 리뷰 저장 및 즉시 반영하여, try-catch 블록 내에서 제약 조건 위반 예외 포착
+      // 5. 리뷰 생성
+      Review newReview = reviewMapper.toEntity(reviewCreateRequest, book, user);
+
+      // 6. 리뷰 저장 및 즉시 반영하여, try-catch 블록 내에서 제약 조건 위반 예외 포착
       reviewRepository.saveAndFlush(newReview);
 
-      // 6. 로그 기록
+      // 7. 로그 기록
       log.info("[REVIEW_CREATE] Create Review Id: {}]", newReview.getId());
 
-      // 7. 리뷰 응답 DTO 변환 및 반환
+      // 8. 리뷰 응답 DTO 변환 및 반환
       return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0
 
       // 만약 동시에 똑같은 요청이 들어와서, DB 유니크 제약 (uk_book_user)가 발생한다면 커스텀 중복 예외 발생
@@ -183,12 +201,14 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public ReviewDto update(UUID id, UUID requestUserId, ReviewUpdateRequest reviewUpdateRequest) {
-    // 1. 수정할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / Book / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
+    validateBookActive(targetReview.getBook());
+    validateUserActive(requestUser);
 
     // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 수정 가능
     validateOwner(targetReview, requestUser);
@@ -211,12 +231,13 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public void delete(UUID id, UUID requestUserId) {
-    // 1. 삭제할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
+    validateUserActive(requestUser);
 
     // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
     validateOwner(targetReview, requestUser);
@@ -232,23 +253,26 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public void hardDelete(UUID id, UUID requestUserId) {
-    // 1. 삭제할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
+    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
+    // 2. User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
+    validateUserActive(requestUser);
+
+    // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
     validateOwner(targetReview, requestUser);
 
-    // 3. 연관 데이터 삭제 (댓글, 좋아요, 알림)
+    // 4. 연관 데이터 삭제 (댓글, 좋아요, 알림)
     List<UUID> reviewIds = List.of(targetReview.getId());
     commentRepository.deleteByReviewIdIn(reviewIds);
     reviewLikeRepository.deleteByReviewIdIn(reviewIds);
     notificationRepository.deleteByReviewIdIn(reviewIds);
 
-    // 4. 리뷰 물리 삭제
+    // 5. 리뷰 물리 삭제
     reviewRepository.delete(targetReview);
 
-    // 4. 로그 기록
+    // 6. 로그 기록
     log.info("[REVIEW_Hard_DELETE] Hard Delete Review Id: {}", targetReview.getId());
   }
 
@@ -256,27 +280,26 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public ReviewLikeDto toggleLike(UUID id, UUID requestUserId) {
-    // 1. 좋아요를 생성할 리뷰 및 요청자 존재 여부 확인: 존재하지 않을 시, 오류 발생
-    Review targetReview = getReviewEntityOrThrow(id);
+    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
+    Review targetReview = getReviewEntityWithPessimisticLockOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
 
-    // 2. 해당 리뷰가 이미 논리적으로 삭제되어 있는지 확인: 이미 논리적으로 삭제된 경우, 오류 발생
+    // 2. Review / Book / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
+    validateBookActive(targetReview.getBook());
+    validateUserActive(requestUser);
 
-    // 3. 좋아요 생성 및 취소
+    // 3. 좋아요 추가 및 취소 (동시성 처리 포함)
     boolean isLiked = executeToggleWithConcurrencyHandle(targetReview, requestUser);
 
     // 4. 응답 DTO 생성 및 반환
-    return ReviewLikeDto.builder()
-        .reviewId(targetReview.getId())
-        .userId(requestUser.getId())
-        .liked(isLiked)
-        .build();
+    return reviewLikeMapper.toDto(targetReview, requestUser, isLiked);
   }
 
   // 좋아요 추가 및 생성 동시성 문제 해결을 위한 메서드
   private boolean executeToggleWithConcurrencyHandle(Review review, User requestUser) {
     try {
+      // 1. 특정 리뷰에 대한 요청자의 좋아요 여부 확인
       boolean isLiked = isReviewLiked(review.getId(), requestUser.getId());
 
       // 특정 리뷰에 대한 사용자의 좋아요가 존재하지 않을 경우, 좋아요 추가
@@ -301,7 +324,7 @@ public class ReviewServiceImplement implements ReviewService {
   // 좋아요 수 증가
   private void processAddLike(Review review, User user) {
     // 1. 좋아요 생성
-    ReviewLike createdReviewLike = createReviewLike(review, user);
+    ReviewLike createdReviewLike = reviewLikeMapper.toEntity(review, user);
     reviewLikeRepository.saveAndFlush(createdReviewLike);
 
     // 2. 특정 리뷰의 좋아요 수 증가
@@ -309,14 +332,6 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 3. 로그 기록
     log.info("[ADD_REVIEW_LIKE] Add Like Id: {}", createdReviewLike.getId());
-  }
-
-  // 리뷰 좋아요 생성
-  private ReviewLike createReviewLike(Review review, User user) {
-    return ReviewLike.builder()
-        .review(review)
-        .user(user)
-        .build();
   }
 
   // 좋아요 수 감소
@@ -339,6 +354,12 @@ public class ReviewServiceImplement implements ReviewService {
   // Review 엔티티 반환
   private Review getReviewEntityOrThrow(UUID id) {
     return reviewRepository.findById(id)
+        .orElseThrow(() -> new ReviewNotFoundException(id));
+  }
+
+  // Review 엔티티 반환 (비관적 락 적용)
+  private Review getReviewEntityWithPessimisticLockOrThrow(UUID id) {
+    return reviewRepository.findByIdWithPessimisticLock(id)
         .orElseThrow(() -> new ReviewNotFoundException(id));
   }
 
@@ -379,7 +400,21 @@ public class ReviewServiceImplement implements ReviewService {
     }
   }
 
-  // 유효성 검증 (논리 삭제 여부 확인): 이미 논리적으로 삭제된 리뷰일 경우, 예외 발생
+  // 유효성 검증 (도서 논리 삭제 여부 확인): 이미 논리적으로 삭제된 도서일 경우, 예외 발생
+  private void validateBookActive(Book targetBook) {
+    if (targetBook.getBookStatus() == BookStatus.DELETED) {
+      throw new BookNotFoundException();
+    }
+  }
+
+  // 유효성 검증 (사용자 논리 삭제 여부 확인): 이미 논리적으로 삭제된 사용자일 경우, 예외 발생
+  private void validateUserActive(User targetUser) {
+    if (targetUser.getStatus() == UserStatus.DELETED) {
+      throw new UserNotFoundException(targetUser.getId());
+    }
+  }
+
+  // 유효성 검증 (리뷰 논리 삭제 여부 확인): 이미 논리적으로 삭제된 리뷰일 경우, 예외 발생
   private void validateReviewActive(Review targetReview) {
     if (targetReview.getStatus() == ReviewStatus.DELETED) {
       throw new ReviewNotFoundException(targetReview.getId());
