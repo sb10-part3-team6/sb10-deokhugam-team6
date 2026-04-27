@@ -21,7 +21,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
             and pb.snapshotId = :snapshotId
             and pb.periodStart >= :periodStart
             and pb.periodEnd < :periodEnd
-        order by pb.score desc
+        order by pb.score desc, pb.createdAt asc, pb.id asc
     """)
   List<PopularBook> findByPeriodAndSnapshotIdDescByScore(
       @Param("periodType") PeriodType periodType,
@@ -49,7 +49,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
         and (:cursor is null
               or pb.rank > :cursor
               or (pb.rank = :cursor and pb.createdAt > :after))
-      order by pb.rank asc, pb.createdAt asc
+      order by pb.rank asc, pb.createdAt asc, pb.id asc
       """)
   List<PopularBookDto> findRankingDtosBySnapshotIdAsc(
       @Param("snapshotId") UUID snapshotId,
@@ -76,7 +76,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
         and (:cursor is null
               or pb.rank < :cursor
               or (pb.rank = :cursor and pb.createdAt < :after))
-      order by pb.rank desc, pb.createdAt desc
+      order by pb.rank desc, pb.createdAt desc, pb.id desc
       """)
   List<PopularBookDto> findRankingDtosBySnapshotIdDesc(
       @Param("snapshotId") UUID snapshotId,

@@ -1,5 +1,6 @@
 package com.codeit.mission.deokhugam.dashboard.popularbooks.service;
 
+import com.codeit.mission.deokhugam.book.exception.IllegalLimitException;
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
@@ -42,8 +43,10 @@ public class PopularBookService {
       throw new CursorAfterNotProvidedTogetherException();
     }
 
-    // 페이지 사이즈는 1 ~ 100 범위를 벗어나지 않음.
-    int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+    // 페이지 사이즈가 0 이하거나 최대 페이지 사이즈를 넘어가면 커스텀 예외를 발행
+    if(size > MAX_PAGE_SIZE || size <= 0){
+      throw new IllegalLimitException();
+    }
 
     // 커서가 존재하면 String으로 부터 Long,LocalDate로 파싱
     // 존재하지 않다면 둘 다 null로 초기화
