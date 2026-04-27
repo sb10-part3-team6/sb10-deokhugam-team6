@@ -3,7 +3,7 @@ package com.codeit.mission.deokhugam.comment.repository;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewCommentCount;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserCommentCount;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,8 +32,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
           group by c.userId
           """)
   List<UserCommentCount> findUserCommentCounts(
-      @Param("periodStart") LocalDateTime periodStart,
-      @Param("periodEnd") LocalDateTime periodEnd);
+      @Param("periodStart") Instant periodStart,
+      @Param("periodEnd") Instant periodEnd);
 
   // 인기 리뷰를 집계할 때 기간 별 리뷰에 다린 댓글 개수를 가져오는 레포지토리 메서드
   @Query(
@@ -48,8 +48,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
           group by c.reviewId
           """)
   List<ReviewCommentCount> findReviewCommentCounts(
-      @Param("periodStart") LocalDateTime periodStart,
-      @Param("periodEnd") LocalDateTime periodEnd);
+      @Param("periodStart") Instant periodStart,
+      @Param("periodEnd") Instant periodEnd);
 
 
   // 사용자가 작성한 댓글들을 일괄 삭제
