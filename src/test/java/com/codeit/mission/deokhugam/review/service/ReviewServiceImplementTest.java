@@ -24,6 +24,7 @@ import com.codeit.mission.deokhugam.review.mapper.ReviewMapper;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
+import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -96,10 +97,11 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 상세 조회 요청자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
-    ReflectionTestUtils.setField(mockBook, "status", BookStatus.ACTIVE);
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
     User requestUser = User.builder().build();
     ReflectionTestUtils.setField(requestUser, "id",
         requestUserId);                                             // NPE 방지를 위한 id 강제 주입
+    ReflectionTestUtils.setField(requestUser, "status", UserStatus.ACTIVE);
 
     // 조회할 리뷰
     Review savedReview = Review.builder()
@@ -426,8 +428,10 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 사용자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);               // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(
         false);                                   // 중복체크 통과
@@ -514,8 +518,10 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 사용자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);               // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(
         false);                                   // 중복체크 통과
@@ -568,9 +574,11 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 사용자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
         userId);                                                           // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 기존 리뷰 정보
     Review savedReview = Review.builder()
@@ -631,11 +639,16 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 리뷰 작성자 및 리뷰 수정 요청자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User author = User.builder().build();
     ReflectionTestUtils.setField(author, "id",
         userId);                                                        // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(author, "status", UserStatus.ACTIVE);
+
     User requestUser = User.builder().build();
     ReflectionTestUtils.setField(requestUser, "id", requestUserId);
+    ReflectionTestUtils.setField(requestUser, "status", UserStatus.ACTIVE);
 
     // 기존 리뷰 정보
     Review savedReview = Review.builder()
@@ -688,6 +701,7 @@ public class ReviewServiceImplementTest {
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
         userId);                                                      // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 삭제할 리뷰 정보
     Review savedReview = Review.builder()
@@ -727,6 +741,7 @@ public class ReviewServiceImplementTest {
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
         userId);                                                      // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 삭제할 리뷰 정보
     Review savedReview = Review.builder()
@@ -768,6 +783,7 @@ public class ReviewServiceImplementTest {
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
         userId);                                                // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 삭제할 리뷰 정보
     Review savedReview = Review.builder()
@@ -813,8 +829,10 @@ public class ReviewServiceImplementTest {
     User author = User.builder().build();
     ReflectionTestUtils.setField(author, "id",
         authorId);                                                    // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(author, "status", UserStatus.ACTIVE);
     User requestUser = User.builder().build();
     ReflectionTestUtils.setField(requestUser, "id", requestUserId);
+    ReflectionTestUtils.setField(requestUser, "status", UserStatus.ACTIVE);
 
     // 삭제할 리뷰 정보
     Review savedReview = Review.builder()
@@ -862,9 +880,11 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 사용자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
         userId);                                                  // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 좋아요를 추가할 리뷰 정보
     Review savedReview = Review.builder()
@@ -928,9 +948,11 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 사용자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
         userId);                                                  // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 좋아요를 취소할 리뷰 정보
     Review savedReview = Review.builder()
@@ -995,9 +1017,11 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 사용자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
         userId);                                                      // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 좋아요를 취소할 리뷰 정보
     Review savedReview = Review.builder()
@@ -1050,9 +1074,11 @@ public class ReviewServiceImplementTest {
     // 가짜 객체 | 도서 및 사용자
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
         userId);                                                      // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 좋아요를 추가할 리뷰 정보
     Review savedReview = Review.builder()
