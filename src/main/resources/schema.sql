@@ -1,8 +1,3 @@
-CREATE TYPE "deleted_status" AS ENUM (
-    'ACTIVE',
-    'DELETED'
-    );
-
 CREATE TYPE "period_type" AS ENUM (
     'DAILY',
     'WEEKLY',
@@ -16,10 +11,10 @@ CREATE TABLE "users"
     "email"      VARCHAR(255) NOT NULL UNIQUE,
     "password"   VARCHAR(255)        NOT NULL,
     "nickname"   VARCHAR(20)         NOT NULL,
-    "status"     deleted_status         NOT NULL DEFAULT 'ACTIVE',
+    "status"     VARCHAR(30)         NOT NULL,
     "created_at" TIMESTAMPtz           NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP,
-    "deleted_at" TIMESTAMP
+    "updated_at" TIMESTAMPtz,
+    "deleted_at" TIMESTAMPtz
 );
 
 CREATE TABLE "books"
@@ -34,7 +29,7 @@ CREATE TABLE "books"
     "thumbnail_url"  VARCHAR(500),
     "review_count"   INTEGER          NOT NULL DEFAULT 0 CHECK ("review_count" >= 0),
     "rating"         DOUBLE PRECISION NOT NULL DEFAULT 0 CHECK ("rating" BETWEEN 0 AND 5),
-    "book_status"    deleted_status      NOT NULL DEFAULT 'ACTIVE',
+    "book_status"    VARCHAR(30)      NOT NULL,
     "deleted_at"     TIMESTAMP,
     "created_at"     TIMESTAMPtz        NOT NULL DEFAULT now(),
     "updated_at"     TIMESTAMP
@@ -49,7 +44,7 @@ CREATE TABLE "reviews"
     "content"       TEXT          NOT NULL,
     "like_count"    INTEGER       NOT NULL DEFAULT 0,
     "comment_count" INTEGER       NOT NULL DEFAULT 0,
-    "status"        deleted_status NOT NULL DEFAULT 'ACTIVE',
+    "status"        VARCHAR(30) NOT NULL,
     "created_at"    TIMESTAMPtz     NOT NULL DEFAULT now(),
     "updated_at"    TIMESTAMP,
     "deleted_at"    TIMESTAMP,
@@ -66,7 +61,7 @@ CREATE TABLE "comments"
     "review_id"  UUID           NOT NULL,
     "user_id"    UUID           NOT NULL,
     "content"    VARCHAR(500)   NOT NULL,
-    "status"     deleted_status NOT NULL DEFAULT 'ACTIVE',
+    "status"     VARCHAR(30) NOT NULL,
     "created_at" TIMESTAMPtz      NOT NULL DEFAULT now(),
     "updated_at" TIMESTAMP,
 
