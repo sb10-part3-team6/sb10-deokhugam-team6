@@ -45,7 +45,6 @@ class PopularReviewAggregateServiceTest {
   @DisplayName("인기 리뷰 집계에 필요한 지수들을 일괄 로딩하는 테스트 (성공)")
   public void loadReviewStat_success(){
     // given
-    LocalDateTime aggregatedAt = LocalDateTime.of(2026,4,23,15,30);
     LocalDateTime periodStart = LocalDateTime.of(2026,4,16,15,30);
     LocalDateTime periodEnd = LocalDateTime.of(2026,4,23,15,30);
 
@@ -88,7 +87,7 @@ class PopularReviewAggregateServiceTest {
   }
 
   @Test
-  @DisplayName("주중 시각을 기준으로 ")
+  @DisplayName("주중 시각을 기준으로 배치 테스트 (성공)")
   void rankPopularReviews_usesMidWeekCalculatedPeriod() {
     // given
     // 주중 집계 시간
