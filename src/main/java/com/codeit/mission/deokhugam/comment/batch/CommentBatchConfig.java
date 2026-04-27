@@ -1,7 +1,6 @@
 package com.codeit.mission.deokhugam.comment.batch;
 
 import com.codeit.mission.deokhugam.comment.entity.CommentStatus;
-import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import jakarta.persistence.EntityManagerFactory;
