@@ -2,10 +2,12 @@ package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.BookDto;
+import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -256,5 +258,72 @@ class BookServiceTest {
 
         //then
         assertThat(result).isEqualTo(false);
+    }
+
+    @Test
+    @DisplayName("이미지를 수정하면 기존 이미지는 삭제되고 새 이미지가 업로드된다")
+    void updateBookWithImage() {
+        // given
+        UUID id = UUID.randomUUID();
+
+        Book book = Book.builder()
+            .thumbnailUrl("old-url")
+            .build();
+
+        BookUpdateRequest request = new BookUpdateRequest(
+            "title", "author", "desc", "publisher", LocalDate.now()
+        );
+
+        MultipartFile image = mock(MultipartFile.class);
+
+        when(image.isEmpty()).thenReturn(false);
+        when(image.getContentType()).thenReturn("image/png");
+
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+        when(bookImageService.upload(image)).thenReturn("new-url");
+
+        // when
+        bookService.updateBook(id, request, image);
+
+        // then
+        verify(bookImageService).deleteFileByUrl("old-url");
+        verify(bookImageService).upload(image);
+
+        assertThat(book.getThumbnailUrl()).isEqualTo("new-url");
+    }
+
+    @Test
+    @DisplayName("이미지 업로드 성공")
+    void upload_success() {
+        MultipartFile image = mock(MultipartFile.class);
+
+        when(image.isEmpty()).thenReturn(false);
+        when(image.getContentType()).thenReturn("image/jpeg");
+        when(bookImageService.upload(image)).thenReturn("url");
+
+        String result = ReflectionTestUtils.invokeMethod(bookService, "upload", image);
+
+        assertThat(result).isEqualTo("url");
+    }
+
+    @Test
+    @DisplayName("이미지 타입이 아니면 예외")
+    void upload_fail_wrong_type() {
+        MultipartFile image = mock(MultipartFile.class);
+
+        when(image.isEmpty()).thenReturn(false);
+        when(image.getContentType()).thenReturn("text/plain");
+
+        assertThatThrownBy(() ->
+            ReflectionTestUtils.invokeMethod(bookService, "upload", image)
+        ).isInstanceOf(WrongFileTypeException.class);
+    }
+
+    @Test
+    @DisplayName("이미지가 없으면 null 반환")
+    void upload_null() {
+        String result = ReflectionTestUtils.invokeMethod(bookService, "upload", (MultipartFile) null);
+
+        assertThat(result).isNull();
     }
 }
