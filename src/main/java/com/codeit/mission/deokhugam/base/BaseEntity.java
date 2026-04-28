@@ -10,9 +10,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.UUID;
 
-/*
-    공통 엔티티
- */
 @Getter
 @NoArgsConstructor
 @MappedSuperclass                                       // 하위 클래스에도 자동 기록 적용
