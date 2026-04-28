@@ -61,7 +61,7 @@ public class CommentService {
     Comment savedComment = commentRepository.saveAndFlush(comment);
     reviewRepository.incrementCommentCount(review.getId());
 
-    log.info("[COMMNET_CREATE] Created Comment: id={}", savedComment.getId());
+    log.info("[COMMENT_CREATE] Created Comment: id={}", savedComment.getId());
 
     return commentMapper.toDto(savedComment, user.getNickname());
   }
@@ -87,7 +87,7 @@ public class CommentService {
     comment.updateContent(request.content());
     Comment updatedComment = commentRepository.save(comment);
 
-    log.info("[COMMNET_UPDATE] Updated Comment: id={}", updatedComment.getId());
+    log.info("[COMMENT_UPDATE] Updated Comment: id={}", updatedComment.getId());
 
     return commentMapper.toDto(updatedComment, user.getNickname());
   }
@@ -173,7 +173,7 @@ public class CommentService {
 
     comment.updateStatus(CommentStatus.DELETED);
 
-    log.info("[COMMNET_LOGICAL_DELETE] Logical Deleted Comment: id={}", comment.getId());
+    log.info("[COMMENT_LOGICAL_DELETE] Logical Deleted Comment: id={}", comment.getId());
 
     // 댓글 수 감소
     reviewRepository.decrementCommentCount(comment.getReviewId());
@@ -195,7 +195,7 @@ public class CommentService {
 
     commentRepository.deleteById(commentId);
 
-    log.info("[COMMNET_PHYSICAL_DELETE] Physical Deleted Comment: id={}", comment.getId());
+    log.info("[COMMENT_PHYSICAL_DELETE] Physical Deleted Comment: id={}", comment.getId());
 
     reviewRepository.decrementCommentCount(comment.getReviewId());
   }
