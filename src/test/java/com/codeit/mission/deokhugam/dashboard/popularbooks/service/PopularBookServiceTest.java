@@ -20,7 +20,7 @@ import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import com.codeit.mission.deokhugam.error.DeokhugamException;
 import com.codeit.mission.deokhugam.error.ErrorCode;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,8 +50,8 @@ class PopularBookServiceTest {
   @Test
   @DisplayName("인기 도서 첫 페이지를 오름차순으로 조회한다")
   void getBooks_firstPageAsc() {
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 27, 14, 30);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 27, 14, 31);
+    Instant createdAt1 = Instant.parse("2026-04-27T14:30:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-27T14:31:00Z");
     PopularBookDto book1 = popularBookDto("book-1", "author-1", PeriodType.WEEKLY, createdAt1, 1L, 33.0);
     PopularBookDto book2 = popularBookDto("book-2", "author-2", PeriodType.WEEKLY, createdAt2, 2L, 24.0);
 
@@ -83,8 +83,8 @@ class PopularBookServiceTest {
   @Test
   @DisplayName("인기 도서 첫 페이지를 내림차순으로 조회한다")
   void getBooks_firstPageDesc() {
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 27, 14, 30);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 27, 14, 31);
+    Instant createdAt1 = Instant.parse("2026-04-27T14:30:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-27T14:31:00Z");
     PopularBookDto book1 = popularBookDto("book-1", "author-1", PeriodType.WEEKLY, createdAt1, 1L, 33.0);
     PopularBookDto book2 = popularBookDto("book-2", "author-2", PeriodType.WEEKLY, createdAt2, 2L, 24.0);
 
@@ -116,9 +116,9 @@ class PopularBookServiceTest {
   @Test
   @DisplayName("다음 페이지가 있으면 next cursor를 반환한다")
   void getBooks_returnsNextCursor() {
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 27, 14, 30);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 27, 14, 31);
-    LocalDateTime createdAt3 = LocalDateTime.of(2026, 4, 27, 14, 32);
+    Instant createdAt1 = Instant.parse("2026-04-27T14:30:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-27T14:31:00Z");
+    Instant createdAt3 = Instant.parse("2026-04-27T14:32:00Z");
     PopularBookDto book1 = popularBookDto("book-1", "author-1", PeriodType.WEEKLY, createdAt1, 1L, 10.0);
     PopularBookDto book2 = popularBookDto("book-2", "author-2", PeriodType.WEEKLY, createdAt2, 2L, 9.0);
     PopularBookDto book3 = popularBookDto("book-3", "author-3", PeriodType.WEEKLY, createdAt3, 3L, 8.0);
@@ -153,7 +153,7 @@ class PopularBookServiceTest {
                     PeriodType.WEEKLY,
                     DirectionEnum.DESC,
                     "invalid-cursor",
-                    "2026-04-27T14:30:00",
+                    "2026-04-27T14:30:00Z",
                     50));
 
     assertEquals(ErrorCode.CURSOR_OR_AFTER_FORMAT_NOT_VALID, exception.getErrorCode());
@@ -227,7 +227,7 @@ class PopularBookServiceTest {
         .domainType(DomainType.POPULAR_BOOK)
         .snapshotId(snapshotId)
         .periodType(periodType)
-        .aggregatedAt(LocalDateTime.of(2026, 4, 15, 0, 0))
+        .aggregatedAt(Instant.parse("2026-04-15T00:00:00Z"))
         .stagingType(StagingType.PUBLISHED)
         .build();
   }
@@ -236,7 +236,7 @@ class PopularBookServiceTest {
       String title,
       String author,
       PeriodType periodType,
-      LocalDateTime createdAt,
+      Instant createdAt,
       long rank,
       double score) {
     return new PopularBookDto(
