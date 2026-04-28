@@ -48,7 +48,7 @@ class BookServiceTest {
         // given
         BookCreateRequest request = new BookCreateRequest(
                 "제목", "저자", "설명", "출판사",
-                LocalDate.now(), "isbn"
+                LocalDate.now(), "9788996724155"
         );
 
         Book savedBook = Book.builder()
@@ -59,7 +59,7 @@ class BookServiceTest {
         BookDto expectedDto = new BookDto(
                 UUID.randomUUID(),
                 "제목", "저자", "설명", "출판사",
-                LocalDate.now(), "isbn", null, 0, 0.0,
+                LocalDate.now(), "9788996724155", null, 0, 0.0,
                 LocalDateTime.now(), LocalDateTime.now()
         );
 
@@ -80,7 +80,7 @@ class BookServiceTest {
         assertThat(saved.getDescription()).isEqualTo("설명");
         assertThat(saved.getPublisher()).isEqualTo("출판사");
         assertThat(saved.getPublishedDate()).isEqualTo(request.publishedDate());
-        assertThat(saved.getIsbn()).isEqualTo("isbn");
+        assertThat(saved.getIsbn()).isEqualTo("9788996724155");
         assertThat(saved.getThumbnailUrl()).isNull();
         assertThat(saved.getReviewCount()).isEqualTo(0);
         assertThat(saved.getRating()).isEqualTo(0.0);
@@ -97,7 +97,7 @@ class BookServiceTest {
         // given
         BookCreateRequest request = new BookCreateRequest(
                 "제목", "저자", "설명", "출판사",
-                LocalDate.now(), "isbn"
+                LocalDate.now(), "9788996724155"
         );
 
         MultipartFile image = mock(MultipartFile.class);
@@ -114,7 +114,7 @@ class BookServiceTest {
         BookDto expectedDto = new BookDto(
                 UUID.randomUUID(),
                 "제목", "저자", "설명", "출판사",
-                LocalDate.now(), "isbn", imageUrl, 0, 0.0,
+                LocalDate.now(), "9788996724155", imageUrl, 0, 0.0,
                 LocalDateTime.now(), LocalDateTime.now()
         );
 
@@ -147,7 +147,7 @@ class BookServiceTest {
         // given
         BookCreateRequest request = new BookCreateRequest(
                 "제목", "저자", "설명", "출판사",
-                LocalDate.now(), "isbn"
+                LocalDate.now(), "9788996724155"
         );
 
         MultipartFile image = mock(MultipartFile.class);
@@ -173,7 +173,7 @@ class BookServiceTest {
         // given
         BookCreateRequest request = new BookCreateRequest(
                 "제목", "저자", "설명", "출판사",
-                LocalDate.now(), "isbn"
+                LocalDate.now(), "9788996724155"
         );
 
         MultipartFile image = mock(MultipartFile.class);
@@ -194,7 +194,7 @@ class BookServiceTest {
         // given
         BookCreateRequest request = new BookCreateRequest(
                 "제목", "저자", "설명", "출판사",
-                LocalDate.now(), "isbn"
+                LocalDate.now(), "9788996724155"
         );
 
         when(bookRepository.save(any(Book.class)))
