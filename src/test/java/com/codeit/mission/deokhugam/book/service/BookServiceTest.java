@@ -4,6 +4,10 @@ import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.BookDto;
 import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.book.entity.BookStatus;
+import com.codeit.mission.deokhugam.book.event.BookDeletedEvent;
+import com.codeit.mission.deokhugam.book.event.BookDeletedEventListener;
+import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
 import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
@@ -15,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +43,9 @@ class BookServiceTest {
 
     @Mock
     private BookImageService bookImageService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private BookService bookService;
@@ -325,5 +333,109 @@ class BookServiceTest {
         String result = ReflectionTestUtils.invokeMethod(bookService, "upload", (MultipartFile) null);
 
         assertThat(result).isNull();
+    }
+
+    @Test
+    @DisplayName("도서를 논리 삭제하면 상태가 DELETED로 변경된다")
+    void deleteBookSuccess() {
+        // given
+        UUID id = UUID.randomUUID();
+
+        Book book = mock(Book.class);
+
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+        when(book.getBookStatus()).thenReturn(BookStatus.ACTIVE);
+
+        // when
+        bookService.deleteBook(id);
+
+        // then
+        verify(book).delete(); // 상태 변경
+        verify(bookRepository).save(book);
+    }
+
+    @Test
+    @DisplayName("이미 삭제된 도서를 논리 삭제하면 예외 발생")
+    void deleteBookFailWhenAlreadyDeleted() {
+        UUID id = UUID.randomUUID();
+
+        Book book = mock(Book.class);
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+        when(book.getBookStatus()).thenReturn(BookStatus.DELETED);
+
+        assertThatThrownBy(() -> bookService.deleteBook(id))
+            .isInstanceOf(BookNotFoundException.class);
+
+        verify(bookRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 도서를 삭제하면 예외 발생")
+    void deleteBookFailWhenNotFound() {
+        UUID id = UUID.randomUUID();
+
+        when(bookRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookService.deleteBook(id))
+            .isInstanceOf(BookNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("도서를 물리 삭제하면 도서 물리 삭제 이벤트가 발행된다")
+    void hardDeleteBookSuccess() {
+        // given
+        UUID id = UUID.randomUUID();
+
+        Book book = mock(Book.class);
+        when(book.getBookStatus()).thenReturn(BookStatus.ACTIVE);
+        when(book.getThumbnailUrl()).thenReturn("url");
+
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+
+        // when
+        bookService.hardDeleteBook(id);
+
+        // then
+        verify(bookRepository).delete(book);
+
+        ArgumentCaptor<BookDeletedEvent> captor =
+            ArgumentCaptor.forClass(BookDeletedEvent.class);
+
+        verify(eventPublisher).publishEvent(captor.capture());
+
+        assertThat(captor.getValue().thumbnailUrl()).isEqualTo("url");
+    }
+
+    @Test
+    @DisplayName("이미 삭제된 도서를 물리 삭제하면 예외 발생")
+    void hardDeleteBookFailWhenDeleted() {
+        UUID id = UUID.randomUUID();
+
+        Book book = mock(Book.class);
+        when(book.getBookStatus()).thenReturn(BookStatus.DELETED);
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+
+        assertThatThrownBy(() -> bookService.hardDeleteBook(id))
+            .isInstanceOf(BookNotFoundException.class);
+
+        verify(bookRepository, never()).delete(any());
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("이벤트가 발생하면 이미지가 삭제된다")
+    void eventListenerTest() {
+        // given
+        BookImageService bookImageService = mock(BookImageService.class);
+        BookDeletedEventListener listener =
+            new BookDeletedEventListener(bookImageService);
+
+        BookDeletedEvent event = new BookDeletedEvent("url");
+
+        // when
+        listener.handle(event);
+
+        // then
+        verify(bookImageService).deleteFileByUrl("url");
     }
 }
