@@ -44,6 +44,7 @@ public record NotificationRequestQuery(
 ) {
 
   private static final int DEFAULT_LIMIT = 20;
+  private static final int MAX_LIMIT = 100;
 
   public int getLimitOrDefault() {
     return limit == null ? DEFAULT_LIMIT : limit;
@@ -57,6 +58,6 @@ public record NotificationRequestQuery(
     if (limit == null) {
       limit = DEFAULT_LIMIT;
     }
-    limit = Math.min(limit, DEFAULT_LIMIT);
+    limit = Math.min(limit, MAX_LIMIT);
   }
 }

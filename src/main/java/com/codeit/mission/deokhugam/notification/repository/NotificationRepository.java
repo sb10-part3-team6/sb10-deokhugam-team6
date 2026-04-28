@@ -3,7 +3,6 @@ package com.codeit.mission.deokhugam.notification.repository;
 import com.codeit.mission.deokhugam.notification.entity.Notification;
 import com.codeit.mission.deokhugam.notification.repository.custom.NotificationRepositoryCustom;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID>,
     NotificationRepositoryCustom {
-
 
   // 사용자와 관련된 모든 알림을 일괄 삭제
   @Modifying

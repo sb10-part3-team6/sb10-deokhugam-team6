@@ -2,6 +2,7 @@ package com.codeit.mission.deokhugam.dashboard.powerusers.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.codeit.mission.deokhugam.config.JpaAuditingConfig;
 import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.PowerUserDto;
@@ -20,7 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 
 @DataJpaTest
-@Import(QuerydslConfig.class)
+@Import({JpaAuditingConfig.class, QuerydslConfig.class})
 class PowerUserRepositoryTest {
 
   private static final UUID SNAPSHOT_ID =

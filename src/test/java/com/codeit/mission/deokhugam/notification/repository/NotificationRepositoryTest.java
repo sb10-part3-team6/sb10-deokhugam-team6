@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.notification.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.config.JpaAuditingConfig;
 import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.notification.dto.request.NotificationRequestQuery;
@@ -24,10 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Slice;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @DataJpaTest
-@Import(QuerydslConfig.class)
+@Import({JpaAuditingConfig.class, QuerydslConfig.class})
 public class NotificationRepositoryTest {
 
   @Autowired
@@ -85,18 +85,19 @@ public class NotificationRepositoryTest {
           .confirmed(i % 2 == 0)
           .build();
 
-      // reflection으로 createAt 강제 세팅
-      ReflectionTestUtils.setField(
-          notification,
-          "createdAt",
-          BASE_TIME.minusSeconds(i)
-      );
-
       notificationList.add(notification);
       em.persist(notification);
     }
 
     em.flush();
+
+    for (int i = 0; i < notificationList.size(); i++) {
+      em.createNativeQuery("update notifications set created_at = :createdAt where id = :id")
+          .setParameter("createdAt", BASE_TIME.minusSeconds(i))
+          .setParameter("id", notificationList.get(i).getId())
+          .executeUpdate();
+    }
+
     em.clear();
   }
 

@@ -33,10 +33,10 @@ CREATE TABLE "reviews"
     "id"            UUID PRIMARY KEY,
     "book_id"       UUID                     NOT NULL,
     "user_id"       UUID                     NOT NULL,
-    "rating"        INTEGER                  NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    "rating"        INTEGER                  NOT NULL CHECK ("rating" BETWEEN 1 AND 5),
     "content"       TEXT                     NOT NULL,
-    "like_count"    INTEGER                  NOT NULL DEFAULT 0 CHECK (like_count >= 0),
-    "comment_count" INTEGER                  NOT NULL DEFAULT 0 CHECK (comment_count >= 0),
+    "like_count"    INTEGER                  NOT NULL DEFAULT 0 CHECK ("like_count" >= 0),
+    "comment_count" INTEGER                  NOT NULL DEFAULT 0 CHECK ("comment_count" >= 0),
     "status"        VARCHAR(30)              NOT NULL,
     "created_at"    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at"    TIMESTAMP WITH TIME ZONE,
@@ -46,7 +46,7 @@ CREATE TABLE "reviews"
     FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
 );
 ALTER TABLE "reviews"
-    ADD CONSTRAINT "uk_book_user" UNIQUE (book_id, user_id);
+    ADD CONSTRAINT "uk_book_user" UNIQUE ("book_id", "user_id");
 
 CREATE TABLE "comments"
 (
@@ -92,9 +92,9 @@ CREATE TABLE "review_likes"
     FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
 );
 ALTER TABLE "review_likes"
-    ADD CONSTRAINT "uk_review_user_like" UNIQUE (review_id, user_id);
-CREATE INDEX "idx_review_likes_liked_at_review_id" ON "review_likes" (liked_at, review_id);
-CREATE INDEX "idx_review_likes_liked_at_user_id" ON "review_likes" (liked_at, user_id);
+    ADD CONSTRAINT "uk_review_user_like" UNIQUE ("review_id", "user_id");
+CREATE INDEX "idx_review_likes_liked_at_review_id" ON "review_likes" ("liked_at", "review_id");
+CREATE INDEX "idx_review_likes_liked_at_user_id" ON "review_likes" ("liked_at", "user_id");
 
 
 CREATE TABLE "power_users"
@@ -108,8 +108,8 @@ CREATE TABLE "power_users"
     "rank"             BIGINT                   NOT NULL,
     "score"            DOUBLE PRECISION         NOT NULL,
     "review_score_sum" DOUBLE PRECISION         NOT NULL DEFAULT 0,
-    "like_count"       BIGINT                   NOT NULL DEFAULT 0 CHECK (like_count >= 0),
-    "comment_count"    BIGINT                   NOT NULL DEFAULT 0 CHECK (comment_count >= 0),
+    "like_count"       BIGINT                   NOT NULL DEFAULT 0 CHECK ("like_count" >= 0),
+    "comment_count"    BIGINT                   NOT NULL DEFAULT 0 CHECK ("comment_count" >= 0),
     "aggregated_at"    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_at"       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at"       TIMESTAMP WITH TIME ZONE,
@@ -118,10 +118,10 @@ CREATE TABLE "power_users"
 );
 
 ALTER TABLE "power_users"
-    ADD CONSTRAINT "uk_power_users_period" UNIQUE (user_id, period_type, period_start, period_end);
+    ADD CONSTRAINT "uk_power_users_period" UNIQUE ("user_id", "period_type", "period_start", "period_end");
 
-CREATE INDEX "idx_power_users_period_start_rank" ON "power_users" (period_type, period_start, rank);
-CREATE INDEX "idx_power_users_snapshot_rank" ON "power_users" (snapshot_id, rank);
+CREATE INDEX "idx_power_users_period_start_rank" ON "power_users" ("period_type", "period_start", "rank");
+CREATE INDEX "idx_power_users_snapshot_rank" ON "power_users" ("snapshot_id", "rank");
 
 
 CREATE TABLE "popular_reviews"
@@ -133,8 +133,8 @@ CREATE TABLE "popular_reviews"
     "period_end"    TIMESTAMP WITH TIME ZONE NOT NULL,
     "rank"          BIGINT                   NOT NULL,
     "score"         DOUBLE PRECISION         NOT NULL,
-    "like_count"    BIGINT                   NOT NULL DEFAULT 0 CHECK (like_count >= 0),
-    "comment_count" BIGINT                   NOT NULL DEFAULT 0 CHECK (comment_count >= 0),
+    "like_count"    BIGINT                   NOT NULL DEFAULT 0 CHECK ("like_count" >= 0),
+    "comment_count" BIGINT                   NOT NULL DEFAULT 0 CHECK ("comment_count" >= 0),
     "snapshot_id"   UUID                     NOT NULL,
     "aggregated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
     "created_at"    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -143,10 +143,10 @@ CREATE TABLE "popular_reviews"
     FOREIGN KEY ("review_id") REFERENCES "reviews" ("id") ON DELETE CASCADE
 );
 ALTER TABLE "popular_reviews"
-    ADD CONSTRAINT "uk_popular_reviews_period" UNIQUE (review_id, period_type, period_start, snapshot_id);
+    ADD CONSTRAINT "uk_popular_reviews_period" UNIQUE ("review_id", "period_type", "period_start", "snapshot_id");
 
-CREATE INDEX "idx_popular_reviews_period_start_rank" ON "popular_reviews" (period_type, period_start, rank);
-CREATE INDEX "idx_popular_reviews_snapshot_rank" ON "popular_reviews" (snapshot_id, rank);
+CREATE INDEX "idx_popular_reviews_period_start_rank" ON "popular_reviews" ("period_type", "period_start", "rank");
+CREATE INDEX "idx_popular_reviews_snapshot_rank" ON "popular_reviews" ("snapshot_id", "rank");
 
 CREATE TABLE "popular_books"
 (
@@ -154,7 +154,7 @@ CREATE TABLE "popular_books"
     "book_id"      UUID                     NOT NULL,
     "period_start" TIMESTAMP WITH TIME ZONE NOT NULL,
     "period_end"   TIMESTAMP WITH TIME ZONE NOT NULL,
-    "review_count" BIGINT                   NOT NULL DEFAULT 0 CHECK (review_count >= 0),
+    "review_count" BIGINT                   NOT NULL DEFAULT 0 CHECK ("review_count" >= 0),
     "avg_rating"   DOUBLE PRECISION         NOT NULL,
     "score"        DOUBLE PRECISION         NOT NULL,
     "rank"         BIGINT                   NOT NULL,
@@ -166,8 +166,8 @@ CREATE TABLE "popular_books"
     FOREIGN KEY ("book_id") REFERENCES "books" ("id") ON DELETE CASCADE
 );
 
-CREATE INDEX "idx_book_id_period_type_snap_shot_id" ON "popular_books" (book_id, period_type, snapshot_id);
-CREATE INDEX "idx_period_snapshot_window_score" ON "popular_books" (period_type, snapshot_id, period_start, period_end, score);
+CREATE INDEX "idx_book_id_period_type_snap_shot_id" ON "popular_books" ("book_id", "period_type", "snapshot_id");
+CREATE INDEX "idx_period_snapshot_window_score" ON "popular_books" ("period_type", "snapshot_id", "period_start", "period_end", "score");
 
 
 CREATE TABLE "aggregate_snapshot"
@@ -182,4 +182,4 @@ CREATE TABLE "aggregate_snapshot"
     "updated_at"    TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX "idx_aggregate_domain_snapshots_period_status" ON "aggregate_snapshot" (domain_type, period_type, staging_type);
+CREATE INDEX "idx_aggregate_domain_snapshots_period_status" ON "aggregate_snapshot" ("domain_type", "period_type", "staging_type");
