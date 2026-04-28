@@ -15,7 +15,7 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
 
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto(
+          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.PowerUserDto(
               pu.userId,
               u.nickname,
               pu.periodType,
@@ -42,7 +42,7 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
 
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto(
+          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.PowerUserDto(
               pu.userId,
               u.nickname,
               pu.periodType,

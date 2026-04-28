@@ -53,7 +53,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   // 유저 Id별 리뷰의 점수 총계를 리턴하는 메서드
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate(
+          select new com.codeit.mission.deokhugam.dashboard.powerusers.dto.request.UserReviewAggregate(
               r.user.id,
               coalesce(sum(r.rating), 0.0)
           )
@@ -87,7 +87,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
 
   // 기간 내 리뷰 당 받은 좋아요 수를 뽑는 쿼리
   @Query("""
-      select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount(
+      select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewLikeCount(
           rl.review.id,
           count(rl)
       )
@@ -104,7 +104,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
 
   // 기간 내 책 별 리뷰 개수를 뽑는 쿼리
   @Query("""
-          select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewCount(
+          select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.BookReviewCount(
             b.id,
             count(r)
           ) from Book b
@@ -121,7 +121,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
 
   // 기간 내 책 리뷰의 평균을 구하는 쿼리
   @Query("""
-          select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewAvgRating(
+          select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.BookReviewAvgRating(
             r.book.id,
             avg(r.rating * 1.0)
           )

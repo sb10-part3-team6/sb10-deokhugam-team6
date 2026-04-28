@@ -5,9 +5,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewAvgRating;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewCount;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookStat;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.BookReviewAvgRating;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.BookReviewCount;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.PopularBookStat;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.entity.PopularBook;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.repository.PopularBookRepository;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
@@ -103,7 +103,8 @@ class PopularBookAggregationServiceTest {
     popularBookAggregationService.rankPopularBooks(PeriodType.WEEKLY, aggregatedAt, snapshotId);
 
     verify(popularBookRepository)
-        .findByPeriodAndSnapshotIdDescByScore(PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId);
+        .findByPeriodAndSnapshotIdDescByScore(PeriodType.WEEKLY, periodStart, aggregatedAt,
+            snapshotId);
   }
 
   @Test
@@ -127,7 +128,8 @@ class PopularBookAggregationServiceTest {
     assertEquals(1L, second.getRank());
     assertEquals(3L, third.getRank());
     verify(popularBookRepository)
-        .findByPeriodAndSnapshotIdDescByScore(PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId);
+        .findByPeriodAndSnapshotIdDescByScore(PeriodType.WEEKLY, periodStart, aggregatedAt,
+            snapshotId);
   }
 
   @Test

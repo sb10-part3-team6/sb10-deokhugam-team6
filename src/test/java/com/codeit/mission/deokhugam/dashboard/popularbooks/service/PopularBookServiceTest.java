@@ -13,8 +13,8 @@ import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.CursorPageResponsePopularBookDto;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.CursorPageResponsePopularBookDto;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.PopularBookDto;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.repository.PopularBookRepository;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
@@ -52,11 +52,14 @@ class PopularBookServiceTest {
   void getBooks_firstPageAsc() {
     Instant createdAt1 = Instant.parse("2026-04-27T14:30:00Z");
     Instant createdAt2 = Instant.parse("2026-04-27T14:31:00Z");
-    PopularBookDto book1 = popularBookDto("book-1", "author-1", PeriodType.WEEKLY, createdAt1, 1L, 33.0);
-    PopularBookDto book2 = popularBookDto("book-2", "author-2", PeriodType.WEEKLY, createdAt2, 2L, 24.0);
+    PopularBookDto book1 = popularBookDto("book-1", "author-1", PeriodType.WEEKLY, createdAt1, 1L,
+        33.0);
+    PopularBookDto book2 = popularBookDto("book-2", "author-2", PeriodType.WEEKLY, createdAt2, 2L,
+        24.0);
 
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_BOOK, PeriodType.WEEKLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_BOOK, PeriodType.WEEKLY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.WEEKLY, WEEKLY_SNAPSHOT_ID)));
     when(popularBookRepository.findRankingDtosBySnapshotIdAsc(
         WEEKLY_SNAPSHOT_ID, null, null, PageRequest.of(0, 51)))
@@ -85,11 +88,14 @@ class PopularBookServiceTest {
   void getBooks_firstPageDesc() {
     Instant createdAt1 = Instant.parse("2026-04-27T14:30:00Z");
     Instant createdAt2 = Instant.parse("2026-04-27T14:31:00Z");
-    PopularBookDto book1 = popularBookDto("book-1", "author-1", PeriodType.WEEKLY, createdAt1, 1L, 33.0);
-    PopularBookDto book2 = popularBookDto("book-2", "author-2", PeriodType.WEEKLY, createdAt2, 2L, 24.0);
+    PopularBookDto book1 = popularBookDto("book-1", "author-1", PeriodType.WEEKLY, createdAt1, 1L,
+        33.0);
+    PopularBookDto book2 = popularBookDto("book-2", "author-2", PeriodType.WEEKLY, createdAt2, 2L,
+        24.0);
 
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_BOOK, PeriodType.WEEKLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_BOOK, PeriodType.WEEKLY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.WEEKLY, WEEKLY_SNAPSHOT_ID)));
     when(popularBookRepository.findRankingDtosBySnapshotIdDesc(
         WEEKLY_SNAPSHOT_ID, null, null, PageRequest.of(0, 51)))
@@ -119,12 +125,16 @@ class PopularBookServiceTest {
     Instant createdAt1 = Instant.parse("2026-04-27T14:30:00Z");
     Instant createdAt2 = Instant.parse("2026-04-27T14:31:00Z");
     Instant createdAt3 = Instant.parse("2026-04-27T14:32:00Z");
-    PopularBookDto book1 = popularBookDto("book-1", "author-1", PeriodType.WEEKLY, createdAt1, 1L, 10.0);
-    PopularBookDto book2 = popularBookDto("book-2", "author-2", PeriodType.WEEKLY, createdAt2, 2L, 9.0);
-    PopularBookDto book3 = popularBookDto("book-3", "author-3", PeriodType.WEEKLY, createdAt3, 3L, 8.0);
+    PopularBookDto book1 = popularBookDto("book-1", "author-1", PeriodType.WEEKLY, createdAt1, 1L,
+        10.0);
+    PopularBookDto book2 = popularBookDto("book-2", "author-2", PeriodType.WEEKLY, createdAt2, 2L,
+        9.0);
+    PopularBookDto book3 = popularBookDto("book-3", "author-3", PeriodType.WEEKLY, createdAt3, 3L,
+        8.0);
 
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_BOOK, PeriodType.WEEKLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_BOOK, PeriodType.WEEKLY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.WEEKLY, WEEKLY_SNAPSHOT_ID)));
     when(popularBookRepository.findRankingDtosBySnapshotIdAsc(
         WEEKLY_SNAPSHOT_ID, null, null, PageRequest.of(0, 3)))
@@ -191,8 +201,9 @@ class PopularBookServiceTest {
   @Test
   @DisplayName("발행된 스냅샷이 없으면 빈 content를 반환한다")
   void getBooks_noSnapshotReturnsEmptyContent() {
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_BOOK, PeriodType.MONTHLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_BOOK, PeriodType.MONTHLY, StagingType.PUBLISHED))
         .thenReturn(Optional.empty());
 
     CursorPageResponsePopularBookDto result =

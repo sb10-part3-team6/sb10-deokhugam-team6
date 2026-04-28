@@ -33,7 +33,7 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
 
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.PopularReviewDto(
+          select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.PopularReviewDto(
               pr.id,
               r.id,
               b.id,
@@ -69,7 +69,7 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
 
   @Query(
       """
-          select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.PopularReviewDto(
+          select new com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.PopularReviewDto(
               pr.id,
               r.id,
               b.id,

@@ -31,7 +31,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
   );
 
   @Query("""
-      select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto(
+      select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.PopularBookDto(
           pb.id,
           b.id,
           b.title,
@@ -58,7 +58,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
       Pageable pageable);
 
   @Query("""
-      select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto(
+      select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.PopularBookDto(
           pb.id,
           b.id,
           b.title,
