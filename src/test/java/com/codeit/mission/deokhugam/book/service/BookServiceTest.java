@@ -2,9 +2,9 @@ package com.codeit.mission.deokhugam.book.service;
 
 import com.codeit.mission.deokhugam.book.dto.request.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.response.BookDto;
-import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
-import com.codeit.mission.deokhugam.book.dto.CursorPageRequestDto;
-import com.codeit.mission.deokhugam.book.dto.CursorPageResponseBookDto;
+import com.codeit.mission.deokhugam.book.dto.request.BookUpdateRequest;
+import com.codeit.mission.deokhugam.book.dto.request.CursorPageRequestDto;
+import com.codeit.mission.deokhugam.book.dto.response.CursorPageResponseBookDto;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.entity.SortDirection;
@@ -74,7 +74,7 @@ class BookServiceTest {
                 UUID.randomUUID(),
                 "제목", "저자", "설명", "출판사",
                 LocalDate.now(), "9788996724155", null, 0, 0.0,
-                LocalDateTime.now(), LocalDateTime.now()
+                Instant.now(), Instant.now()
         );
 
         when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
@@ -129,7 +129,7 @@ class BookServiceTest {
                 UUID.randomUUID(),
                 "제목", "저자", "설명", "출판사",
                 LocalDate.now(), "9788996724155", imageUrl, 0, 0.0,
-                LocalDateTime.now(), LocalDateTime.now()
+                Instant.now(), Instant.now()
         );
 
         when(bookImageService.upload(image)).thenReturn(imageUrl);
@@ -594,7 +594,7 @@ class BookServiceTest {
     // 헬퍼 메서드
     // ------------------------
     private Book createBook(String title) {
-        return Book.builder()
+        Book book = Book.builder()
             .title(title)
             .author("author")
             .description("desc")
@@ -605,5 +605,9 @@ class BookServiceTest {
             .reviewCount(4)
             .rating(4.0)
             .build();
+
+        ReflectionTestUtils.setField(book, "createdAt", Instant.now());
+
+        return book;
     }
 }
