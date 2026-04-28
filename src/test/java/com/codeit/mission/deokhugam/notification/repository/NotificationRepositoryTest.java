@@ -1,6 +1,5 @@
 package com.codeit.mission.deokhugam.notification.repository;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
@@ -12,6 +11,7 @@ import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ public class NotificationRepositoryTest {
     book = Book.builder()
         .rating(5)
         .title("제목")
-        .publishedDate(Instant.now())
+        .publishedDate(LocalDate.now())
         .author("작가")
         .publisher("출판사")
         .description("설명")
