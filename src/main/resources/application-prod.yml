@@ -16,7 +16,7 @@ spring:
   # 테이블 자동 생성 막음
   sql:
     init:
-      mode: ALWAYS
+      mode: never
 
   # JPA/Hibernate 운영 설정
   jpa:
