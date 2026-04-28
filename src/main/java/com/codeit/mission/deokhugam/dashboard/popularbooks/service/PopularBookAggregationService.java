@@ -1,9 +1,9 @@
 package com.codeit.mission.deokhugam.dashboard.popularbooks.service;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewAvgRating;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewCount;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookStat;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.BookReviewAvgRating;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.BookReviewCount;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.PopularBookStat;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.entity.PopularBook;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.repository.PopularBookRepository;
 import com.codeit.mission.deokhugam.dashboard.util.Utils;
@@ -33,7 +33,7 @@ public class PopularBookAggregationService {
 
   // 한 번 실행하면 도서로부터 인기 도서 집계에 필요한 지수들을 Fetch
   @Transactional(readOnly = true)
-  public Map<UUID, PopularBookStat> loadBookStat(PeriodType periodType, Instant aggregatedAt){
+  public Map<UUID, PopularBookStat> loadBookStat(PeriodType periodType, Instant aggregatedAt) {
     List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
     // 집계 기간 범위
     Instant periodStart = periods.get(0);
@@ -41,13 +41,15 @@ public class PopularBookAggregationService {
 
     // 책 별 리뷰 개수
     Map<UUID, Long> reviewCountPerBook = new HashMap<>();
-    for(BookReviewCount item : reviewRepository.countReviewsPerBook(periodStart, periodEnd, ReviewStatus.ACTIVE)){
+    for (BookReviewCount item : reviewRepository.countReviewsPerBook(periodStart, periodEnd,
+        ReviewStatus.ACTIVE)) {
       reviewCountPerBook.put(item.bookId(), item.reviewCount());
     }
 
     // 책 별 리뷰의 평균 점수
     Map<UUID, Double> avgRatingPerBook = new HashMap<>();
-    for (BookReviewAvgRating item : reviewRepository.avgRatingsPerBook(periodStart, periodEnd, ReviewStatus.ACTIVE)) {
+    for (BookReviewAvgRating item : reviewRepository.avgRatingsPerBook(periodStart, periodEnd,
+        ReviewStatus.ACTIVE)) {
       avgRatingPerBook.put(item.bookId(), item.avgRating());
     }
 
@@ -58,7 +60,7 @@ public class PopularBookAggregationService {
 
     // 책 별 지수 (Stat)
     Map<UUID, PopularBookStat> statsByBookId = new HashMap<>();
-    for(UUID bookId : bookIds){
+    for (UUID bookId : bookIds) {
       long reviewCount = reviewCountPerBook.getOrDefault(bookId, 0L);
       double avgRating = avgRatingPerBook.getOrDefault(bookId, 0.0);
 
@@ -69,7 +71,7 @@ public class PopularBookAggregationService {
   }
 
   @Transactional
-  public void rankPopularBooks(PeriodType periodType, Instant aggregatedAt, UUID snapshotId){
+  public void rankPopularBooks(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
     List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
     Instant periodStart = periods.get(0);
     Instant periodEnd = periods.get(1);
@@ -97,8 +99,7 @@ public class PopularBookAggregationService {
       PopularBookStat stat,
       PeriodType periodType,
       Instant aggregatedAt,
-      UUID snapshotId)
-  {
+      UUID snapshotId) {
     Instant periodStart = periodType.calculateStart(aggregatedAt);
     Instant periodEnd = periodType.calculateEnd(aggregatedAt);
 
@@ -115,7 +116,7 @@ public class PopularBookAggregationService {
         .build();
   }
 
-  public PopularBookStat emptyStat(UUID bookId){
+  public PopularBookStat emptyStat(UUID bookId) {
     return new PopularBookStat(
         bookId,
         0L,
@@ -123,7 +124,7 @@ public class PopularBookAggregationService {
     );
   }
 
-  private double calculateScore(long reviewCount, double avgRating){
+  private double calculateScore(long reviewCount, double avgRating) {
     return reviewCount * REVIEW_WEIGHT + avgRating * AVERAGE_RATING_WEIGHT;
   }
 

@@ -19,12 +19,12 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -137,7 +137,7 @@ public class CommentService {
         .toList();
 
     String nextCursor = null;
-    LocalDateTime nextAfter = null;
+    Instant nextAfter = null;
 
     if (hasNext && !comments.isEmpty()) {
       Comment last = comments.get(comments.size() - 1);

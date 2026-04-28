@@ -13,8 +13,8 @@ import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.CursorPageResponsePopularReviewDto;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.PopularReviewDto;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.CursorPageResponsePopularReviewDto;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.PopularReviewDto;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularReviewRepository;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
@@ -63,8 +63,9 @@ class PopularReviewServiceTest {
         popularReviewDto("review-2", "book-2", "user-2", PeriodType.WEEKLY, createdAt2, 2L, 24.0);
 
     // Weekly 스냅샷 객체 생성하도록 설정
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.WEEKLY, WEEKLY_SNAPSHOT_ID)));
 
     // Weekly 스냅샷 객체를 바탕으로 인기 리뷰를 스코어 기준으로 오름차순으로 뽑아옴. (review1, review2)
@@ -111,8 +112,9 @@ class PopularReviewServiceTest {
         popularReviewDto("review-2", "book-2", "user-2", PeriodType.WEEKLY, createdAt2, 2L, 24.0);
 
     // WEEKLY 스냅샷 생성
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.WEEKLY, WEEKLY_SNAPSHOT_ID)));
 
     // 주간 기간동안 인기 리뷰를 조회 (첫페이지) 내림차순으로 조회하면 review2, review1 순으로 반환
@@ -159,8 +161,9 @@ class PopularReviewServiceTest {
         popularReviewDto("review-3", "book-3", "user-3", PeriodType.WEEKLY, createdAt3, 3L, 8.0);
 
     // 도메인 종류, 기간 종류, 스냅샷 스테이징 상태를 기반으로 스냅샷 객체들을 뽑아냄
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.WEEKLY, WEEKLY_SNAPSHOT_ID)));
 
     // 오름차 순으로 인기 리뷰 리스트 조회 페이지 사이즈는 (3)
@@ -178,7 +181,8 @@ class PopularReviewServiceTest {
 
     // then
     assertTrue(result.hasNext()); // 다음 페이지가 존재하는지 검증
-    assertEquals(List.of(review1, review2), result.content()); // 첫 페이지의 사이즈는 두개 -> review1, review2 두개
+    assertEquals(List.of(review1, review2),
+        result.content()); // 첫 페이지의 사이즈는 두개 -> review1, review2 두개
     assertEquals("2", result.nextCursor());
     assertEquals(createdAt2.toString(), result.nextAfter());
     assertEquals(2, result.size());
@@ -241,12 +245,14 @@ class PopularReviewServiceTest {
   @DisplayName("발행된 스냅샷이 없으면 빈 Content를 반환한다.")
   void getReviews_snapshotNotFound() {
     // given
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_REVIEW, PeriodType.MONTHLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_REVIEW, PeriodType.MONTHLY, StagingType.PUBLISHED))
         .thenReturn(Optional.empty());
 
     // when
-    CursorPageResponsePopularReviewDto result = popularReviewService.getReviews(PeriodType.MONTHLY, DirectionEnum.DESC, null, null, 1);
+    CursorPageResponsePopularReviewDto result = popularReviewService.getReviews(PeriodType.MONTHLY,
+        DirectionEnum.DESC, null, null, 1);
 
     // then
     assertTrue(result.content().isEmpty()); // content는 비어있음.

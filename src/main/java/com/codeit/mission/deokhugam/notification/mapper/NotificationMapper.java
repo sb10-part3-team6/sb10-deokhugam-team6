@@ -1,6 +1,6 @@
 package com.codeit.mission.deokhugam.notification.mapper;
 
-import com.codeit.mission.deokhugam.notification.dto.NotificationDto;
+import com.codeit.mission.deokhugam.notification.dto.response.NotificationDto;
 import com.codeit.mission.deokhugam.notification.entity.Notification;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

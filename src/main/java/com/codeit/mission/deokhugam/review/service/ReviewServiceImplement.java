@@ -27,7 +27,7 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -96,7 +96,7 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 3. 이전 페이지의 마지막 요소의 생성 시간 (다음 요청의 after) 및 다음 페이지 시작점 (다음 페이지의 cursor) 설정
     String nextCursor = null;
-    LocalDateTime nextAfter = null;
+    Instant nextAfter = null;
 
     // 페이징 된 리뷰 목록이 있고 다음 페이지가 존재할 때만 기록
     if (!pagedReviews.isEmpty() && hasNext) {

@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.popularbooks.repository;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.PopularBookDto;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.entity.PopularBook;
 import java.time.Instant;
 import java.util.List;
@@ -15,23 +15,23 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
 
 
   @Query("""
-    select pb
-        from PopularBook pb
-            where pb.periodType = :periodType
-            and pb.snapshotId = :snapshotId
-            and pb.periodStart >= :periodStart
-            and pb.periodEnd < :periodEnd
-        order by pb.score desc, pb.createdAt asc, pb.id asc
-    """)
+      select pb
+          from PopularBook pb
+              where pb.periodType = :periodType
+              and pb.snapshotId = :snapshotId
+              and pb.periodStart >= :periodStart
+              and pb.periodEnd < :periodEnd
+          order by pb.score desc, pb.createdAt asc, pb.id asc
+      """)
   List<PopularBook> findByPeriodAndSnapshotIdDescByScore(
       @Param("periodType") PeriodType periodType,
       @Param("periodStart") Instant periodStart,
       @Param("periodEnd") Instant periodEnd,
       @Param("snapshotId") UUID snapshotId
-      );
+  );
 
   @Query("""
-      select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto(
+      select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.PopularBookDto(
           pb.id,
           b.id,
           b.title,
@@ -58,7 +58,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
       Pageable pageable);
 
   @Query("""
-      select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto(
+      select new com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.PopularBookDto(
           pb.id,
           b.id,
           b.title,
