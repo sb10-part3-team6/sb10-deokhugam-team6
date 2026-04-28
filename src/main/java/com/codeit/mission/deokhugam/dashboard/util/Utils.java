@@ -17,8 +17,11 @@ public class Utils {
       if(cursor == null){
         return new ParsedCursors(null, null);
       }
+      if(after == null || after.isBlank()){
+        throw new InvalidCursorValueException();
+      }
       return new ParsedCursors(Long.parseLong(cursor), Instant.parse(after));
-    } catch (NumberFormatException | DateTimeException e){
+    } catch (NumberFormatException | DateTimeException | NullPointerException e){
       throw new InvalidCursorValueException();
     }
   }
