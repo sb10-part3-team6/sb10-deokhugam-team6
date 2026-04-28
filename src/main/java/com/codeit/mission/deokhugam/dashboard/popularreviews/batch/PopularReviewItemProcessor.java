@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.popularreviews.batch;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewStat;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewStat;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.service.PopularReviewAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;

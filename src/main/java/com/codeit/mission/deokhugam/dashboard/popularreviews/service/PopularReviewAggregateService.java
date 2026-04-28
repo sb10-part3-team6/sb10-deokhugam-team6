@@ -4,9 +4,9 @@ import static java.lang.Double.NaN;
 
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewCommentCount;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewStat;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewCommentCount;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewLikeCount;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewStat;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularReviewRepository;
 import com.codeit.mission.deokhugam.dashboard.util.Utils;

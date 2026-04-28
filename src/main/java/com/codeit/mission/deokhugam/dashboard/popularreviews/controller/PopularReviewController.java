@@ -2,7 +2,7 @@ package com.codeit.mission.deokhugam.dashboard.popularreviews.controller;
 
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.CursorPageResponsePopularReviewDto;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.CursorPageResponsePopularReviewDto;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.service.PopularReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

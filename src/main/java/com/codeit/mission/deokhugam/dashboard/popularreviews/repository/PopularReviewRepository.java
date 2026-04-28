@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.popularreviews.repository;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.PopularReviewDto;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.PopularReviewDto;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import java.time.Instant;
 import java.util.List;
