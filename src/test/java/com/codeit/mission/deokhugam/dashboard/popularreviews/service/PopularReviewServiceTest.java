@@ -20,7 +20,7 @@ import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import com.codeit.mission.deokhugam.error.DeokhugamException;
 import com.codeit.mission.deokhugam.error.ErrorCode;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,8 +53,8 @@ class PopularReviewServiceTest {
   void getReviews_firstPageAsc() {
     // given
     // 집계 기간 범위
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
 
     // 리뷰 DTO
     PopularReviewDto review1 =
@@ -101,8 +101,8 @@ class PopularReviewServiceTest {
   @DisplayName("인기 리뷰 첫 페이지를 내림차순으로 조회한다")
   void getReviews_firstPageDesc() {
     // given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
 
     // 인기 리뷰 Dto
     PopularReviewDto review1 =
@@ -146,9 +146,9 @@ class PopularReviewServiceTest {
   @DisplayName("다음 페이지가 있으면 next cursor를 반환한다")
   void getReviews_returnsNextCursor() {
     // given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
-    LocalDateTime createdAt3 = LocalDateTime.of(2026, 4, 15, 10, 2);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
+    Instant createdAt3 = Instant.parse("2026-04-15T10:02:00Z");
 
     // 조회하고자 하는 인기 리뷰는 3개
     PopularReviewDto review1 =
@@ -198,7 +198,7 @@ class PopularReviewServiceTest {
                     PeriodType.WEEKLY,
                     DirectionEnum.DESC,
                     "invalid-cursor",
-                    "2026-04-15T10:00:00",
+                    "2026-04-15T10:00:00Z",
                     50));
     // then
     assertEquals(ErrorCode.CURSOR_OR_AFTER_FORMAT_NOT_VALID, exception.getErrorCode());
@@ -267,7 +267,7 @@ class PopularReviewServiceTest {
         .domainType(DomainType.POPULAR_REVIEW)
         .snapshotId(snapshotId)
         .periodType(periodType)
-        .aggregatedAt(LocalDateTime.of(2026, 4, 15, 0, 0))
+        .aggregatedAt(Instant.parse("2026-04-15T00:00:00Z"))
         .stagingType(StagingType.PUBLISHED)
         .build();
   }
@@ -277,7 +277,7 @@ class PopularReviewServiceTest {
       String bookTitle,
       String userNickname,
       PeriodType periodType,
-      LocalDateTime createdAt,
+      Instant createdAt,
       long rank,
       double score) {
     return new PopularReviewDto(
