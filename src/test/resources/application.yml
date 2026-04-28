@@ -34,5 +34,5 @@ naverapi:
   client-secret: test-client-secret
 
 ocr:
-  url: http://localhost/ocr
+  url: http://127.0.0.1:0
   apikey: test-api-key
