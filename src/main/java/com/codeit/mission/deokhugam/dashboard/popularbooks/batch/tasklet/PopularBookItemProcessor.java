@@ -2,7 +2,7 @@ package com.codeit.mission.deokhugam.dashboard.popularbooks.batch.tasklet;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookStat;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.PopularBookStat;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.entity.PopularBook;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.service.PopularBookAggregationService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;

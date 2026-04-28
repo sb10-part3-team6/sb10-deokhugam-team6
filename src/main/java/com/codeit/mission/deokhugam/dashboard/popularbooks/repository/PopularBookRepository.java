@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.popularbooks.repository;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.PopularBookDto;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.entity.PopularBook;
 import java.time.Instant;
 import java.util.List;

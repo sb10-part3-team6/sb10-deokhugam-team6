@@ -2,7 +2,7 @@ package com.codeit.mission.deokhugam.dashboard.popularbooks.controller;
 
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.CursorPageResponsePopularBookDto;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.CursorPageResponsePopularBookDto;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.service.PopularBookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
