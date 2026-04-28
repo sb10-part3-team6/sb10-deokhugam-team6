@@ -11,7 +11,7 @@ public record BookReviewAvgRating(
     )
     UUID bookId,
     @Schema(
-        description = "평균 리뷰",
+        description = "평균 리뷰 평점",
         example = "5.5"
     )
     double avgRating
