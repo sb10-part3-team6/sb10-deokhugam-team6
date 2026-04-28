@@ -17,6 +17,7 @@ import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -126,7 +127,7 @@ public class NotificationService {
 
   // 현 시점을 기준으로 확인한 알림 중 1주일이 경과된 알림 삭제
   public void deleteNotificationsConfirmedBeforeOneWeek() {
-    LocalDateTime cutoff = LocalDateTime.now().minusWeeks(1);
+    Instant cutoff = Instant.now().minus(1, ChronoUnit.WEEKS);
     notificationRepository.deleteByConfirmedTrueAndUpdatedAtBefore(cutoff);
   }
 
