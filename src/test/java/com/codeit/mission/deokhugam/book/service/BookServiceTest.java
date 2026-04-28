@@ -3,14 +3,20 @@ package com.codeit.mission.deokhugam.book.service;
 import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
 import com.codeit.mission.deokhugam.book.dto.BookDto;
 import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
+import com.codeit.mission.deokhugam.book.dto.CursorPageRequestDto;
+import com.codeit.mission.deokhugam.book.dto.CursorPageResponseBookDto;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.BookStatus;
+import com.codeit.mission.deokhugam.book.entity.SortDirection;
 import com.codeit.mission.deokhugam.book.event.BookDeletedEvent;
 import com.codeit.mission.deokhugam.book.event.BookDeletedEventListener;
 import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
+import com.codeit.mission.deokhugam.book.exception.CursorOrAfterFormatNotValidException;
+import com.codeit.mission.deokhugam.book.exception.IllegalLimitException;
 import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +34,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -437,5 +443,184 @@ class BookServiceTest {
 
         // then
         verify(bookImageService).deleteFileByUrl("url");
+    }
+
+    @Test
+    @DisplayName("정상: 커서 기반 도서 목록 조회 - hasNext=true")
+    void findAllBooks_success_hasNext_true() {
+        // given
+        CursorPageRequestDto request = new CursorPageRequestDto(
+            "java",
+            "title",
+            SortDirection.ASC,
+            null,
+            null,
+            2
+        );
+
+        Book book1 = createBook("A");
+        Book book2 = createBook("B");
+        Book book3 = createBook("C"); // limit + 1
+
+        List<Book> books = List.of(book1, book2, book3);
+
+        when(bookRepository.findAllByCursor(any()))
+            .thenReturn(books);
+
+        when(bookRepository.countByCondition("java"))
+            .thenReturn(3L);
+
+        when(bookDtoMapper.toDto(any()))
+            .thenAnswer(invocation -> {
+                Book b = invocation.getArgument(0);
+                return new BookDto(
+                    UUID.randomUUID(),
+                    b.getTitle(),
+                    b.getAuthor(),
+                    b.getDescription(),
+                    b.getPublisher(),
+                    b.getPublishedDate(),
+                    b.getIsbn(),
+                    b.getThumbnailUrl(),
+                    b.getReviewCount(),
+                    b.getRating(),
+                    b.getCreatedAt(),
+                    b.getUpdatedAt()
+                );
+            });
+
+        // when
+        CursorPageResponseBookDto response = bookService.findAllBooks(request);
+
+        // then
+        assertThat(response.content()).hasSize(2);
+        assertThat(response.hasNext()).isTrue();
+        assertThat(response.nextCursor()).isEqualTo("B");
+        assertThat(response.nextAfter()).isEqualTo(book2.getCreatedAt());
+        assertThat(response.totalElements()).isEqualTo(3L);
+    }
+
+    @Test
+    @DisplayName("정상: 커서 기반 도서 목록 조회 - hasNext=false")
+    void findAllBooks_success_hasNext_false() {
+        // given
+        CursorPageRequestDto request = new CursorPageRequestDto(
+            null,
+            "title",
+            SortDirection.ASC,
+            null,
+            null,
+            2
+        );
+
+        Book book1 = createBook("A");
+        Book book2 = createBook("B");
+
+        List<Book> books = List.of(book1, book2);
+
+        when(bookRepository.findAllByCursor(any()))
+            .thenReturn(books);
+
+        when(bookRepository.countByCondition(null))
+            .thenReturn(2L);
+
+        when(bookDtoMapper.toDto(any()))
+            .thenAnswer(invocation -> {
+                Book b = invocation.getArgument(0);
+                return new BookDto(
+                    UUID.randomUUID(),
+                    b.getTitle(),
+                    b.getAuthor(),
+                    b.getDescription(),
+                    b.getPublisher(),
+                    b.getPublishedDate(),
+                    b.getIsbn(),
+                    b.getThumbnailUrl(),
+                    b.getReviewCount(),
+                    b.getRating(),
+                    b.getCreatedAt(),
+                    b.getUpdatedAt()
+                );
+            });
+
+        // when
+        CursorPageResponseBookDto response = bookService.findAllBooks(request);
+
+        // then
+        assertThat(response.content()).hasSize(2);
+        assertThat(response.hasNext()).isFalse();
+        assertThat(response.nextCursor()).isNull();
+        assertThat(response.nextAfter()).isNull();
+    }
+
+    @Test
+    @DisplayName("예외: limit이 0 이하이면 예외 발생")
+    void findAllBooks_invalid_limit() {
+        // given
+        CursorPageRequestDto request = new CursorPageRequestDto(
+            null,
+            "title",
+            SortDirection.ASC,
+            null,
+            null,
+            0
+        );
+
+        // when & then
+        assertThatThrownBy(() -> bookService.findAllBooks(request))
+            .isInstanceOf(IllegalLimitException.class);
+    }
+
+    @Test
+    @DisplayName("예외: 잘못된 cursor 포맷")
+    void findAllBooks_invalid_cursor_format() {
+        // given
+        CursorPageRequestDto request = new CursorPageRequestDto(
+            null,
+            "reviewCount",
+            SortDirection.ASC,
+            "not-a-number",
+            null,
+            2
+        );
+
+        // when & then
+        assertThatThrownBy(() -> bookService.findAllBooks(request))
+            .isInstanceOf(CursorOrAfterFormatNotValidException.class);
+    }
+
+    @Test
+    @DisplayName("예외: 잘못된 orderBy")
+    void findAllBooks_invalid_orderBy() {
+        // given
+        CursorPageRequestDto request = new CursorPageRequestDto(
+            null,
+            "invalid",
+            SortDirection.ASC,
+            "abc",
+            null,
+            2
+        );
+
+        // when & then
+        assertThatThrownBy(() -> bookService.findAllBooks(request))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // ------------------------
+    // 헬퍼 메서드
+    // ------------------------
+    private Book createBook(String title) {
+        return Book.builder()
+            .title(title)
+            .author("author")
+            .description("desc")
+            .publisher("pub")
+            .publishedDate(LocalDate.now())
+            .isbn(UUID.randomUUID().toString())
+            .thumbnailUrl("url")
+            .reviewCount(0)
+            .rating(0.0)
+            .build();
     }
 }
