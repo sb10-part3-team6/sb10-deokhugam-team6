@@ -19,9 +19,20 @@ spring:
       ddl-auto: none
     defer-datasource-initialization: true
 
-  cloud:
-    aws:
-      s3:
-        region: ap-northeast-2
-        bucket: test-bucket
+  batch:
+    job:
+      enabled: false
 
+cloud:
+  aws:
+    s3:
+      region: ap-northeast-2
+      bucket: test-bucket
+
+naverapi:
+  client-id: test-client-id
+  client-secret: test-client-secret
+
+ocr:
+  url: http://localhost/ocr
+  apikey: test-api-key
