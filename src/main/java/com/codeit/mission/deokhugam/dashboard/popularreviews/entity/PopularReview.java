@@ -9,7 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,10 +40,10 @@ public class PopularReview extends BaseEntity {
   private PeriodType periodType;
 
   @Column(name = "period_start", nullable = false)
-  private LocalDateTime periodStart;
+  private Instant periodStart;
 
   @Column(name = "period_end", nullable = false)
-  private LocalDateTime periodEnd;
+  private Instant periodEnd;
 
   @Column(nullable = false)
   private double score;
@@ -58,7 +58,7 @@ public class PopularReview extends BaseEntity {
   private long commentCount;
 
   @Column(name = "aggregated_at", nullable = false)
-  private LocalDateTime aggregatedAt;
+  private Instant aggregatedAt;
 
   @Column(name = "snapshot_id", nullable = false)
   private UUID snapshotId;
@@ -67,13 +67,13 @@ public class PopularReview extends BaseEntity {
   public PopularReview(
       UUID reviewId,
       PeriodType periodType,
-      LocalDateTime periodStart,
-      LocalDateTime periodEnd,
+      Instant periodStart,
+      Instant periodEnd,
       double score,
       long rank,
       long likeCount,
       long commentCount,
-      LocalDateTime aggregatedAt,
+      Instant aggregatedAt,
       UUID snapshotId
   ){
     this.reviewId = reviewId;

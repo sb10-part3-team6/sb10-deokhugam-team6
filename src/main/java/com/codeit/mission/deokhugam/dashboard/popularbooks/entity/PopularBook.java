@@ -8,7 +8,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,10 +30,10 @@ public class PopularBook extends BaseEntity {
   private UUID bookId;
 
   @Column(name = "period_start", nullable = false)
-  private LocalDateTime periodStart;
+  private Instant periodStart;
 
   @Column(name = "period_end", nullable = false)
-  private LocalDateTime periodEnd;
+  private Instant periodEnd;
 
   @Column(name = "review_count", nullable = false)
   private Long reviewCount;
@@ -57,8 +57,8 @@ public class PopularBook extends BaseEntity {
   @Builder
   public PopularBook(
       UUID bookId,
-      LocalDateTime periodStart,
-      LocalDateTime periodEnd,
+      Instant periodStart,
+      Instant periodEnd,
       Long reviewCount,
       double avgRating,
       double score,

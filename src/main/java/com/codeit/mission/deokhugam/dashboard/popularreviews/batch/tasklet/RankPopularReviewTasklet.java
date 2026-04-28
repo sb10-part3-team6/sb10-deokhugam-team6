@@ -3,7 +3,7 @@ package com.codeit.mission.deokhugam.dashboard.popularreviews.batch.tasklet;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.service.PopularReviewAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -42,8 +42,8 @@ public class RankPopularReviewTasklet implements Tasklet {
     return JobParameterUtils.parseUuid("snapshotId", snapshotIdValue);
   }
 
-  private LocalDateTime getAggregatedAt(){
-    return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
+  private Instant getAggregatedAt(){
+    return JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtValue);
   }
 
   private PeriodType getPeriodType(){
