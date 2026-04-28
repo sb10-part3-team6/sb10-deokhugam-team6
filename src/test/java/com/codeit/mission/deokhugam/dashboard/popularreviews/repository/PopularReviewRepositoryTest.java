@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.config.JpaAuditingConfig;
 import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.PopularReviewDto;
@@ -19,11 +20,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 
 @DataJpaTest
-@Import(QuerydslConfig.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({JpaAuditingConfig.class, QuerydslConfig.class})
 class PopularReviewRepositoryTest {
 
   private static final UUID SNAPSHOT_ID =

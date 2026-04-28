@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.notification.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.mission.deokhugam.book.entity.Book;
+import com.codeit.mission.deokhugam.config.JpaAuditingConfig;
 import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.notification.dto.request.NotificationRequestQuery;
@@ -21,13 +22,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Slice;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @DataJpaTest
-@Import(QuerydslConfig.class)
+@Import({JpaAuditingConfig.class, QuerydslConfig.class})
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+
 public class NotificationRepositoryTest {
 
   @Autowired
