@@ -2,6 +2,7 @@ package com.codeit.mission.deokhugam.comment.repository;
 
 import com.codeit.mission.deokhugam.comment.dto.request.CommentFindAllRequest;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
+import com.codeit.mission.deokhugam.comment.entity.CommentStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -28,6 +29,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
 
     BooleanBuilder builder = new BooleanBuilder();
     builder.and(comment.reviewId.eq(request.reviewId()));
+    builder.and(comment.status.eq(CommentStatus.ACTIVE));
 
     BooleanBuilder cursorCondition = buildCursorCondition(
         direction,
