@@ -29,7 +29,7 @@ public class PowerUserController {
   // cursor를 공백으로 둘 시 첫 페이지 반환되고 size는 기본값이 50
   @Operation(
       summary = "파워 유저 목록 조회",
-      operationId = "find_popular_review_3",
+      operationId = "find_power_user_3",
       description = "기간별 파워 유저 목록을 조회합니다."
   )
   @ApiResponses({
