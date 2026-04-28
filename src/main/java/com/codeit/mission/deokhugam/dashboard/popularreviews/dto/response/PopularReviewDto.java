@@ -32,8 +32,8 @@ public record PopularReviewDto(
     String bookTitle,
 
     @Schema(
-        description = "대상 도서 URL 주소",
-        example = "http://codeit.com"
+        description = "대상 도서 썸네일 URL",
+        example = "http://codeit.com/books/book.png"
     )
     String bookThumbnailUrl,
 
