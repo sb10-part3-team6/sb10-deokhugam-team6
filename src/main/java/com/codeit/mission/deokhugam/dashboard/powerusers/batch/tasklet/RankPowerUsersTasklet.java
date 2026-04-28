@@ -19,16 +19,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @StepScope
 public class RankPowerUsersTasklet implements Tasklet {
-
   private final PowerUserAggregateService powerUserAggregateService;
 
   // 외부로부터 PeriodType 과 집계 날짜를 가져온다.
-  @Value("#{jobParameters['periodType']}")
-  private String periodTypeValue;
-  @Value("#{jobParameters['aggregatedAt']}")
-  private String aggregatedAtValue;
-  @Value("#{jobExecutionContext['snapshotId']}")
-  private String snapshotIdValue;
+  @Value("#{jobParameters['periodType']}") private String periodTypeValue;
+  @Value("#{jobParameters['aggregatedAt']}") private String aggregatedAtValue;
+  @Value("#{jobExecutionContext['snapshotId']}") private String snapshotIdValue;
 
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
@@ -47,11 +43,11 @@ public class RankPowerUsersTasklet implements Tasklet {
     return JobParameterUtils.parseUuid("snapshotId", snapshotIdValue);
   }
 
-  private Instant getAggregatedAt() {
-    return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
+  private Instant getAggregatedAt(){
+    return JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtValue);
   }
 
-  private PeriodType getPeriodType() {
+  private PeriodType getPeriodType(){
     return JobParameterUtils.parseEnum("periodType", periodTypeValue, PeriodType.class);
   }
 }

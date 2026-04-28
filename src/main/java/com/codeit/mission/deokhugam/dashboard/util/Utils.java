@@ -8,18 +8,20 @@ import java.time.Instant;
 import java.util.List;
 
 public class Utils {
-
-  public static List<Instant> calculatePeriod(PeriodType periodType, Instant aggregatedAt) {
+  public static List<Instant> calculatePeriod(PeriodType periodType, Instant aggregatedAt){
     return List.of(periodType.calculateStart(aggregatedAt), periodType.calculateEnd(aggregatedAt));
   }
 
-  public static ParsedCursors parseCursors(String cursor, String after) {
-    try {
-      if (cursor == null) {
+  public static ParsedCursors parseCursors(String cursor, String after){
+    try{
+      if(cursor == null){
         return new ParsedCursors(null, null);
       }
+      if(after == null || after.isBlank()){
+        throw new InvalidCursorValueException();
+      }
       return new ParsedCursors(Long.parseLong(cursor), Instant.parse(after));
-    } catch (NumberFormatException | DateTimeException e) {
+    } catch (NumberFormatException | DateTimeException | NullPointerException e){
       throw new InvalidCursorValueException();
     }
   }

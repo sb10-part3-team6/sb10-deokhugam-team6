@@ -48,7 +48,7 @@ public class PowerUserItemProcessor implements ItemProcessor<User, PowerUser> {
     );
 
     this.periodType = JobParameterUtils.parseEnum("periodType", periodTypeStr, PeriodType.class);
-    this.aggregatedAt = JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtStr);
+    this.aggregatedAt = JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtStr);
     this.snapshotId = JobParameterUtils.parseUuid("snapshotId", snapshotIdStr);
 
     this.statsByUserId = powerUserAggregateService.loadUserStats(periodType,

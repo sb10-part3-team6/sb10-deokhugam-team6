@@ -51,8 +51,7 @@ public class CreateNewSnapshotTasklet implements Tasklet {
         .getExecutionContext(); // Job 전체가 공유하는 Key-Value 저장소
 
     // 컨텍스트에 스냅샷 Id, 도메인 종류를 저장
-    context.putString("snapshotId",
-        snapshot.getSnapshotId().toString()); // 에 snapshotId 이름으로 해당 Id를 저장
+    context.putString("snapshotId", snapshot.getSnapshotId().toString()); // 에 snapshotId 이름으로 해당 Id를 저장
     context.putString("domainType", domainType.name()); // domainType 이름으로 해당 도메인 종류를 저장
 
     // 스텝 종료를 알림
@@ -64,7 +63,7 @@ public class CreateNewSnapshotTasklet implements Tasklet {
   }
 
   private Instant getAggregatedAt() {
-    return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
+    return JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtValue);
   }
 
   private DomainType getDomainType() {

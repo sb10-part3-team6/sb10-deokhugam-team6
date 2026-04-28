@@ -4,8 +4,8 @@ import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.exceptions.DashboardBatchJobFailException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -30,12 +30,8 @@ public class DashboardBatchScheduler {
   @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
   public void runDashboardAggregation() {
     // 집계 시작 시간은 00:00.00.0
-    Instant aggregatedAt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
-        .withHour(0)
-        .withMinute(0)
-        .withSecond(0)
-        .withNano(0)
-        .toInstant();
+    ZoneId zoneId = ZoneId.of("Asia/Seoul");
+    Instant aggregatedAt = LocalDate.now(zoneId).atStartOfDay(zoneId).toInstant();
 
     // DomainType을 순회
     for (DomainType domainType : List.of(

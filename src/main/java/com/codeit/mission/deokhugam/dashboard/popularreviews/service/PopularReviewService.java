@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PopularReviewService {
-
   private static final int MAX_PAGE_SIZE = 100;
 
   private final PopularReviewRepository popularReviewRepository;
@@ -65,10 +64,8 @@ public class PopularReviewService {
 
     // 커서 페이지 응답에 content 안에 들어갈 PopularReviewDto 리스트
     List<PopularReviewDto> rows = (direction == DirectionEnum.ASC)
-        ? popularReviewRepository.findRankingDtosBySnapshotIdAsc(publishedSnapshotId.get(),
-        cursorLong, afterDate, PageRequest.of(0, pageSize + 1))
-        : popularReviewRepository.findRankingDtosBySnapshotIdDesc(publishedSnapshotId.get(),
-            cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
+        ? popularReviewRepository.findRankingDtosBySnapshotIdAsc(publishedSnapshotId.get(), cursorLong, afterDate, PageRequest.of(0, pageSize + 1))
+        : popularReviewRepository.findRankingDtosBySnapshotIdDesc(publishedSnapshotId.get(), cursorLong, afterDate, PageRequest.of(0, pageSize + 1));
 
     // 뽑아온 rows의 사이즈가 한 페이지의 사이즈보다 크면 다음 페이지가 존재합니다.
     boolean hasNext = rows.size() > pageSize;
@@ -83,8 +80,7 @@ public class PopularReviewService {
     String nextAfter = nextCursors.after();
 
     // 스냅샷에 해당하는 요소들의 총 개수를 센다.
-    long totalElements = popularReviewRepository.countRankingsBySnapshotId(
-        publishedSnapshotId.get());
+    long totalElements = popularReviewRepository.countRankingsBySnapshotId(publishedSnapshotId.get());
 
     return new CursorPageResponsePopularReviewDto(
         content,
@@ -103,26 +99,21 @@ public class PopularReviewService {
         .map(AggregateSnapshot::getSnapshotId);
   }
 
-  private record ParsedCursors(Long cursor, Instant after) {
+  private record ParsedCursors(Long cursor, Instant after){}
+  private record StringCursors(String cursor, String after){}
 
-  }
-
-  private record StringCursors(String cursor, String after) {
-
-  }
-
-  private ParsedCursors parseCursors(String cursor, String after) {
-    try {
-      if (cursor == null) {
+  private ParsedCursors parseCursors(String cursor, String after){
+    try{
+      if(cursor == null){
         return new ParsedCursors(null, null);
       }
       return new ParsedCursors(Long.parseLong(cursor), Instant.parse(after));
-    } catch (NumberFormatException | DateTimeException e) {
+    } catch (NumberFormatException | DateTimeException e){
       throw new InvalidCursorValueException();
     }
   }
 
-  private StringCursors getNextCursors(boolean hasNext, List<PopularReviewDto> content) {
+  private StringCursors getNextCursors(boolean hasNext, List<PopularReviewDto> content){
     if (hasNext && !content.isEmpty()) {
       PopularReviewDto last = content.get(content.size() - 1);
       // 컨텐츠 내 마지막 요소를 기준으로 next cursor와 보조 커서를 초기화한다.

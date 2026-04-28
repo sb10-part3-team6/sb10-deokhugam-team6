@@ -1,8 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 public enum PeriodType {
@@ -17,23 +16,21 @@ public enum PeriodType {
   WEEKLY {
     @Override
     public Instant calculateStart(Instant aggregatedAt) {
-      return aggregatedAt.minus(1, ChronoUnit.WEEKS); // 집계 날짜에서 한 주를 뺀 날짜
+      return aggregatedAt.minus(7, ChronoUnit.DAYS); // 집계 날짜에서 한 주를 뺀 날짜
     }
   },
   // 월간
   MONTHLY {
     @Override
     public Instant calculateStart(Instant aggregatedAt) {
-      return aggregatedAt.minus(1, ChronoUnit.MONTHS); // 집계 날짜에서 한 달을 뺀 날짜
+      return aggregatedAt.atZone(ZoneOffset.UTC).minusMonths(1).toInstant(); // 집계 날짜에서 한 달을 뺀 날짜
     }
   },
   // 상시
   ALL_TIME {
     @Override
     public Instant calculateStart(Instant aggregatedAt) {
-      return LocalDateTime.of(1970, 1, 1, 0, 0)
-          .atZone(ZoneId.of("Asia/Seoul"))
-          .toInstant();
+      return Instant.EPOCH;
     }
   };
 

@@ -48,14 +48,14 @@ public class PopularBookItemProcessor implements ItemProcessor<Book, PopularBook
     );
 
     this.periodType = JobParameterUtils.parseEnum("periodType", periodTypeStr, PeriodType.class);
-    this.aggregatedAt = JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtStr);
+    this.aggregatedAt = JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtStr);
     this.snapshotId = JobParameterUtils.parseUuid("snapshotId", snapshotIdStr);
 
     this.statsByBookId = popularBookAggregateService.loadBookStat(periodType, aggregatedAt);
   }
 
   @Override
-  public @Nullable PopularBook process(@NonNull Book item) throws Exception {
+  public @Nullable PopularBook process(@NonNull Book item) {
     PopularBookStat stat = statsByBookId.get(item.getId());
     if (stat == null) {
       stat = popularBookAggregateService.emptyStat(item.getId());

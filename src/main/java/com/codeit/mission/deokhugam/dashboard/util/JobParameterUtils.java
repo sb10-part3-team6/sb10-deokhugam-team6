@@ -9,12 +9,9 @@ import java.util.UUID;
 
 public final class JobParameterUtils {
 
-  private JobParameterUtils() {
-  }
+  private JobParameterUtils() {}
 
-  public record ParameterValue(String name, String value) {
-
-  }
+  public record ParameterValue(String name, String value) {}
 
   public static ParameterValue parameter(String name, String value) {
     return new ParameterValue(name, value);
@@ -44,7 +41,7 @@ public final class JobParameterUtils {
     }
   }
 
-  public static Instant parseLocalDateTime(String name, String rawValue) {
+  public static Instant parseInstant(String name, String rawValue) {
     String value = requireText(name, rawValue);
 
     try {

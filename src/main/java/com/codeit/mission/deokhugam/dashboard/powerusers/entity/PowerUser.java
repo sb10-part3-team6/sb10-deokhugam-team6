@@ -27,12 +27,11 @@ import lombok.NoArgsConstructor;
         @Index(name = "idx_power_users_snapshot_rank", columnList = "snapshot_id, rank")
     },
     uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_power_users_period",
-            columnNames = {"user_id", "period_type", "period_start", "period_end"})
+      @UniqueConstraint(
+          name = "uk_power_users_period",
+          columnNames = {"user_id", "period_type", "period_start", "period_end"})
     })
 public class PowerUser extends BaseEntity {
-
   // PowerUser는 배치성 집계 데이터라 연관관계 매핑을 하면 더 복잡해지기만 한다고 하네요
   @Column(name = "user_id", nullable = false)
   private UUID userId;
@@ -42,7 +41,7 @@ public class PowerUser extends BaseEntity {
   private PeriodType periodType;
 
   @Column(name = "period_start", nullable = false)
-  private Instant periodStart;
+    private Instant periodStart;
 
   @Column(name = "period_end", nullable = false)
   private Instant periodEnd;
@@ -94,7 +93,7 @@ public class PowerUser extends BaseEntity {
     this.snapshotId = snapshotId;
   }
 
-  public void updateRank(long rank) {
+  public void updateRank(long rank){
     this.rank = rank;
   }
 }

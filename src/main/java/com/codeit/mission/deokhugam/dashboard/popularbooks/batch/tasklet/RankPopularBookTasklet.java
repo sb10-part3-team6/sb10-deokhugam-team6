@@ -19,15 +19,11 @@ import org.springframework.stereotype.Component;
 @StepScope
 @RequiredArgsConstructor
 public class RankPopularBookTasklet implements Tasklet {
-
   private final PopularBookAggregationService popularBookAggregationService;
 
-  @Value("#{jobParameters['periodType']}")
-  private String periodTypeValue;
-  @Value("#{jobParameters['aggregatedAt']}")
-  private String aggregatedAtValue;
-  @Value("#{jobExecutionContext['snapshotId']}")
-  private String snapshotIdValue;
+  @Value("#{jobParameters['periodType']}") private String periodTypeValue;
+  @Value("#{jobParameters['aggregatedAt']}") private String aggregatedAtValue;
+  @Value("#{jobExecutionContext['snapshotId']}") private String snapshotIdValue;
 
   @Override
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
@@ -41,15 +37,15 @@ public class RankPopularBookTasklet implements Tasklet {
     return RepeatStatus.FINISHED;
   }
 
-  private UUID getSnapshotId() {
+  private UUID getSnapshotId(){
     return JobParameterUtils.parseUuid("snapshotId", snapshotIdValue);
   }
 
-  private Instant getAggregatedAt() {
-    return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
+  private Instant getAggregatedAt(){
+    return JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtValue);
   }
 
-  private PeriodType getPeriodType() {
+  private PeriodType getPeriodType(){
     return JobParameterUtils.parseEnum("periodType", periodTypeValue, PeriodType.class);
   }
 }

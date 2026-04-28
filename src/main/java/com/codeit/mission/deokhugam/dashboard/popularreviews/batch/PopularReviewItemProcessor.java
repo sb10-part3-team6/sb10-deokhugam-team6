@@ -48,7 +48,7 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
     );
 
     this.periodType = JobParameterUtils.parseEnum("periodType", periodTypeStr, PeriodType.class);
-    this.aggregatedAt = JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtStr);
+    this.aggregatedAt = JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtStr);
     this.snapshotId = JobParameterUtils.parseUuid("snapshotId", snapshotIdStr);
 
     this.statsByReviewId = popularReviewAggregateService.loadReviewStat(periodType, aggregatedAt);
