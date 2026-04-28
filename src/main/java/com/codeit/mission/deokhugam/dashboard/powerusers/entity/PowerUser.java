@@ -41,7 +41,7 @@ public class PowerUser extends BaseEntity {
   private PeriodType periodType;
 
   @Column(name = "period_start", nullable = false)
-    private Instant periodStart;
+  private Instant periodStart;
 
   @Column(name = "period_end", nullable = false)
   private Instant periodEnd;
