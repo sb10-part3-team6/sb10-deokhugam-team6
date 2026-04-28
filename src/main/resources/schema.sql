@@ -77,6 +77,8 @@ CREATE TABLE "notifications"
     FOREIGN KEY ("review_id") REFERENCES "reviews" ("id") ON DELETE CASCADE
 );
 
+CREATE INDEX "idx_notifications_confirmed_updated_at" ON "notifications" ("confirmed", "updated_at");
+
 CREATE TABLE "review_likes"
 (
     "id"         UUID PRIMARY KEY,
