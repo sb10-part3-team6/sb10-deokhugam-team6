@@ -2,7 +2,7 @@ package com.codeit.mission.deokhugam.dashboard.powerusers.controller;
 
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.CursorPageResponsePowerUserDto;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.CursorPageResponsePowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

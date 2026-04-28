@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.powerusers.repository;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUser;
 import java.time.Instant;
 import java.util.List;

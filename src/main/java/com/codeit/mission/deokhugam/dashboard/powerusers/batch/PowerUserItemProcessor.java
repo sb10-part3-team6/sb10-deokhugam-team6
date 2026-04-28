@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.powerusers.batch;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserStat;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.request.UserStat;
 import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUser;
 import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
