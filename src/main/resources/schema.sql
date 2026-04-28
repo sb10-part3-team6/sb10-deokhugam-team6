@@ -145,3 +145,39 @@ ALTER TABLE "popular_reviews"
 
 CREATE INDEX "idx_popular_reviews_period_start_rank" ON "popular_reviews" (period_type, period_start, rank);
 CREATE INDEX "idx_popular_reviews_snapshot_rank" ON "popular_reviews" (snapshot_id, rank);
+
+CREATE TABLE "popular_books"
+(
+    "id"           UUID PRIMARY KEY,
+    "book_id"      UUID                     NOT NULL,
+    "period_start" TIMESTAMP WITH TIME ZONE NOT NULL,
+    "period_end"   TIMESTAMP WITH TIME ZONE NOT NULL,
+    "review_count" BIGINT                   NOT NULL,
+    "avgRating"    DOUBLE PRECISION         NOT NULL,
+    "score"        DOUBLE PRECISION         NOT NULL,
+    "rank"         BIGINT                   NOT NULL,
+    "period_type"  VARCHAR(30)              NOT NULL,
+    "snapshot_id"  UUID                     NOT NULL,
+    "created_at"   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"   TIMESTAMP WITH TIME ZONE,
+
+    FOREIGN KEY ("book_id") REFERENCES "books" ("id") ON DELETE CASCADE
+);
+
+CREATE INDEX "idx_book_id_period_type_snap_shot_id" ON "popular_books" (book_id, period_type, snapshot_id);
+CREATE INDEX "idx_period_snapshot_window_score" ON "popular_books" (book_id, period_type, snapshot_id);
+
+
+CREATE TABLE "aggregate_snapshot"
+(
+    "id"            UUID PRIMARY KEY,
+    "snapshot_id"   UUID                     NOT NULL UNIQUE,
+    "period_type"   VARCHAR(30)              NOT NULL,
+    "domain_type"   VARCHAR(30)              NOT NULL,
+    "aggregated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+    "staging_type"  VARCHAR(30)              NOT NULL,
+    "created_at"    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"    TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX "idx_aggregate_domain_snapshots_period_status" ON "aggregate_snapshot" (domain_type, period_type, staging_type);
