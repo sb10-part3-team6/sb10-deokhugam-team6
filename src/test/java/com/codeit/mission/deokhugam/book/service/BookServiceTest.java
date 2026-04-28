@@ -617,10 +617,10 @@ class BookServiceTest {
             .description("desc")
             .publisher("pub")
             .publishedDate(LocalDate.now())
-            .isbn(UUID.randomUUID().toString())
+            .isbn("9788996724155")
             .thumbnailUrl("url")
-            .reviewCount(0)
-            .rating(0.0)
+            .reviewCount(4)
+            .rating(4.0)
             .build();
     }
 }
