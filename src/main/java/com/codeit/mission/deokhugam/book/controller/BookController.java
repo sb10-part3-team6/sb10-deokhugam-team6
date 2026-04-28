@@ -74,7 +74,7 @@ public class BookController {
 
   @Operation(
       summary = "OCR 기반 ISBN 인식",
-      operationId = "detect_1",
+      operationId = "detect_by_ocr_1",
       description = "OCR을 통해 ISBN을 인식합니다."
   )
   @ApiResponses({

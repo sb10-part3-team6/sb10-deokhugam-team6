@@ -40,7 +40,8 @@ public record BookUpdateRequest(
     String publisher,
 
     @Schema(
-        description = "출판일",
+        description = "출판일 (yyyy-mm-dd)",
+        format = "date",
         example = "2026-04-27",
         requiredMode = Schema.RequiredMode.REQUIRED
     )

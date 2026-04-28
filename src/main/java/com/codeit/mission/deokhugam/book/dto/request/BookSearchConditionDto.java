@@ -45,7 +45,20 @@ public record BookSearchConditionDto(
         defaultValue = "50",
         example = "50"
     )
-    int limit
+    Integer limit
 ) {
 
+  // 기본값 설정을 위한 생성자
+  public BookSearchConditionDto {
+    if (orderBy == null) {
+      orderBy = "title";
+    }
+    if (direction == null) {
+      direction = SortDirection.DESC;
+    }
+    if (limit == null || limit <= 0) {
+      limit = 50;
+    }
+    limit = Math.min(limit, 50);
+  }
 }

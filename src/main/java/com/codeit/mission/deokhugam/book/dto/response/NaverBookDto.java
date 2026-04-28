@@ -32,14 +32,15 @@ public record NaverBookDto(
     String publisher,
 
     @Schema(
-        description = "출판일",
+        description = "출판일 (yyyy-mm-dd)",
+        format = "date",
         example = "2026-04-27"
     )
     LocalDate publishedDate,
 
     @Schema(
-        description = "ISBN",
-        example = "string"
+        description = "국제 표준 도서 번호 (ISBN)",
+        example = "9788960771291"
     )
     String isbn,
 

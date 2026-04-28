@@ -20,13 +20,13 @@ public record NaverResponseDto(
 
       @Schema(
           description = "URL 주소",
-          example = "string"
+          example = "http://codeit.com"
       )
       String link,
 
       @Schema(
           description = "이미지",
-          example = "string"
+          example = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
       )
       String image,
 
@@ -49,14 +49,14 @@ public record NaverResponseDto(
       String publisher,
 
       @Schema(
-          description = "출판일",
+          description = "출판일 (yyyymmdd)",
           example = "20260427"
       )
       String pubdate,
 
       @Schema(
-          description = "ISBN",
-          example = "string"
+          description = "국제 표준 도서 번호 (ISBN)",
+          example = "9788960771291"
       )
       String isbn,
 
