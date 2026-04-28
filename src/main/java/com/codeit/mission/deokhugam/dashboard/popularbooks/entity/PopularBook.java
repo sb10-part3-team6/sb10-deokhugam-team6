@@ -39,7 +39,7 @@ public class PopularBook extends BaseEntity {
   @Column(name = "review_count", nullable = false)
   private Long reviewCount;
 
-  @Column(name = "avgRating", nullable = false)
+  @Column(name = "avg_rating", nullable = false)
   private double avgRating;
 
   @Column(name = "score", nullable = false)

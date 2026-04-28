@@ -13,15 +13,28 @@ spring:
     password:
     driver-class-name: org.h2.Driver
 
+  # 테이블 자동 생성 설정
+  sql:
+    init:
+      mode: embedded
+      schema-locations: classpath:schema.sql
+
   # JPA/Hibernate 운영 설정
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         default_batch_fetch_size: 100
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+
+  # h2 콘솔 활성화
+  h2:
+    console:
+      enabled: true
 
 # 로깅 설정
 logging:
