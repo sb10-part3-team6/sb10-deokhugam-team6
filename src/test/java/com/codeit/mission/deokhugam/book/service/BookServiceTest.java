@@ -232,5 +232,29 @@ class BookServiceTest {
         assertThat(result).isEqualTo("9788996724155");
     }
 
+    @Test
+    @DisplayName("올바른 isbn이 투입될 경우 검증에 성공한다.")
+    void isbnValidation_success() {
+        //given
+        String isbn = "9788996724155";
 
+        //when
+        Boolean result = ReflectionTestUtils.invokeMethod(bookService, "isValidIsbn13", isbn);
+
+        //then
+        assertThat(result).isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("잘못된 isbn이 투입될 경우 검증에 실패한다.")
+    void isbnValidation_failure() {
+        //given
+        String isbn = "1234567891011";
+
+        //when
+        Boolean result = ReflectionTestUtils.invokeMethod(bookService, "isValidIsbn13", isbn);
+
+        //then
+        assertThat(result).isEqualTo(false);
+    }
 }
