@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.powerusers.batch;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserStat;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.request.UserStat;
 import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUser;
 import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @StepScope
 public class PowerUserItemProcessor implements ItemProcessor<User, PowerUser> {
+
   private final PowerUserAggregateService powerUserAggregateService;
 
   private PeriodType periodType;
@@ -32,10 +33,13 @@ public class PowerUserItemProcessor implements ItemProcessor<User, PowerUser> {
   // Step 시작 전 매개변수들을 초기화한다.
   // 현재 실행 객체의 context를 주입받아 변수를 초기화한다.
   @BeforeStep
-  void beforeStep(StepExecution stepExecution){
-    String periodTypeStr = stepExecution.getJobExecution().getJobParameters().getString("periodType");
-    String aggregatedAtStr = stepExecution.getJobExecution().getJobParameters().getString("aggregatedAt");
-    String snapshotIdStr = stepExecution.getJobExecution().getExecutionContext().getString("snapshotId");
+  void beforeStep(StepExecution stepExecution) {
+    String periodTypeStr = stepExecution.getJobExecution().getJobParameters()
+        .getString("periodType");
+    String aggregatedAtStr = stepExecution.getJobExecution().getJobParameters()
+        .getString("aggregatedAt");
+    String snapshotIdStr = stepExecution.getJobExecution().getExecutionContext()
+        .getString("snapshotId");
 
     JobParameterUtils.validateRequired(
         JobParameterUtils.parameter("periodType", periodTypeStr),
@@ -47,7 +51,8 @@ public class PowerUserItemProcessor implements ItemProcessor<User, PowerUser> {
     this.aggregatedAt = JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtStr);
     this.snapshotId = JobParameterUtils.parseUuid("snapshotId", snapshotIdStr);
 
-    this.statsByUserId = powerUserAggregateService.loadUserStats(periodType, aggregatedAt); // Aggregate 서비스에서 유저 스탯을 로드하는 메서드 호출
+    this.statsByUserId = powerUserAggregateService.loadUserStats(periodType,
+        aggregatedAt); // Aggregate 서비스에서 유저 스탯을 로드하는 메서드 호출
   }
 
   @Override

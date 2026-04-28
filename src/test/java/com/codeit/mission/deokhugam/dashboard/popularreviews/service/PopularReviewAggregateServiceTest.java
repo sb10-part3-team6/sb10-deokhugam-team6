@@ -1,21 +1,19 @@
 package com.codeit.mission.deokhugam.dashboard.popularreviews.service;
 
-
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewCommentCount;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewStat;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewCommentCount;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewLikeCount;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewStat;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularReviewRepository;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,40 +41,41 @@ class PopularReviewAggregateServiceTest {
 
   @Test
   @DisplayName("인기 리뷰 집계에 필요한 지수들을 일괄 로딩하는 테스트 (성공)")
-  public void loadReviewStat_success(){
+  public void loadReviewStat_success() {
     // given
-    Instant periodStart = Instant.parse("2026-04-16T15:30:00Z");
-    Instant periodEnd = Instant.parse("2026-04-23T15:30:00Z");
+    LocalDateTime aggregatedAt = LocalDateTime.of(2026, 4, 23, 15, 30);
+    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 16, 15, 30);
+    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 23, 15, 30);
 
     // 두 명의 사용자 ID 생성
     UUID higherReviewId = UUID.randomUUID();
     UUID lowerReviewId = UUID.randomUUID();
 
     // 리뷰 별 댓글 수 설정
-    when(commentRepository.findReviewCommentCounts(periodStart,periodEnd))
+    when(commentRepository.findReviewCommentCounts(periodStart, periodEnd))
         .thenReturn(List.of(
-            new ReviewCommentCount(higherReviewId, 5L),
-            new ReviewCommentCount(lowerReviewId, 1L)
+                new ReviewCommentCount(higherReviewId, 5L),
+                new ReviewCommentCount(lowerReviewId, 1L)
             )
         );
 
     // 리뷰 별 좋아요 수 설정
     when(reviewRepository.countReviewLikes(periodStart, periodEnd, ReviewStatus.ACTIVE))
         .thenReturn(List.of(
-            new ReviewLikeCount(higherReviewId, 3L),
-            new ReviewLikeCount(lowerReviewId, 0L)
+                new ReviewLikeCount(higherReviewId, 3L),
+                new ReviewLikeCount(lowerReviewId, 0L)
             )
         );
 
-
     // when
     // 리뷰 별 스탯을 구한다.
-    Map<UUID, ReviewStat> statsPerReview = popularReviewAggregateService.loadReviewStat(PeriodType.WEEKLY,periodEnd);
+    Map<UUID, ReviewStat> statsPerReview = popularReviewAggregateService.loadReviewStat(
+        PeriodType.WEEKLY, periodEnd);
 
     // then
     assertEquals(2, statsPerReview.size()); // 요소 개수가 2인지?
     assertEquals(higherReviewId, statsPerReview.get(higherReviewId).reviewId()); // ID 가 일치하는지?
-    assertEquals(lowerReviewId,statsPerReview.get(lowerReviewId).reviewId());
+    assertEquals(lowerReviewId, statsPerReview.get(lowerReviewId).reviewId());
     // 각종 스탯들 검증
     assertEquals(3L, statsPerReview.get(higherReviewId).likeCount());
     assertEquals(5L, statsPerReview.get(higherReviewId).commentCount());
@@ -87,13 +86,13 @@ class PopularReviewAggregateServiceTest {
   }
 
   @Test
-  @DisplayName("주중 시각을 기준으로 배치 테스트 (성공)")
+  @DisplayName("주중 시각을 기준으로 ")
   void rankPopularReviews_usesMidWeekCalculatedPeriod() {
     // given
     // 주중 집계 시간
-    Instant aggregatedAt = Instant.parse("2026-04-23T15:30:00Z");
+    LocalDateTime aggregatedAt = LocalDateTime.of(2026, 4, 23, 15, 30);
     // 주간이므로 집계시간으로 부터 7일 이전이 periodStart가 된다.
-    Instant periodStart = Instant.parse("2026-04-16T15:30:00Z");
+    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 16, 15, 30);
     // 스냅샷 ID
     UUID snapshotId = UUID.randomUUID();
 
@@ -112,8 +111,8 @@ class PopularReviewAggregateServiceTest {
   @DisplayName("loadReviewStat merges review ids from comments and likes")
   void loadReviewStat_mergesReviewIdsFromBothSources() {
     // given
-    Instant aggregatedAt = Instant.parse("2026-04-21T00:00:00Z");
-    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
+    LocalDateTime aggregatedAt = LocalDateTime.of(2026, 4, 21, 0, 0);
+    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
     UUID commentOnlyReviewId = UUID.randomUUID(); // 댓글만 존재하는 리뷰의 ID
     UUID likeOnlyReviewId = UUID.randomUUID(); // 좋아요만 존재하는 리뷰의 ID
 
@@ -143,8 +142,8 @@ class PopularReviewAggregateServiceTest {
   @DisplayName("같은 랭크를 가진 리뷰를 조회할 때 타이브레이킹 (성공)")
   void rankPopularReviews_assignsSameRankForSameScore() {
     // given
-    Instant aggregatedAt = Instant.parse("2026-04-21T00:00:00Z");
-    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
+    LocalDateTime aggregatedAt = LocalDateTime.of(2026, 4, 21, 0, 0);
+    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
     UUID snapshotId = UUID.randomUUID(); // 스냅샷 ID 생성
 
     // 해당 스냅샷을 참조하는 세 개의 리뷰(first와 second는 동점)
@@ -178,7 +177,7 @@ class PopularReviewAggregateServiceTest {
     // 리뷰의 정보와 해당 리뷰의 stat을 생성한다
     UUID reviewId = UUID.randomUUID();
     UUID snapshotId = UUID.randomUUID();
-    Instant aggregatedAt = Instant.parse("2026-04-21T00:00:00Z");
+    LocalDateTime aggregatedAt = LocalDateTime.of(2026, 4, 21, 0, 0);
     ReviewStat stat = new ReviewStat(reviewId, 4L, 2L);
 
     // when
@@ -193,7 +192,7 @@ class PopularReviewAggregateServiceTest {
     // then
     assertEquals(reviewId, popularReview.getReviewId());
     assertEquals(PeriodType.WEEKLY, popularReview.getPeriodType());
-    assertEquals(Instant.parse("2026-04-14T00:00:00Z"), popularReview.getPeriodStart());
+    assertEquals(LocalDateTime.of(2026, 4, 14, 0, 0), popularReview.getPeriodStart());
     assertEquals(aggregatedAt, popularReview.getPeriodEnd());
     assertEquals(0L, popularReview.getRank());
     assertEquals(2.6d, popularReview.getScore(), 1e-9);
@@ -223,11 +222,11 @@ class PopularReviewAggregateServiceTest {
       UUID reviewId,
       double score,
       UUID snapshotId,
-      Instant aggregatedAt) {
+      LocalDateTime aggregatedAt) {
     return PopularReview.builder()
         .reviewId(reviewId)
         .periodType(PeriodType.WEEKLY)
-        .periodStart(Instant.parse("2026-04-14T00:00:00Z"))
+        .periodStart(LocalDateTime.of(2026, 4, 14, 0, 0))
         .periodEnd(aggregatedAt)
         .rank(0L)
         .score(score)

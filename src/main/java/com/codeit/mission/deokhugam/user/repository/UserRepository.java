@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.user.repository;
 
 import com.codeit.mission.deokhugam.user.entity.User;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,9 +25,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   // 논리 삭제된 지 일정 시간이 지난 사용자 ID 목록 조회 (SQLRestriction 우회 필요)
   // 대용량 처리를 위해 Pageable을 지원하며, 빈 리스트 에러 방지를 위해 @Nullable 사용
   @Query(value = "SELECT id FROM users WHERE status = 'DELETED' AND updated_at <= :threshold",
-         countQuery = "SELECT count(*) FROM users WHERE status = 'DELETED' AND updated_at <= :threshold",
-         nativeQuery = true)
-  Page<UUID> findDeletedUserIdsOlderThan(@Param("threshold") LocalDateTime threshold, @Nullable Pageable pageable);
+      countQuery = "SELECT count(*) FROM users WHERE status = 'DELETED' AND updated_at <= :threshold",
+      nativeQuery = true)
+  Page<UUID> findDeletedUserIdsOlderThan(@Param("threshold") Instant threshold,
+      @Nullable Pageable pageable);
 
   @Query(value = "SELECT EXISTS(SELECT 1 FROM users WHERE id = :id AND status = 'DELETED')", nativeQuery = true)
   boolean existsByDeletedUser(@Param("id") UUID id);
@@ -37,7 +38,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   @Modifying
   @Transactional
   @Query(value = "DELETE FROM users WHERE id IN :ids AND status = 'DELETED' AND updated_at <= :threshold", nativeQuery = true)
-  void hardDeleteByIds(@Param("ids") List<UUID> ids, @Param("threshold") LocalDateTime threshold);
+  void hardDeleteByIds(@Param("ids") List<UUID> ids, @Param("threshold") Instant threshold);
 
   @Modifying
   @Transactional

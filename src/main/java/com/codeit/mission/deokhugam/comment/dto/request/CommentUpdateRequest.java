@@ -9,6 +9,7 @@ public record CommentUpdateRequest(
     @Schema(
         description = "내용",
         example = "string",
+        maxLength = 100,
         requiredMode = Schema.RequiredMode.REQUIRED
     )
     @NotBlank

@@ -23,7 +23,7 @@ import com.codeit.mission.deokhugam.user.exception.LoginFailedException;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -59,7 +59,7 @@ class UserControllerTest {
       UserRegisterRequest request = new UserRegisterRequest("test@example.com", "테스터",
           "Password123!");
       UserDto response = new UserDto(UUID.randomUUID(), "test@example.com", "테스터",
-          LocalDateTime.now());
+          Instant.now());
 
       given(userService.register(any(UserRegisterRequest.class))).willReturn(response);
 
@@ -144,7 +144,7 @@ class UserControllerTest {
       // given
       UserLoginRequest request = new UserLoginRequest("test@example.com", "Password123!");
       UserDto response = new UserDto(UUID.randomUUID(), "test@example.com", "테스터",
-          LocalDateTime.now());
+          Instant.now());
 
       given(userService.login(any(UserLoginRequest.class))).willReturn(response);
 
@@ -182,7 +182,7 @@ class UserControllerTest {
     void getUser_Success() throws Exception {
       // given
       UUID userId = UUID.randomUUID();
-      UserDto response = new UserDto(userId, "test@example.com", "테스터", LocalDateTime.now());
+      UserDto response = new UserDto(userId, "test@example.com", "테스터", Instant.now());
       given(userService.getUser(userId)).willReturn(response);
 
       // when & then
@@ -218,7 +218,7 @@ class UserControllerTest {
       // given
       UUID userId = UUID.randomUUID();
       UserUpdateRequest request = new UserUpdateRequest("새닉네임");
-      UserDto response = new UserDto(userId, "test@example.com", "새닉네임", LocalDateTime.now());
+      UserDto response = new UserDto(userId, "test@example.com", "새닉네임", Instant.now());
       given(userService.updateNickname(any(UUID.class), any(UserUpdateRequest.class))).willReturn(
           response);
 

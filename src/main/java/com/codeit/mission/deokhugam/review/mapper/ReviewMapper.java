@@ -6,7 +6,7 @@ import com.codeit.mission.deokhugam.review.dto.response.CursorPageResponseReview
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.user.entity.User;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -58,7 +58,7 @@ public interface ReviewMapper {
   default CursorPageResponseReviewDto<ReviewDto> toCursorPageResponse(
       List<ReviewDto> content,
       String nextCursor,
-      LocalDateTime nextAfter,
+      Instant nextAfter,
       int limit,
       long totalElements,
       boolean hasNext

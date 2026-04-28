@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.comment.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Schema(description = "댓글 응답")
@@ -38,15 +38,15 @@ public record CommentDto(
 
     @Schema(
         description = "생성 시점",
-        example = "2026-04-24T06:02:16.849"
+        example = "2026-04-24T06:02:16.849Z"
     )
-    LocalDateTime createdAt,
+    Instant createdAt,
 
     @Schema(
         description = "수정 시점",
-        example = "2026-04-24T06:02:16.849"
+        example = "2026-04-24T06:02:16.849Z"
     )
-    LocalDateTime updatedAt
+    Instant updatedAt
 ) {
 
 }

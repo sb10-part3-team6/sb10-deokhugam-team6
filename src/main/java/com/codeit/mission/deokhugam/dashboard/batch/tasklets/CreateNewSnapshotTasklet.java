@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 @StepScope
 @RequiredArgsConstructor
 public class CreateNewSnapshotTasklet implements Tasklet {
+
   private final AggregateSnapshotService aggregateSnapshotService;
 
   // 외부로부터 변수를 받아온다.

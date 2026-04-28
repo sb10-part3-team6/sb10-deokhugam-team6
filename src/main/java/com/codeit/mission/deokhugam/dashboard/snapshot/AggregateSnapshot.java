@@ -61,13 +61,15 @@ public class AggregateSnapshot extends BaseEntity {
   public AggregateSnapshot() {
   }
 
-  public void publish(){
+  public void publish() {
     this.stagingType = StagingType.PUBLISHED;
   }
 
-  public void archive() {this.stagingType = StagingType.ARCHIVED; }
+  public void archive() {
+    this.stagingType = StagingType.ARCHIVED;
+  }
 
-  public void fail(){
+  public void fail() {
     this.stagingType = StagingType.FAILED;
   }
 }

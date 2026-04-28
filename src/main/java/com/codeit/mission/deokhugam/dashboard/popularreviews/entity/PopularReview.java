@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(
     name = "popular_reviews",
-    indexes={
+    indexes = {
         @Index(name = "idx_popular_reviews_period_start_rank", columnList = "period_type, period_start, rank"),
         @Index(name = "idx_popular_reviews_snapshot_rank", columnList = "snapshot_id, rank")
     },
@@ -32,6 +32,7 @@ import lombok.NoArgsConstructor;
     })
 
 public class PopularReview extends BaseEntity {
+
   @Column(name = "review_id", nullable = false)
   private UUID reviewId;
 
@@ -75,7 +76,7 @@ public class PopularReview extends BaseEntity {
       long commentCount,
       Instant aggregatedAt,
       UUID snapshotId
-  ){
+  ) {
     this.reviewId = reviewId;
     this.periodType = periodType;
     this.periodStart = periodStart;
@@ -88,5 +89,7 @@ public class PopularReview extends BaseEntity {
     this.snapshotId = snapshotId;
   }
 
-  public void updateRank(long rank) {this.rank = rank;}
+  public void updateRank(long rank) {
+    this.rank = rank;
+  }
 }

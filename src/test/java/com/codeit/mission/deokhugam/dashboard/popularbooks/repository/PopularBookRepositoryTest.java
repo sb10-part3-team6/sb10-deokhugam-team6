@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.PopularBookDto;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.response.PopularBookDto;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.entity.PopularBook;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;

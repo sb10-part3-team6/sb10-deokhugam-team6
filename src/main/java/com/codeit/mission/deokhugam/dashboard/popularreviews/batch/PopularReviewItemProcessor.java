@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.dashboard.popularreviews.batch;
 
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewStat;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewStat;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.service.PopularReviewAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 @StepScope
 @Qualifier("reviewProcessor")
 public class PopularReviewItemProcessor implements ItemProcessor<Review, PopularReview> {
+
   private final PopularReviewAggregateService popularReviewAggregateService;
 
   private PeriodType periodType;
@@ -32,10 +33,13 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
   private Map<UUID, ReviewStat> statsByReviewId = Map.of();
 
   @BeforeStep
-  void beforeStep(StepExecution stepExecution){
-    String periodTypeStr = stepExecution.getJobExecution().getJobParameters().getString("periodType");
-    String aggregatedAtStr = stepExecution.getJobExecution().getJobParameters().getString("aggregatedAt");
-    String snapshotIdStr = stepExecution.getJobExecution().getExecutionContext().getString("snapshotId");
+  void beforeStep(StepExecution stepExecution) {
+    String periodTypeStr = stepExecution.getJobExecution().getJobParameters()
+        .getString("periodType");
+    String aggregatedAtStr = stepExecution.getJobExecution().getJobParameters()
+        .getString("aggregatedAt");
+    String snapshotIdStr = stepExecution.getJobExecution().getExecutionContext()
+        .getString("snapshotId");
 
     JobParameterUtils.validateRequired(
         JobParameterUtils.parameter("periodType", periodTypeStr),
@@ -54,7 +58,7 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
   @Override
   public @Nullable PopularReview process(@NonNull Review item) throws Exception {
     ReviewStat stat = statsByReviewId.get(item.getId());
-    if(stat == null) {
+    if (stat == null) {
       stat = popularReviewAggregateService.emptyStat(item.getId());
     }
     return popularReviewAggregateService.toPopularReview(

@@ -19,6 +19,9 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +31,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -82,10 +84,15 @@ public class CommentServiceTest {
         .build();
 
     ReflectionTestUtils.setField(comment, "id", commentId);
+
+    Instant instant = LocalDateTime.of(2026, 4, 21, 10, 0, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
+
     ReflectionTestUtils.setField(
         comment,
         "createdAt",
-        LocalDateTime.of(2026, 4, 21, 10, 0, 0)
+        instant
     );
   }
 
@@ -309,10 +316,14 @@ public class CommentServiceTest {
         .build();
 
     ReflectionTestUtils.setField(secondComment, "id", secondCommentId);
+
+    Instant instant = LocalDateTime.of(2026, 4, 21, 9, 59, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
     ReflectionTestUtils.setField(
         secondComment,
         "createdAt",
-        LocalDateTime.of(2026, 4, 21, 9, 59, 0)
+        instant
     );
 
     CommentDto firstCommentDto = mock(CommentDto.class);
@@ -378,9 +389,12 @@ public class CommentServiceTest {
         .content("third content")
         .status(CommentStatus.ACTIVE)
         .build();
-
-    LocalDateTime secondCreatedAt = LocalDateTime.of(2026, 4, 21, 9, 59, 0);
-    LocalDateTime thirdCreatedAt = LocalDateTime.of(2026, 4, 21, 9, 58, 0);
+    Instant secondCreatedAt = LocalDateTime.of(2026, 4, 21, 9, 59, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
+    Instant thirdCreatedAt = LocalDateTime.of(2026, 4, 21, 9, 58, 0)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toInstant();
 
     ReflectionTestUtils.setField(secondComment, "id", secondCommentId);
     ReflectionTestUtils.setField(secondComment, "createdAt", secondCreatedAt);

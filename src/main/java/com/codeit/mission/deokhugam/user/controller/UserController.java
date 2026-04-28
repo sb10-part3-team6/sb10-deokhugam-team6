@@ -120,7 +120,7 @@ public class UserController {
 
   @Operation(
       summary = "사용자 물리 삭제",
-      operationId = "permanentDeleteUser",
+      operationId = "hard_delete_6",
       description = "사용자를 물리적으로 삭제합니다."
   )
   @ApiResponses({

@@ -2,6 +2,7 @@ package com.codeit.mission.deokhugam.notification.repository;
 
 import com.codeit.mission.deokhugam.notification.entity.Notification;
 import com.codeit.mission.deokhugam.notification.repository.custom.NotificationRepositoryCustom;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -44,5 +45,5 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   @Modifying(clearAutomatically = true)
   @Transactional
   @Query("DELETE Notification n WHERE n.updatedAt < :cutoff AND n.confirmed = true")
-  int deleteByConfirmedTrueAndUpdatedAtBefore(LocalDateTime cutoff);
+  int deleteByConfirmedTrueAndUpdatedAtBefore(Instant cutoff);
 }

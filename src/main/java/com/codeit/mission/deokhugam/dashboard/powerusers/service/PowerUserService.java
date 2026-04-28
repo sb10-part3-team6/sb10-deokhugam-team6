@@ -6,8 +6,8 @@ import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.CursorPageResponsePowerUserDto;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.CursorPageResponsePowerUserDto;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.exceptions.CursorAfterNotProvidedTogetherException;
 import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidCursorValueException;
 import com.codeit.mission.deokhugam.dashboard.powerusers.repository.PowerUserRepository;
@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PowerUserService {
+
   private static final int MAX_PAGE_SIZE = 100;
 
   private final PowerUserRepository powerUserRepository;
