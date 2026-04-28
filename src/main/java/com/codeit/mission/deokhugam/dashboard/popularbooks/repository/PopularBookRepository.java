@@ -20,7 +20,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
               where pb.periodType = :periodType
               and pb.snapshotId = :snapshotId
               and pb.periodStart >= :periodStart
-              and pb.periodEnd < :periodEnd
+              and pb.periodEnd <= :periodEnd
           order by pb.score desc, pb.createdAt asc, pb.id asc
       """)
   List<PopularBook> findByPeriodAndSnapshotIdDescByScore(
