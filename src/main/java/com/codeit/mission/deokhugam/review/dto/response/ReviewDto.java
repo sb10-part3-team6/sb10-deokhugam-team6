@@ -29,7 +29,7 @@ public record ReviewDto(
 
     @Schema(
         description = "대상 도서 URL 주소",
-        example = "string"
+        example = "http://codeit.com"
     )
     String bookThumbnailUrl,
 

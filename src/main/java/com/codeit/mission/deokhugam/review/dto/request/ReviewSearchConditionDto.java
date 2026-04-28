@@ -55,6 +55,8 @@ public record ReviewSearchConditionDto(
     @Schema(
         description = "페이지 크기",
         defaultValue = "50",
+        minimum = "1",
+        maximum = "50",
         example = "50"
     )
     Integer limit
