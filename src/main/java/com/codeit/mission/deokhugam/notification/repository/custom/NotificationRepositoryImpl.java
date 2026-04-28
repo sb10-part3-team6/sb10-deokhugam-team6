@@ -8,7 +8,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -43,12 +42,12 @@ public class NotificationRepositoryImpl implements NotificationRepositoryCustom 
 
     // cursor
     if (query.cursor() != null) {
-      Instant cursorTime = query.after();
+      Instant cursorTime = query.cursor();
 
       if (isDesc(query)) {
-        builder.and(notification.createdAt.lt(Instant.from(cursorTime)));
+        builder.and(notification.createdAt.lt(cursorTime));
       } else {
-        builder.and(notification.createdAt.gt(Instant.from(cursorTime)));
+        builder.and(notification.createdAt.gt(cursorTime));
       }
     }
 
