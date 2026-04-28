@@ -29,7 +29,7 @@ public class PopularBookController {
       description = "기간별 인기 도서 목록을 조회합니다."
   )
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "인기 독서 목록 조회 성공"),
+      @ApiResponse(responseCode = "200", description = "인기 도서 목록 조회 성공"),
       @ApiResponse(responseCode = "400", description = "잘못된 요청 (랭킹 기간 오류, 정렬 방향 오류 등)"),
       @ApiResponse(responseCode = "500", description = "서버 내부 오류")
   })
