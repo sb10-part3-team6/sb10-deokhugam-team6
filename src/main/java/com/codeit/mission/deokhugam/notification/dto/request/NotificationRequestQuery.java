@@ -33,6 +33,8 @@ public record NotificationRequestQuery(
     @Schema(
         description = "페이지 크기",
         defaultValue = "20",
+        minimum = "1",
+        maximum = "100",
         example = "20"
     )
     @Min(value = 1, message = "Page size must not be less than one")
@@ -45,5 +47,16 @@ public record NotificationRequestQuery(
 
   public int getLimitOrDefault() {
     return limit == null ? DEFAULT_LIMIT : limit;
+  }
+
+  // 기본값 설정을 위한 생성자
+  public NotificationRequestQuery {
+    if (direction == null) {
+      direction = DirectionEnum.DESC;
+    }
+    if (limit == null || limit <= 0) {
+      limit = DEFAULT_LIMIT;
+    }
+    limit = Math.min(limit, DEFAULT_LIMIT);
   }
 }
