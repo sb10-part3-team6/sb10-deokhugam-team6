@@ -1,9 +1,9 @@
 package com.codeit.mission.deokhugam.review.repository;
 
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewAvgRating;
-import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.BookReviewCount;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserReviewAggregate;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.BookReviewAvgRating;
+import com.codeit.mission.deokhugam.dashboard.popularbooks.dto.request.BookReviewCount;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewLikeCount;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.request.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import jakarta.persistence.LockModeType;

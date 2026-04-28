@@ -1,8 +1,8 @@
 package com.codeit.mission.deokhugam.comment.repository;
 
 import com.codeit.mission.deokhugam.comment.entity.Comment;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewCommentCount;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.UserCommentCount;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewCommentCount;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.request.UserCommentCount;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
