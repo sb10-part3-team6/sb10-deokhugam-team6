@@ -20,7 +20,7 @@ import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import com.codeit.mission.deokhugam.error.DeokhugamException;
 import com.codeit.mission.deokhugam.error.ErrorCode;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,8 +52,8 @@ class PowerUserServiceTest {
   @DisplayName("Publish 된 스냅샷을 가진 PowerUser를 Rank 기준 오름차순으로 조회 (첫 페이지, hasNext = false)")
   void getLatestRankings_firstPageAsc() {
     // Given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
 
     // 두 개의 파워 유저 객체를 생성 (Daily, 랭크는 1, 2)
     PowerUserDto user1 = powerUserDto("user1", PeriodType.DAILY, createdAt1, 1L, 33.0, 31.0, 3L, 4L);
@@ -99,8 +99,8 @@ class PowerUserServiceTest {
   @DisplayName("Publish 된 스냅샷을 가진 PowerUser를 Rank 기준 내림차순으로 조회 (첫 페이지, hasNext = false)" )
   void getLatestRankings_firstPageDesc() {
     // given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
 
     PowerUserDto user1 = powerUserDto("user1", PeriodType.DAILY, createdAt1, 1L, 33.0, 31.0, 3L, 4L);
     PowerUserDto user2 = powerUserDto("user2", PeriodType.DAILY, createdAt2, 2L, 24.0, 23.0, 1L, 2L);
@@ -137,9 +137,9 @@ class PowerUserServiceTest {
   @DisplayName("중간 페이지의 파워 유저를 조회할 때 (hasNext = true)")
   void getLatestRankings_returnsNextCursor() {
     // Given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
-    LocalDateTime createdAt3 = LocalDateTime.of(2026, 4, 15, 10, 2);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
+    Instant createdAt3 = Instant.parse("2026-04-15T10:02:00Z");
 
     // 파워 유저 객체 1,2,3 생성
     PowerUserDto user1 = powerUserDto("user1", PeriodType.DAILY, createdAt1, 1L, 10.0, 8.0, 1L, 1L);
@@ -187,7 +187,7 @@ class PowerUserServiceTest {
                     PeriodType.DAILY,
                     DirectionEnum.DESC,
                     "invalid-cursor",
-                    "2026-04-15T10:00:00",
+                    "2026-04-15T10:00:00Z",
                     50));
 
     // when + then
@@ -262,7 +262,7 @@ class PowerUserServiceTest {
         .domainType(DomainType.POWER_USER)
         .snapshotId(snapshotId)
         .periodType(periodType)
-        .aggregatedAt(LocalDateTime.of(2026, 4, 15, 0, 0))
+        .aggregatedAt(Instant.parse("2026-04-15T00:00:00Z"))
         .stagingType(StagingType.PUBLISHED)
         .build();
   }
@@ -271,7 +271,7 @@ class PowerUserServiceTest {
   private PowerUserDto powerUserDto(
       String nickname,
       PeriodType periodType,
-      LocalDateTime createdAt,
+      Instant createdAt,
       long rank,
       double score,
       double reviewScoreSum,
