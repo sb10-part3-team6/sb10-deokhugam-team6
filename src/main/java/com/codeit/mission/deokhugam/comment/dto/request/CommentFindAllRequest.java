@@ -43,6 +43,8 @@ public record CommentFindAllRequest(
     @Schema(
         description = "페이지 크기",
         defaultValue = "50",
+        minimum = "1",
+        maximum = "100",
         example = "50"
     )
     @Min(value = 1, message = "값은 최소 1 이상이어야 합니다.")

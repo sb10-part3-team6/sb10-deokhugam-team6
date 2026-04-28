@@ -27,6 +27,7 @@ public record CommentCreateRequest(
     @Schema(
         description = "내용",
         example = "string",
+        maxLength = 500,
         requiredMode = Schema.RequiredMode.REQUIRED
     )
     @NotNull
