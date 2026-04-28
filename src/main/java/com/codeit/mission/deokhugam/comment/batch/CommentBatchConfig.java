@@ -3,6 +3,8 @@ package com.codeit.mission.deokhugam.comment.batch;
 import com.codeit.mission.deokhugam.comment.entity.CommentStatus;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import jakarta.persistence.EntityManagerFactory;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -22,7 +24,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,85 +33,87 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CommentBatchConfig {
 
-    private final JobRepository jobRepository;
-    private final PlatformTransactionManager transactionManager;
-    private final EntityManagerFactory entityManagerFactory;
+  private final JobRepository jobRepository;
+  private final PlatformTransactionManager transactionManager;
+  private final EntityManagerFactory entityManagerFactory;
 
-    private final CommentRepository commentRepository;
+  private final CommentRepository commentRepository;
 
-    private static final int CHUNK_SIZE = 100;
+  private static final int CHUNK_SIZE = 100;
 
-    // job 설정 : 댓글 물리 삭제 job 설정
-    @Bean
-    public Job commentHardDeleteJob(Step commentHardDeleteStep) {
-        return new JobBuilder("commentHardDeleteJob", jobRepository)
-                .start(commentHardDeleteStep)
-                // job 시작 전 사전 작업을 수행할 객체
-                .listener(commentHardDeleteJobListener())
-                .build();
-    }
+  // job 설정 : 댓글 물리 삭제 job 설정
+  @Bean
+  public Job commentHardDeleteJob(Step commentHardDeleteStep) {
+    return new JobBuilder("commentHardDeleteJob", jobRepository)
+        .start(commentHardDeleteStep)
+        // job 시작 전 사전 작업을 수행할 객체
+        .listener(commentHardDeleteJobListener())
+        .build();
+  }
 
-    // job 리스너 설정 : Job 실행 직전에 기준 시간 (threshold) 계산하여 컨텍스트에 저장
-    @Bean
-    public JobExecutionListener commentHardDeleteJobListener() {
-        return new JobExecutionListener() {     // 익명 클래스 구현
+  // job 리스너 설정 : Job 실행 직전에 기준 시간 (threshold) 계산하여 컨텍스트에 저장
+  @Bean
+  public JobExecutionListener commentHardDeleteJobListener() {
+    return new JobExecutionListener() {     // 익명 클래스 구현
 
-            @Override
-            // 사전 작업: 삭제 기준 날짜 지정
-            public void beforeJob(@NonNull JobExecution jobExecution) {
-                LocalDateTime threshold = LocalDateTime.now().minusDays(1);
-                jobExecution.getExecutionContext().put("threshold", threshold.toString());
-            }
-        };
-    }
+      @Override
+      // 사전 작업: 삭제 기준 날짜 지정
+      public void beforeJob(@NonNull JobExecution jobExecution) {
+        Instant threshold = Instant.now().minus(1, ChronoUnit.DAYS);
+        jobExecution.getExecutionContext().put("threshold", threshold.toString());
+      }
+    };
+  }
 
-    // step 설정 : Job 내부에서 수행될 읽기 (Reader) / 쓰기 (Writer) 조합
-    @Bean
-    public Step commentHardDeleteStep(
-            JpaCursorItemReader<UUID> commentHardDeleteReader,
-            ItemWriter<UUID> commentHardDeleteWriter
-    ) {
-        return new StepBuilder("commentHardDeleteStep", jobRepository)
-                .<UUID, UUID>chunk(CHUNK_SIZE, transactionManager)
-                .reader(commentHardDeleteReader)
-                .writer(commentHardDeleteWriter)
-                .build();
-    }
+  // step 설정 : Job 내부에서 수행될 읽기 (Reader) / 쓰기 (Writer) 조합
+  @Bean
+  public Step commentHardDeleteStep(
+      JpaCursorItemReader<UUID> commentHardDeleteReader,
+      ItemWriter<UUID> commentHardDeleteWriter
+  ) {
+    return new StepBuilder("commentHardDeleteStep", jobRepository)
+        .<UUID, UUID>chunk(CHUNK_SIZE, transactionManager)
+        .reader(commentHardDeleteReader)
+        .writer(commentHardDeleteWriter)
+        .build();
+  }
 
-    // reader 설정 :
-    @Bean
-    @StepScope
-    public JpaCursorItemReader<UUID> commentHardDeleteReader(@Value("#{jobExecutionContext['threshold']}") String thresholdStr) {
-        // 삭제 기준 날짜 설정
-        LocalDateTime threshold = LocalDateTime.parse(thresholdStr);
+  // reader 설정 :
+  @Bean
+  @StepScope
+  public JpaCursorItemReader<UUID> commentHardDeleteReader(
+      @Value("#{jobExecutionContext['threshold']}") String thresholdStr) {
+    // 삭제 기준 날짜 설정
+    Instant threshold = Instant.parse(thresholdStr);
 
-        // reader 객체 반환
-        return new JpaCursorItemReaderBuilder<UUID>()
-                .name("commentHardDeleteReader")
-                .entityManagerFactory(entityManagerFactory)
-                .queryString("SELECT comment.id FROM Comment comment WHERE comment.status = :status AND comment.updatedAt <= :threshold")
-                .parameterValues(Map.of("status", CommentStatus.DELETED, "threshold", threshold))
-                .saveState(false)
-                .build();
-    }
+    // reader 객체 반환
+    return new JpaCursorItemReaderBuilder<UUID>()
+        .name("commentHardDeleteReader")
+        .entityManagerFactory(entityManagerFactory)
+        .queryString(
+            "SELECT comment.id FROM Comment comment WHERE comment.status = :status AND comment.updatedAt <= :threshold")
+        .parameterValues(Map.of("status", CommentStatus.DELETED, "threshold", threshold))
+        .saveState(false)
+        .build();
+  }
 
-    // writer 설정
-    @Bean
-    @StepScope
-    public ItemWriter<UUID> commentHardDeleteWriter() {
-        return chunk -> {
-            // 지워야 할 id 목록 조회
-            List<UUID> commentIds = (List<UUID>) chunk.getItems();
-            // 없으면 종료
-            if (commentIds.isEmpty()) {
-                return;
-            }
+  // writer 설정
+  @Bean
+  @StepScope
+  public ItemWriter<UUID> commentHardDeleteWriter() {
+    return chunk -> {
+      // 지워야 할 id 목록 조회
+      List<UUID> commentIds = (List<UUID>) chunk.getItems();
+      // 없으면 종료
+      if (commentIds.isEmpty()) {
+        return;
+      }
 
-            // 댓글 물리 삭제
-            commentRepository.deleteAllByIdInBatch(commentIds);
+      // 댓글 물리 삭제
+      commentRepository.deleteAllByIdInBatch(commentIds);
 
-            // 로그 기록
-            log.info("[COMMENT_BATCH] 보관 기간 만료된 댓글 {}개 물리 삭제 진행", chunk.size());
-        };
-    }
+      // 로그 기록
+      log.info("[COMMENT_BATCH] 보관 기간 만료된 댓글 {}개 물리 삭제 진행", chunk.size());
+    };
+  }
 }
