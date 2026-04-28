@@ -13,7 +13,7 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-  # 테이블 자동 생성 막음
+  # schema.sql / data.sql 자동 실행 비활성화
   sql:
     init:
       mode: never
