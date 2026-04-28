@@ -3,7 +3,7 @@ package com.codeit.mission.deokhugam.dashboard.powerusers.batch.tasklet;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -30,7 +30,7 @@ public class RankPowerUsersTasklet implements Tasklet {
   public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
       throws Exception {
 
-    LocalDateTime aggregatedAt = getAggregatedAt();
+    Instant aggregatedAt = getAggregatedAt();
     PeriodType periodType = getPeriodType();
     UUID snapshotId = getSnapshotId();
 
@@ -43,8 +43,8 @@ public class RankPowerUsersTasklet implements Tasklet {
     return JobParameterUtils.parseUuid("snapshotId", snapshotIdValue);
   }
 
-  private LocalDateTime getAggregatedAt(){
-    return JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtValue);
+  private Instant getAggregatedAt(){
+    return JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtValue);
   }
 
   private PeriodType getPeriodType(){

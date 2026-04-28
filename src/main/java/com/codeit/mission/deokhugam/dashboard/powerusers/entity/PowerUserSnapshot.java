@@ -12,7 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,7 +34,7 @@ public class PowerUserSnapshot extends BaseEntity {
   PeriodType periodType;
 
   @Column(name = "aggregated_at", nullable = false)
-  LocalDateTime aggregatedAt;
+  Instant aggregatedAt;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "staging_type", nullable = false)
@@ -44,7 +44,7 @@ public class PowerUserSnapshot extends BaseEntity {
   public PowerUserSnapshot(
       UUID snapshotId,
       PeriodType periodType,
-      LocalDateTime aggregatedAt,
+      Instant aggregatedAt,
       StagingType stagingType
   ){
     this.snapshotId = snapshotId;

@@ -9,7 +9,7 @@ import com.codeit.mission.deokhugam.dashboard.popularbooks.repository.PopularBoo
 import com.codeit.mission.deokhugam.dashboard.util.Utils;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,11 +33,11 @@ public class PopularBookAggregationService {
 
   // 한 번 실행하면 도서로부터 인기 도서 집계에 필요한 지수들을 Fetch
   @Transactional(readOnly = true)
-  public Map<UUID, PopularBookStat> loadBookStat(PeriodType periodType, LocalDateTime aggregatedAt){
-    List<LocalDateTime> periods = Utils.calculatePeriod(periodType, aggregatedAt);
+  public Map<UUID, PopularBookStat> loadBookStat(PeriodType periodType, Instant aggregatedAt){
+    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
     // 집계 기간 범위
-    LocalDateTime periodStart = periods.get(0);
-    LocalDateTime periodEnd = periods.get(1);
+    Instant periodStart = periods.get(0);
+    Instant periodEnd = periods.get(1);
 
     // 책 별 리뷰 개수
     Map<UUID, Long> reviewCountPerBook = new HashMap<>();
@@ -69,10 +69,10 @@ public class PopularBookAggregationService {
   }
 
   @Transactional
-  public void rankPopularBooks(PeriodType periodType, LocalDateTime aggregatedAt, UUID snapshotId){
-    List<LocalDateTime> periods = Utils.calculatePeriod(periodType, aggregatedAt);
-    LocalDateTime periodStart = periods.get(0);
-    LocalDateTime periodEnd = periods.get(1);
+  public void rankPopularBooks(PeriodType periodType, Instant aggregatedAt, UUID snapshotId){
+    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
+    Instant periodStart = periods.get(0);
+    Instant periodEnd = periods.get(1);
 
     List<PopularBook> popularBooks = popularBookRepository.findByPeriodAndSnapshotIdDescByScore(
         periodType, periodStart, periodEnd, snapshotId);
@@ -96,11 +96,11 @@ public class PopularBookAggregationService {
       UUID bookId,
       PopularBookStat stat,
       PeriodType periodType,
-      LocalDateTime aggregatedAt,
+      Instant aggregatedAt,
       UUID snapshotId)
   {
-    LocalDateTime periodStart = periodType.calculateStart(aggregatedAt);
-    LocalDateTime periodEnd = periodType.calculateEnd(aggregatedAt);
+    Instant periodStart = periodType.calculateStart(aggregatedAt);
+    Instant periodEnd = periodType.calculateEnd(aggregatedAt);
 
     return PopularBook.builder()
         .bookId(bookId)

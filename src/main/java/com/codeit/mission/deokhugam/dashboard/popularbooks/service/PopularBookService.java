@@ -14,7 +14,7 @@ import com.codeit.mission.deokhugam.dashboard.popularbooks.repository.PopularBoo
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import com.codeit.mission.deokhugam.dashboard.util.Utils;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +58,7 @@ public class PopularBookService {
     // 존재하지 않다면 둘 다 null로 초기화
     ParsedCursors cursors = Utils.parseCursors(cursor, after);
     Long cursorLong = cursors.cursor();
-    LocalDateTime afterDate = cursors.after();
+    Instant afterDate = cursors.after();
 
     // 찾고자하는 기간에 해당하는 스냅샷의 ID를 구합니다.
     Optional<UUID> publishedSnapshotId = getPublishedSnapshotId(periodType);

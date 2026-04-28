@@ -3,7 +3,7 @@ package com.codeit.mission.deokhugam.dashboard.powerusers.repository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUser;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +37,7 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
   List<PowerUserDto> findRankingDtosBySnapshotIdAsc(
       @Param("snapshotId") UUID snapshotId,
       @Param("cursor") Long cursor,
-      @Param("after") LocalDateTime after,
+      @Param("after") Instant after,
       Pageable pageable);
 
   @Query(
@@ -64,7 +64,7 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
   List<PowerUserDto> findRankingDtosBySnapshotIdDesc(
       @Param("snapshotId") UUID snapshotId,
       @Param("cursor") Long cursor,
-      @Param("after") LocalDateTime after,
+      @Param("after") Instant after,
       Pageable pageable);
 
   @Query(
@@ -87,7 +87,7 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
       """)
   List<PowerUser> findByPeriodDescByScore(
       @Param("periodType") PeriodType periodType,
-      @Param("periodStart") LocalDateTime periodStart,
-      @Param("periodEnd") LocalDateTime periodEnd,
+      @Param("periodStart") Instant periodStart,
+      @Param("periodEnd") Instant periodEnd,
       @Param("snapshotId") UUID snapshotId);
 }
