@@ -172,6 +172,7 @@ public class CommentService {
     validAuthor(comment, requestUserId);
 
     comment.updateStatus(CommentStatus.DELETED);
+    commentRepository.save(comment);
 
     log.info("[COMMNET_LOGICAL_DELETE] Logical Deleted Comment: id={}", comment.getId());
 

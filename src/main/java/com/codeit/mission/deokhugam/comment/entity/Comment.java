@@ -1,9 +1,7 @@
 package com.codeit.mission.deokhugam.comment.entity;
 
 import com.codeit.mission.deokhugam.base.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,6 +28,7 @@ public class Comment extends BaseEntity {
     private String content;
 
     // 댓글 상태 - 논리 삭제 구분 용
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private CommentStatus status;
 

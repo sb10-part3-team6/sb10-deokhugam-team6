@@ -57,9 +57,10 @@ public class CommentController {
       @ApiResponse(responseCode = "500", description = "서버 내부 오류")
   })
   @PatchMapping(value = "/{commentId}")
-  public ResponseEntity<CommentDto> updateComment(@PathVariable("commentId") UUID commentId,
-      @RequestParam UUID requestUserId,
-      @Valid @RequestBody CommentUpdateRequest request) {
+  public ResponseEntity<CommentDto> updateComment(
+          @PathVariable("commentId") UUID commentId,
+          @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
+          @Valid @RequestBody CommentUpdateRequest request) {
     CommentDto commentDto = commentService.updateComment(commentId, requestUserId, request);
     return ResponseEntity.status(HttpStatus.OK).body(commentDto);
   }
@@ -110,8 +111,9 @@ public class CommentController {
       @ApiResponse(responseCode = "500", description = "서버 내부 오류")
   })
   @DeleteMapping(value = "/{commentId}")
-  public ResponseEntity<Void> deleteComment(@PathVariable("commentId") UUID commentId,
-      @RequestParam UUID requestUserId) {
+  public ResponseEntity<Void> deleteComment(
+          @PathVariable("commentId") UUID commentId,
+          @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
     commentService.softDelete(commentId, requestUserId);
     return ResponseEntity.noContent().build();
   }
@@ -129,8 +131,9 @@ public class CommentController {
       @ApiResponse(responseCode = "500", description = "서버 내부 오류")
   })
   @DeleteMapping(value = "/{commentId}/hard")
-  public ResponseEntity<Void> hardDeleteComment(@PathVariable("commentId") UUID commentId,
-      @RequestParam UUID requestUserId) {
+  public ResponseEntity<Void> hardDeleteComment(
+          @PathVariable("commentId") UUID commentId,
+          @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
     commentService.hardDelete(commentId, requestUserId);
     return ResponseEntity.noContent().build();
   }
