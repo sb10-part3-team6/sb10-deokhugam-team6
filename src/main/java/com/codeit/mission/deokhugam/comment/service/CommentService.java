@@ -61,7 +61,7 @@ public class CommentService {
     Comment savedComment = commentRepository.saveAndFlush(comment);
     reviewRepository.incrementCommentCount(review.getId());
 
-    log.info("[COMMNET_CREATE] Created Comment: id={}, content={}", savedComment.getId(), savedComment.getContent());
+    log.info("[COMMNET_CREATE] Created Comment: id={}", savedComment.getId());
 
     return commentMapper.toDto(savedComment, user.getNickname());
   }
@@ -87,7 +87,7 @@ public class CommentService {
     comment.updateContent(request.content());
     Comment updatedComment = commentRepository.save(comment);
 
-    log.info("[COMMNET_UPDATE] Updated Comment: id={}, content={}", updatedComment.getId(), updatedComment.getContent());
+    log.info("[COMMNET_UPDATE] Updated Comment: id={}", updatedComment.getId());
 
     return commentMapper.toDto(updatedComment, user.getNickname());
   }
@@ -172,7 +172,6 @@ public class CommentService {
     validAuthor(comment, requestUserId);
 
     comment.updateStatus(CommentStatus.DELETED);
-    commentRepository.save(comment);
 
     log.info("[COMMNET_LOGICAL_DELETE] Logical Deleted Comment: id={}", comment.getId());
 

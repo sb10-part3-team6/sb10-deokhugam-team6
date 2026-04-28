@@ -12,9 +12,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Objects;
-import java.util.UUID;
-
 @Getter
 @Entity
 @NoArgsConstructor
