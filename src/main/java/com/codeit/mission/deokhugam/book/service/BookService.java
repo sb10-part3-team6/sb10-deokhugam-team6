@@ -306,8 +306,9 @@ public class BookService {
     book.setPublishedDate(request.publishedDate());
 
     if (image != null && !image.isEmpty()) {
-      bookImageService.deleteFileByUrl(book.getThumbnailUrl());
-      book.setThumbnailUrl(upload(image));
+      String newUrl = upload(image); // 먼저 업로드
+      bookImageService.deleteFileByUrl(book.getThumbnailUrl()); // 그 다음 삭제
+      book.setThumbnailUrl(newUrl);
     }
 
     bookRepository.save(book);
