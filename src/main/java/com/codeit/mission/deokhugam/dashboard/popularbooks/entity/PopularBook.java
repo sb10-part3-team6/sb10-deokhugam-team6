@@ -18,14 +18,15 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @Table(
-    name = "popular_books",
-    indexes = {
-        @Index(name="idx_book_id_period_type_snap_shot_id", columnList = "book_id, period_type, snapshot_id"),
-        @Index(name="idx_period_snapshot_window_score", columnList = "period_type, snapshot_id, period_start, period_end, score")
-    }
+  name = "popular_books",
+  indexes = {
+    @Index(name = "idx_book_id_period_type_snap_shot_id", columnList = "book_id, period_type, snapshot_id"),
+    @Index(name = "idx_period_snapshot_window_score", columnList = "period_type, snapshot_id, period_start, period_end, score")
+  }
 )
 
 public class PopularBook extends BaseEntity {
+
   @Column(name = "book_id", nullable = false)
   private UUID bookId;
 
@@ -38,10 +39,10 @@ public class PopularBook extends BaseEntity {
   @Column(name = "review_count", nullable = false)
   private Long reviewCount;
 
-  @Column(name = "avgRating", nullable = false)
+  @Column(name = "avg_rating", nullable = false)
   private double avgRating;
 
-  @Column(name = "score" ,nullable = false)
+  @Column(name = "score", nullable = false)
   private double score;
 
   @Column(name = "rank", nullable = false)
@@ -56,16 +57,16 @@ public class PopularBook extends BaseEntity {
 
   @Builder
   public PopularBook(
-      UUID bookId,
-      Instant periodStart,
-      Instant periodEnd,
-      Long reviewCount,
-      double avgRating,
-      double score,
-      Long rank,
-      PeriodType periodType,
-      UUID snapshotId
-  ){
+    UUID bookId,
+    Instant periodStart,
+    Instant periodEnd,
+    Long reviewCount,
+    double avgRating,
+    double score,
+    Long rank,
+    PeriodType periodType,
+    UUID snapshotId
+  ) {
     this.bookId = bookId;
     this.periodEnd = periodEnd;
     this.periodStart = periodStart;
@@ -77,5 +78,7 @@ public class PopularBook extends BaseEntity {
     this.snapshotId = snapshotId;
   }
 
-  public void updateRank(long rank) {this.rank = rank;}
+  public void updateRank(long rank) {
+    this.rank = rank;
+  }
 }
