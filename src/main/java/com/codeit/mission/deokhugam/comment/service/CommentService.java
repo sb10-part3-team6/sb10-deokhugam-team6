@@ -21,11 +21,13 @@ import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -59,6 +61,8 @@ public class CommentService {
     Comment savedComment = commentRepository.saveAndFlush(comment);
     reviewRepository.incrementCommentCount(review.getId());
 
+    log.info("[COMMENT_CREATE] Created Comment: id={}", savedComment.getId());
+
     return commentMapper.toDto(savedComment, user.getNickname());
   }
 
@@ -82,6 +86,9 @@ public class CommentService {
 
     comment.updateContent(request.content());
     Comment updatedComment = commentRepository.save(comment);
+
+    log.info("[COMMENT_UPDATE] Updated Comment: id={}", updatedComment.getId());
+
     return commentMapper.toDto(updatedComment, user.getNickname());
   }
 
@@ -138,7 +145,7 @@ public class CommentService {
       nextAfter = last.getCreatedAt();
     }
 
-    long totalElements = commentRepository.countByReviewId(request.reviewId());
+    long totalElements = commentRepository.countByReviewIdAndStatus(request.reviewId(), CommentStatus.ACTIVE);
 
     return new CursorPageResponseCommentDto(
         content,
@@ -166,6 +173,8 @@ public class CommentService {
 
     comment.updateStatus(CommentStatus.DELETED);
 
+    log.info("[COMMENT_LOGICAL_DELETE] Logical Deleted Comment: id={}", comment.getId());
+
     // 댓글 수 감소
     reviewRepository.decrementCommentCount(comment.getReviewId());
   }
@@ -185,6 +194,9 @@ public class CommentService {
     validAuthor(comment, requestUserId);
 
     commentRepository.deleteById(commentId);
+
+    log.info("[COMMENT_PHYSICAL_DELETE] Physical Deleted Comment: id={}", comment.getId());
+
     reviewRepository.decrementCommentCount(comment.getReviewId());
   }
 

@@ -1,6 +1,7 @@
 package com.codeit.mission.deokhugam.comment.repository;
 
 import com.codeit.mission.deokhugam.comment.entity.Comment;
+import com.codeit.mission.deokhugam.comment.entity.CommentStatus;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewCommentCount;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.request.UserCommentCount;
 import java.time.Instant;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentRepositoryCustom {
 
   // 리뷰의 댓글 수
-  long countByReviewId(UUID reviewId);
+  long countByReviewIdAndStatus(UUID reviewId, CommentStatus status);
 
   // 파워 유저 집계할 때 기간 별 댓글 개수를 가져오는 레포지토리 메서드
   @Query(
