@@ -12,9 +12,9 @@ CREATE TABLE "users"
     "password"   VARCHAR(255)        NOT NULL,
     "nickname"   VARCHAR(20)         NOT NULL,
     "status"     VARCHAR(30)         NOT NULL,
-    "created_at" TIMESTAMPtz           NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMPtz,
-    "deleted_at" TIMESTAMPtz
+    "created_at" TIMESTAMP WITH TIME ZONE           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP WITH TIME ZONE,
+    "deleted_at" TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE "books"
@@ -30,9 +30,9 @@ CREATE TABLE "books"
     "review_count"   INTEGER          NOT NULL DEFAULT 0 CHECK ("review_count" >= 0),
     "rating"         DOUBLE PRECISION NOT NULL DEFAULT 0 CHECK ("rating" BETWEEN 0 AND 5),
     "book_status"    VARCHAR(30)      NOT NULL,
-    "deleted_at"     TIMESTAMPtz,
-    "created_at"     TIMESTAMPtz        NOT NULL DEFAULT now(),
-    "updated_at"     TIMESTAMPtz
+    "deleted_at"     TIMESTAMP WITH TIME ZONE,
+    "created_at"     TIMESTAMP WITH TIME ZONE        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"     TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE "reviews"
@@ -45,9 +45,9 @@ CREATE TABLE "reviews"
     "like_count"    INTEGER       NOT NULL DEFAULT 0,
     "comment_count" INTEGER       NOT NULL DEFAULT 0,
     "status"        VARCHAR(30) NOT NULL,
-    "created_at"    TIMESTAMPtz     NOT NULL DEFAULT now(),
-    "updated_at"    TIMESTAMPtz,
-    "deleted_at"    TIMESTAMPtz,
+    "created_at"    TIMESTAMP WITH TIME ZONE     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"    TIMESTAMP WITH TIME ZONE,
+    "deleted_at"    TIMESTAMP WITH TIME ZONE,
 
     FOREIGN KEY ("book_id") REFERENCES "books" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
@@ -62,8 +62,8 @@ CREATE TABLE "comments"
     "user_id"    UUID           NOT NULL,
     "content"    VARCHAR(500)   NOT NULL,
     "status"     VARCHAR(30) NOT NULL,
-    "created_at" TIMESTAMPtz      NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMPtz,
+    "created_at" TIMESTAMP WITH TIME ZONE      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP WITH TIME ZONE,
 
     FOREIGN KEY ("review_id") REFERENCES "reviews" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("user_id") REFERENCES "users" ("id")  ON DELETE CASCADE
@@ -77,8 +77,8 @@ CREATE TABLE "notifications"
     "review_content" TEXT         NOT NULL,
     "message"        VARCHAR(255) NOT NULL,
     "confirmed"      BOOLEAN      NOT NULL DEFAULT false,
-    "created_at"     TIMESTAMPtz  NOT NULL DEFAULT now(),
-    "updated_at"     TIMESTAMPtz,
+    "created_at"     TIMESTAMP WITH TIME ZONE  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"     TIMESTAMP WITH TIME ZONE,
 
     FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("review_id") REFERENCES "reviews" ("id")  ON DELETE CASCADE
@@ -89,9 +89,9 @@ CREATE TABLE "review_likes"
     "id"         UUID        PRIMARY KEY,
     "review_id"  UUID        NOT NULL,
     "user_id"    UUID        NOT NULL,
-    "liked_at"   TIMESTAMPtz NOT NULL,
-    "created_at" TIMESTAMPtz NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMPtz,
+    "liked_at"   TIMESTAMP WITH TIME ZONE NOT NULL,
+    "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP WITH TIME ZONE,
 
     FOREIGN KEY ("review_id") REFERENCES "reviews" ("id")  ON DELETE CASCADE,
     FOREIGN KEY ("user_id") REFERENCES "users" ("id")  ON DELETE CASCADE
@@ -108,16 +108,16 @@ CREATE TABLE "power_users"
     "snapshot_id"      UUID             NOT NULL,
     "user_id"          UUID             NOT NULL,
     "period_type"      period_type      NOT NULL,
-    "period_start"     TIMESTAMPtz        NOT NULL,
-    "period_end"       TIMESTAMPtz        NOT NULL,
+    "period_start"     TIMESTAMP WITH TIME ZONE        NOT NULL,
+    "period_end"       TIMESTAMP WITH TIME ZONE        NOT NULL,
     "rank"             BIGINT           NOT NULL,
     "score"            DOUBLE PRECISION NOT NULL,
     "review_score_sum" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "like_count"       BIGINT           NOT NULL DEFAULT 0,
     "comment_count"    BIGINT           NOT NULL DEFAULT 0,
-    "aggregated_at"    TIMESTAMPtz        NOT NULL DEFAULT now(),
-    "created_at"       TIMESTAMPtz        NOT NULL DEFAULT now(),
-    "updated_at"       TIMESTAMPtz,
+    "aggregated_at"    TIMESTAMP WITH TIME ZONE        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at"       TIMESTAMP WITH TIME ZONE        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"       TIMESTAMP WITH TIME ZONE,
 
     FOREIGN KEY ("user_id") REFERENCES "users" ("id")  ON DELETE CASCADE
 );
@@ -134,16 +134,16 @@ CREATE TABLE "popular_reviews"
     "id"            UUID PRIMARY KEY,
     "review_id"     UUID             NOT NULL,
     "period_type"   period_type      NOT NULL,
-    "period_start"  TIMESTAMPtz        NOT NULL,
-    "period_end"    TIMESTAMPtz        NOT NULL,
+    "period_start"  TIMESTAMP WITH TIME ZONE        NOT NULL,
+    "period_end"    TIMESTAMP WITH TIME ZONE        NOT NULL,
     "rank"          BIGINT           NOT NULL,
     "score"         DOUBLE PRECISION NOT NULL,
     "like_count"    BIGINT           NOT NULL,
     "comment_count" BIGINT           NOT NULL,
     "snapshot_id"   UUID             NOT NULL,
-    "aggregated_at" TIMESTAMPtz        NOT NULL,
-    "created_at"    TIMESTAMPtz        NOT NULL DEFAULT now(),
-    "updated_at"    TIMESTAMPtz,
+    "aggregated_at" TIMESTAMP WITH TIME ZONE        NOT NULL,
+    "created_at"    TIMESTAMP WITH TIME ZONE        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"    TIMESTAMP WITH TIME ZONE,
 
     FOREIGN KEY ("review_id") REFERENCES "reviews" ("id")  ON DELETE CASCADE
 );
