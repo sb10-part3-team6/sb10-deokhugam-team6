@@ -6,7 +6,7 @@ import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUser;
 import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
 import com.codeit.mission.deokhugam.user.entity.User;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class PowerUserItemProcessor implements ItemProcessor<User, PowerUser> {
   private final PowerUserAggregateService powerUserAggregateService;
 
   private PeriodType periodType;
-  private LocalDateTime aggregatedAt;
+  private Instant aggregatedAt;
   private UUID snapshotId;
   private Map<UUID, UserStat> statsByUserId = Map.of();
 
@@ -44,7 +44,7 @@ public class PowerUserItemProcessor implements ItemProcessor<User, PowerUser> {
     );
 
     this.periodType = JobParameterUtils.parseEnum("periodType", periodTypeStr, PeriodType.class);
-    this.aggregatedAt = JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtStr);
+    this.aggregatedAt = JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtStr);
     this.snapshotId = JobParameterUtils.parseUuid("snapshotId", snapshotIdStr);
 
     this.statsByUserId = powerUserAggregateService.loadUserStats(periodType, aggregatedAt); // Aggregate 서비스에서 유저 스탯을 로드하는 메서드 호출

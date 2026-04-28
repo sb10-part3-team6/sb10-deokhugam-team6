@@ -1,5 +1,5 @@
 package com.codeit.mission.deokhugam.dashboard.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
-public record ParsedCursors(Long cursor, LocalDateTime after){}
+public record ParsedCursors(Long cursor, Instant after){}

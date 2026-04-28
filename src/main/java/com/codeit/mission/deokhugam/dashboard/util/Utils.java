@@ -4,11 +4,11 @@ import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.dto.ParsedCursors;
 import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidCursorValueException;
 import java.time.DateTimeException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public class Utils {
-  public static List<LocalDateTime> calculatePeriod(PeriodType periodType, LocalDateTime aggregatedAt){
+  public static List<Instant> calculatePeriod(PeriodType periodType, Instant aggregatedAt){
     return List.of(periodType.calculateStart(aggregatedAt), periodType.calculateEnd(aggregatedAt));
   }
 
@@ -17,8 +17,11 @@ public class Utils {
       if(cursor == null){
         return new ParsedCursors(null, null);
       }
-      return new ParsedCursors(Long.parseLong(cursor), LocalDateTime.parse(after));
-    } catch (NumberFormatException | DateTimeException e){
+      if(after == null || after.isBlank()){
+        throw new InvalidCursorValueException();
+      }
+      return new ParsedCursors(Long.parseLong(cursor), Instant.parse(after));
+    } catch (NumberFormatException | DateTimeException | NullPointerException e){
       throw new InvalidCursorValueException();
     }
   }

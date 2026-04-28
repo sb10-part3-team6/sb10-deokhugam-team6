@@ -6,7 +6,7 @@ import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularRevie
 import com.codeit.mission.deokhugam.dashboard.popularreviews.service.PopularReviewAggregateService;
 import com.codeit.mission.deokhugam.dashboard.util.JobParameterUtils;
 import com.codeit.mission.deokhugam.review.entity.Review;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
   private final PopularReviewAggregateService popularReviewAggregateService;
 
   private PeriodType periodType;
-  private LocalDateTime aggregatedAt;
+  private Instant aggregatedAt;
   private UUID snapshotId;
   private Map<UUID, ReviewStat> statsByReviewId = Map.of();
 
@@ -44,7 +44,7 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
     );
 
     this.periodType = JobParameterUtils.parseEnum("periodType", periodTypeStr, PeriodType.class);
-    this.aggregatedAt = JobParameterUtils.parseLocalDateTime("aggregatedAt", aggregatedAtStr);
+    this.aggregatedAt = JobParameterUtils.parseInstant("aggregatedAt", aggregatedAtStr);
     this.snapshotId = JobParameterUtils.parseUuid("snapshotId", snapshotIdStr);
 
     this.statsByReviewId = popularReviewAggregateService.loadReviewStat(periodType, aggregatedAt);
