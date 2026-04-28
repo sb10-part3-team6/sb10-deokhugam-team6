@@ -153,7 +153,7 @@ CREATE TABLE "popular_books"
     "period_start" TIMESTAMP WITH TIME ZONE NOT NULL,
     "period_end"   TIMESTAMP WITH TIME ZONE NOT NULL,
     "review_count" BIGINT                   NOT NULL DEFAULT 0 CHECK (review_count >= 0),
-    "avgRating"    DOUBLE PRECISION         NOT NULL,
+    "avg_rating"   DOUBLE PRECISION         NOT NULL,
     "score"        DOUBLE PRECISION         NOT NULL,
     "rank"         BIGINT                   NOT NULL,
     "period_type"  VARCHAR(30)              NOT NULL,
