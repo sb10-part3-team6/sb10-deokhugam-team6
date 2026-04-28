@@ -30,9 +30,9 @@ CREATE TABLE "books"
     "review_count"   INTEGER          NOT NULL DEFAULT 0 CHECK ("review_count" >= 0),
     "rating"         DOUBLE PRECISION NOT NULL DEFAULT 0 CHECK ("rating" BETWEEN 0 AND 5),
     "book_status"    VARCHAR(30)      NOT NULL,
-    "deleted_at"     TIMESTAMP,
+    "deleted_at"     TIMESTAMPtz,
     "created_at"     TIMESTAMPtz        NOT NULL DEFAULT now(),
-    "updated_at"     TIMESTAMP
+    "updated_at"     TIMESTAMPtz
 );
 
 CREATE TABLE "reviews"
@@ -46,8 +46,8 @@ CREATE TABLE "reviews"
     "comment_count" INTEGER       NOT NULL DEFAULT 0,
     "status"        VARCHAR(30) NOT NULL,
     "created_at"    TIMESTAMPtz     NOT NULL DEFAULT now(),
-    "updated_at"    TIMESTAMP,
-    "deleted_at"    TIMESTAMP,
+    "updated_at"    TIMESTAMPtz,
+    "deleted_at"    TIMESTAMPtz,
 
     FOREIGN KEY ("book_id") REFERENCES "books" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
@@ -63,7 +63,7 @@ CREATE TABLE "comments"
     "content"    VARCHAR(500)   NOT NULL,
     "status"     VARCHAR(30) NOT NULL,
     "created_at" TIMESTAMPtz      NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP,
+    "updated_at" TIMESTAMPtz,
 
     FOREIGN KEY ("review_id") REFERENCES "reviews" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("user_id") REFERENCES "users" ("id")  ON DELETE CASCADE
@@ -117,7 +117,7 @@ CREATE TABLE "power_users"
     "comment_count"    BIGINT           NOT NULL DEFAULT 0,
     "aggregated_at"    TIMESTAMPtz        NOT NULL DEFAULT now(),
     "created_at"       TIMESTAMPtz        NOT NULL DEFAULT now(),
-    "updated_at"       TIMESTAMP,
+    "updated_at"       TIMESTAMPtz,
 
     FOREIGN KEY ("user_id") REFERENCES "users" ("id")  ON DELETE CASCADE
 );
@@ -143,7 +143,7 @@ CREATE TABLE "popular_reviews"
     "snapshot_id"   UUID             NOT NULL,
     "aggregated_at" TIMESTAMPtz        NOT NULL,
     "created_at"    TIMESTAMPtz        NOT NULL DEFAULT now(),
-    "updated_at"    TIMESTAMP,
+    "updated_at"    TIMESTAMPtz,
 
     FOREIGN KEY ("review_id") REFERENCES "reviews" ("id")  ON DELETE CASCADE
 );
