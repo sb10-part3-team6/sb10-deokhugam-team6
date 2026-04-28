@@ -18,3 +18,10 @@ spring:
     hibernate:
       ddl-auto: none
     defer-datasource-initialization: true
+
+  cloud:
+    aws:
+      s3:
+        region: ap-northeast-2
+        bucket: test-bucket
+
