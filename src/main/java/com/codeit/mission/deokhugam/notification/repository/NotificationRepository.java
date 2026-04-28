@@ -2,6 +2,7 @@ package com.codeit.mission.deokhugam.notification.repository;
 
 import com.codeit.mission.deokhugam.notification.entity.Notification;
 import com.codeit.mission.deokhugam.notification.repository.custom.NotificationRepositoryCustom;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,4 +39,10 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   @Transactional
   @Query(value = "DELETE FROM Notification notification WHERE notification.review.id IN :reviewIds")
   void deleteByReviewIdIn(@Param("reviewIds") List<UUID> reviewIds);
+
+  // 확인한 알림 중 1주일이 경과된 알림을 일괄적으로 삭제
+  @Modifying(clearAutomatically = true)
+  @Transactional
+  @Query("DELETE Notification n WHERE n.updatedAt < :cutoff AND n.confirmed = true")
+  int deleteByConfirmedTrueAndUpdatedAtBefore(LocalDateTime cutoff);
 }
