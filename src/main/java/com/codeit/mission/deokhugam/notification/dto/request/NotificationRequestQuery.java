@@ -54,7 +54,7 @@ public record NotificationRequestQuery(
     if (direction == null) {
       direction = DirectionEnum.DESC;
     }
-    if (limit == null || limit <= 0) {
+    if (limit == null) {
       limit = DEFAULT_LIMIT;
     }
     limit = Math.min(limit, DEFAULT_LIMIT);
