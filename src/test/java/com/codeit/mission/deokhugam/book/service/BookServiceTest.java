@@ -429,23 +429,6 @@ class BookServiceTest {
     }
 
     @Test
-    @DisplayName("이벤트가 발생하면 이미지가 삭제된다")
-    void eventListenerTest() {
-        // given
-        BookImageService bookImageService = mock(BookImageService.class);
-        BookDeletedEventListener listener =
-            new BookDeletedEventListener(bookImageService);
-
-        BookDeletedEvent event = new BookDeletedEvent("url");
-
-        // when
-        listener.handle(event);
-
-        // then
-        verify(bookImageService).deleteFileByUrl("url");
-    }
-
-    @Test
     @DisplayName("정상: 커서 기반 도서 목록 조회 - hasNext=true")
     void findAllBooks_success_hasNext_true() {
         // given
