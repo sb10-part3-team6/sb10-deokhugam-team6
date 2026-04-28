@@ -335,7 +335,7 @@ public class CommentServiceTest {
     given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
     given(commentRepository.findAllByCursor(findAllRequest))
         .willReturn(List.of(comment, secondComment));
-    given(commentRepository.countByReviewId(reviewId)).willReturn(2L);
+    given(commentRepository.countByReviewIdAndStatus(reviewId, CommentStatus.ACTIVE)).willReturn(2L);
     given(userRepository.findAllById(any()))
         .willReturn(List.of(firstUser, secondUser));
 
@@ -410,7 +410,7 @@ public class CommentServiceTest {
     given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
     given(commentRepository.findAllByCursor(findAllRequest))
         .willReturn(List.of(comment, secondComment, thirdComment));
-    given(commentRepository.countByReviewId(reviewId)).willReturn(3L);
+    given(commentRepository.countByReviewIdAndStatus(reviewId, CommentStatus.ACTIVE)).willReturn(3L);
     given(userRepository.findAllById(any()))
         .willReturn(List.of(firstUser, secondUser));
 

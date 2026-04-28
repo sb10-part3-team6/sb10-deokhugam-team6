@@ -145,7 +145,7 @@ public class CommentService {
       nextAfter = last.getCreatedAt();
     }
 
-    long totalElements = commentRepository.countByReviewId(request.reviewId());
+    long totalElements = commentRepository.countByReviewIdAndStatus(request.reviewId(), CommentStatus.ACTIVE);
 
     return new CursorPageResponseCommentDto(
         content,
