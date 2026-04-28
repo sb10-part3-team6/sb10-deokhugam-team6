@@ -1,14 +1,14 @@
 package com.codeit.mission.deokhugam.book.service;
 
-import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
-import com.codeit.mission.deokhugam.book.dto.BookDto;
-import com.codeit.mission.deokhugam.book.dto.BookSearchConditionDto;
-import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
-import com.codeit.mission.deokhugam.book.dto.CursorPageRequestDto;
-import com.codeit.mission.deokhugam.book.dto.CursorPageResponseBookDto;
-import com.codeit.mission.deokhugam.book.dto.NaverBookDto;
-import com.codeit.mission.deokhugam.book.dto.NaverResponseDto;
-import com.codeit.mission.deokhugam.book.dto.OcrResponse;
+import com.codeit.mission.deokhugam.book.dto.request.BookCreateRequest;
+import com.codeit.mission.deokhugam.book.dto.response.BookDto;
+import com.codeit.mission.deokhugam.book.dto.request.BookSearchConditionDto;
+import com.codeit.mission.deokhugam.book.dto.request.BookUpdateRequest;
+import com.codeit.mission.deokhugam.book.dto.request.CursorPageRequestDto;
+import com.codeit.mission.deokhugam.book.dto.response.CursorPageResponseBookDto;
+import com.codeit.mission.deokhugam.book.dto.response.NaverBookDto;
+import com.codeit.mission.deokhugam.book.dto.response.NaverResponseDto;
+import com.codeit.mission.deokhugam.book.dto.response.OcrResponse;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.entity.SortDirection;
@@ -24,8 +24,8 @@ import com.codeit.mission.deokhugam.book.exception.WrongFileTypeException;
 import com.codeit.mission.deokhugam.book.mapper.BookDtoMapper;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
@@ -357,7 +357,7 @@ public class BookService {
       throw new IllegalLimitException();
     }
 
-    LocalDateTime afterValue = parseAfter(after);
+    Instant afterValue = parseAfter(after);
     Object cursorValue = parseCursor(orderBy, cursor);
 
     List<Book> books = bookRepository.findAllByCursor(
@@ -381,7 +381,7 @@ public class BookService {
         .toList();
 
     String nextCursor = null;
-    LocalDateTime nextAfter = null;
+    Instant nextAfter = null;
 
     if (hasNext && !books.isEmpty()) {
       Book last = books.get(books.size() - 1);
@@ -419,11 +419,11 @@ public class BookService {
     }
   }
 
-  private LocalDateTime parseAfter(String after) {
+  private Instant parseAfter(String after) {
     if (after == null || after.isBlank()) {
       return null;
     }
-    return LocalDateTime.parse(after);
+    return Instant.parse(after);
   }
 
   private String extractCursor(Book book, String orderBy) {

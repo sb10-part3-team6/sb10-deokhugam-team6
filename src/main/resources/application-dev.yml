@@ -8,20 +8,33 @@ spring:
 
   # 데이터베이스 설정
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:deokhugam;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # 테이블 자동 생성 설정
+  sql:
+    init:
+      mode: embedded
+      schema-locations: classpath:schema.sql
 
   # JPA/Hibernate 운영 설정
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         default_batch_fetch_size: 100
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+
+  # h2 콘솔 활성화
+  h2:
+    console:
+      enabled: true
 
 # 로깅 설정
 logging:
@@ -38,3 +51,11 @@ springdoc:
     path: /swagger-ui.html
     groups-order: ASC
     operations-sorter: alpha
+
+naverapi:
+  client-id: ${NAVER_CLIENT_ID:dummy-local}
+  client-secret: ${NAVER_CLIENT_SECRET:dummy-local}
+
+ocr:
+  url: https://api.ocr.space/parse/image
+  apikey: ${SPACE_OCR_API_KEY:dummy-local}

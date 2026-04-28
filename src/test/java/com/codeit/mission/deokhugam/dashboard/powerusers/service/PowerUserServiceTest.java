@@ -8,19 +8,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
 import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.CursorPageResponsePowerUserDto;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.CursorPageResponsePowerUserDto;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.powerusers.repository.PowerUserRepository;
-import com.codeit.mission.deokhugam.dashboard.powerusers.service.PowerUserService;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import com.codeit.mission.deokhugam.error.DeokhugamException;
 import com.codeit.mission.deokhugam.error.ErrorCode;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,16 +52,19 @@ class PowerUserServiceTest {
   @DisplayName("Publish 된 스냅샷을 가진 PowerUser를 Rank 기준 오름차순으로 조회 (첫 페이지, hasNext = false)")
   void getLatestRankings_firstPageAsc() {
     // Given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
 
     // 두 개의 파워 유저 객체를 생성 (Daily, 랭크는 1, 2)
-    PowerUserDto user1 = powerUserDto("user1", PeriodType.DAILY, createdAt1, 1L, 33.0, 31.0, 3L, 4L);
-    PowerUserDto user2 = powerUserDto("user2", PeriodType.DAILY, createdAt2, 2L, 24.0, 23.0, 1L, 2L);
+    PowerUserDto user1 = powerUserDto("user1", PeriodType.DAILY, createdAt1, 1L, 33.0, 31.0, 3L,
+        4L);
+    PowerUserDto user2 = powerUserDto("user2", PeriodType.DAILY, createdAt2, 2L, 24.0, 23.0, 1L,
+        2L);
 
     //
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POWER_USER, PeriodType.DAILY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POWER_USER, PeriodType.DAILY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.DAILY, DAILY_SNAPSHOT_ID)));
 
     // 해당 Daily Snapshot에 해당되는 파워 유저는 user1, user2임.
@@ -77,7 +80,8 @@ class PowerUserServiceTest {
         powerUserService.getLatestRankings(PeriodType.DAILY, DirectionEnum.ASC, null, null, 50);
 
     // then
-    assertEquals(List.of(user1, user2), result.content()); // 결과 CursorPageResponse의 content는 user1, user2
+    assertEquals(List.of(user1, user2),
+        result.content()); // 결과 CursorPageResponse의 content는 user1, user2
     assertEquals(50, result.size()); // default size는 50임.
     assertEquals(2L, result.totalElements()); // 총 요소의 개수는  user1, user2 -> 2개
     assertFalse(result.hasNext()); // hasNext는 없음
@@ -85,7 +89,8 @@ class PowerUserServiceTest {
     assertNull(result.nextAfter()); // 보조 커서(nextAfter)도 없음.
 
     // 스냅샷 레포지토리에서 DAILY, Published의 가장 최신 PowerUserSnapshot을 찾는 메서드가 실행되었는가?
-    verify(aggregateSnapshotRepository).findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+    verify(
+        aggregateSnapshotRepository).findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
         DomainType.POWER_USER, PeriodType.DAILY, StagingType.PUBLISHED);
     // 파워 유저 레포지토리에서 해당 스냅샷 ID에 해당하는 파워 유저 객체를 랭킹 오름차순으로 조회하는 메서드가 실행되었는가?
     verify(powerUserRepository)
@@ -96,17 +101,20 @@ class PowerUserServiceTest {
   }
 
   @Test
-  @DisplayName("Publish 된 스냅샷을 가진 PowerUser를 Rank 기준 내림차순으로 조회 (첫 페이지, hasNext = false)" )
+  @DisplayName("Publish 된 스냅샷을 가진 PowerUser를 Rank 기준 내림차순으로 조회 (첫 페이지, hasNext = false)")
   void getLatestRankings_firstPageDesc() {
     // given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
 
-    PowerUserDto user1 = powerUserDto("user1", PeriodType.DAILY, createdAt1, 1L, 33.0, 31.0, 3L, 4L);
-    PowerUserDto user2 = powerUserDto("user2", PeriodType.DAILY, createdAt2, 2L, 24.0, 23.0, 1L, 2L);
+    PowerUserDto user1 = powerUserDto("user1", PeriodType.DAILY, createdAt1, 1L, 33.0, 31.0, 3L,
+        4L);
+    PowerUserDto user2 = powerUserDto("user2", PeriodType.DAILY, createdAt2, 2L, 24.0, 23.0, 1L,
+        2L);
 
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POWER_USER, PeriodType.DAILY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POWER_USER, PeriodType.DAILY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.DAILY, DAILY_SNAPSHOT_ID)));
     when(powerUserRepository.findRankingDtosBySnapshotIdDesc(
         DAILY_SNAPSHOT_ID, null, null, PageRequest.of(0, 51)))
@@ -137,9 +145,9 @@ class PowerUserServiceTest {
   @DisplayName("중간 페이지의 파워 유저를 조회할 때 (hasNext = true)")
   void getLatestRankings_returnsNextCursor() {
     // Given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
-    LocalDateTime createdAt3 = LocalDateTime.of(2026, 4, 15, 10, 2);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
+    Instant createdAt3 = Instant.parse("2026-04-15T10:02:00Z");
 
     // 파워 유저 객체 1,2,3 생성
     PowerUserDto user1 = powerUserDto("user1", PeriodType.DAILY, createdAt1, 1L, 10.0, 8.0, 1L, 1L);
@@ -147,8 +155,9 @@ class PowerUserServiceTest {
     PowerUserDto user3 = powerUserDto("user3", PeriodType.DAILY, createdAt3, 3L, 8.0, 6.0, 1L, 1L);
 
     // Daily, Publish 속성의 가장 최신의 snapshot 객체를 호출할 때 임의의 Publish 된 스냅샷 객체를 리턴함.
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POWER_USER, PeriodType.DAILY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POWER_USER, PeriodType.DAILY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.DAILY, DAILY_SNAPSHOT_ID)));
 
     // 해당 SnapshotId 객체를 가진 파워 유저중에서 랭킹 순으로 오름차순 조회하는 메서드를 호출할 때,
@@ -187,7 +196,7 @@ class PowerUserServiceTest {
                     PeriodType.DAILY,
                     DirectionEnum.DESC,
                     "invalid-cursor",
-                    "2026-04-15T10:00:00",
+                    "2026-04-15T10:00:00Z",
                     50));
 
     // when + then
@@ -228,23 +237,28 @@ class PowerUserServiceTest {
   }
 
   @Test
-  @DisplayName("스냅샷을 찾을 수 없을 때")
+  @DisplayName("스냅샷을 찾을 수 없을 때 빈 content를 가진 CursorPageResponse 반환")
   void getLatestRankings_snapshotNotFound() {
     // given
     // 스냅샷 레포지토리에서 해당 PeriodType을 가진 publish된 스냅샷을 찾지 못함
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POWER_USER, PeriodType.MONTHLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POWER_USER, PeriodType.MONTHLY, StagingType.PUBLISHED))
         .thenReturn(Optional.empty());
 
-    DeokhugamException exception =
-        assertThrows(
-            DeokhugamException.class,
-            () ->
-                powerUserService.getLatestRankings(
-                    PeriodType.MONTHLY, DirectionEnum.ASC, null, null, 20));
+    // when
+    CursorPageResponsePowerUserDto result =
+        powerUserService.getLatestRankings(
+            PeriodType.MONTHLY, DirectionEnum.ASC, null, null, 20);
 
-    // when + then
-    assertEquals(ErrorCode.SNAPSHOT_NOT_FOUND, exception.getErrorCode());
+    // then
+    assertTrue(result.content().isEmpty());
+    assertEquals(20, result.size());
+    assertEquals(0L, result.totalElements());
+    assertFalse(result.hasNext());
+    assertNull(result.nextCursor());
+    assertNull(result.nextAfter());
+
     verify(aggregateSnapshotRepository)
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
             DomainType.POWER_USER, PeriodType.MONTHLY, StagingType.PUBLISHED);
@@ -258,7 +272,7 @@ class PowerUserServiceTest {
         .domainType(DomainType.POWER_USER)
         .snapshotId(snapshotId)
         .periodType(periodType)
-        .aggregatedAt(LocalDateTime.of(2026, 4, 15, 0, 0))
+        .aggregatedAt(Instant.parse("2026-04-15T00:00:00Z"))
         .stagingType(StagingType.PUBLISHED)
         .build();
   }
@@ -267,7 +281,7 @@ class PowerUserServiceTest {
   private PowerUserDto powerUserDto(
       String nickname,
       PeriodType periodType,
-      LocalDateTime createdAt,
+      Instant createdAt,
       long rank,
       double score,
       double reviewScoreSum,

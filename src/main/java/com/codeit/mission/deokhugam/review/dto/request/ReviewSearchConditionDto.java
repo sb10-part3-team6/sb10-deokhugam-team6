@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.review.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Schema(description = "목록 조회할 리뷰 정보")
@@ -48,13 +48,15 @@ public record ReviewSearchConditionDto(
 
     @Schema(
         description = "보조 커서 (createdAt)",
-        example = "2025-04-06T15:04:05.000"
+        example = "2025-04-06T15:04:05.000Z"
     )
-    LocalDateTime after,
+    Instant after,
 
     @Schema(
         description = "페이지 크기",
         defaultValue = "50",
+        minimum = "1",
+        maximum = "50",
         example = "50"
     )
     Integer limit

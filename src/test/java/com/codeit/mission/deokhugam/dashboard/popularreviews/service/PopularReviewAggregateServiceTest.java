@@ -1,16 +1,14 @@
 package com.codeit.mission.deokhugam.dashboard.popularreviews.service;
 
-
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewCommentCount;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewLikeCount;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.ReviewStat;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewCommentCount;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewLikeCount;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewStat;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularReviewRepository;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
@@ -43,41 +41,41 @@ class PopularReviewAggregateServiceTest {
 
   @Test
   @DisplayName("인기 리뷰 집계에 필요한 지수들을 일괄 로딩하는 테스트 (성공)")
-  public void loadReviewStat_success(){
+  public void loadReviewStat_success() {
     // given
-    LocalDateTime aggregatedAt = LocalDateTime.of(2026,4,23,15,30);
-    LocalDateTime periodStart = LocalDateTime.of(2026,4,16,15,30);
-    LocalDateTime periodEnd = LocalDateTime.of(2026,4,23,15,30);
+    LocalDateTime aggregatedAt = LocalDateTime.of(2026, 4, 23, 15, 30);
+    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 16, 15, 30);
+    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 23, 15, 30);
 
     // 두 명의 사용자 ID 생성
     UUID higherReviewId = UUID.randomUUID();
     UUID lowerReviewId = UUID.randomUUID();
 
     // 리뷰 별 댓글 수 설정
-    when(commentRepository.findReviewCommentCounts(periodStart,periodEnd))
+    when(commentRepository.findReviewCommentCounts(periodStart, periodEnd))
         .thenReturn(List.of(
-            new ReviewCommentCount(higherReviewId, 5L),
-            new ReviewCommentCount(lowerReviewId, 1L)
+                new ReviewCommentCount(higherReviewId, 5L),
+                new ReviewCommentCount(lowerReviewId, 1L)
             )
         );
 
     // 리뷰 별 좋아요 수 설정
     when(reviewRepository.countReviewLikes(periodStart, periodEnd, ReviewStatus.ACTIVE))
         .thenReturn(List.of(
-            new ReviewLikeCount(higherReviewId, 3L),
-            new ReviewLikeCount(lowerReviewId, 0L)
+                new ReviewLikeCount(higherReviewId, 3L),
+                new ReviewLikeCount(lowerReviewId, 0L)
             )
         );
 
-
     // when
     // 리뷰 별 스탯을 구한다.
-    Map<UUID, ReviewStat> statsPerReview = popularReviewAggregateService.loadReviewStat(PeriodType.WEEKLY,periodEnd);
+    Map<UUID, ReviewStat> statsPerReview = popularReviewAggregateService.loadReviewStat(
+        PeriodType.WEEKLY, periodEnd);
 
     // then
     assertEquals(2, statsPerReview.size()); // 요소 개수가 2인지?
     assertEquals(higherReviewId, statsPerReview.get(higherReviewId).reviewId()); // ID 가 일치하는지?
-    assertEquals(lowerReviewId,statsPerReview.get(lowerReviewId).reviewId());
+    assertEquals(lowerReviewId, statsPerReview.get(lowerReviewId).reviewId());
     // 각종 스탯들 검증
     assertEquals(3L, statsPerReview.get(higherReviewId).likeCount());
     assertEquals(5L, statsPerReview.get(higherReviewId).commentCount());

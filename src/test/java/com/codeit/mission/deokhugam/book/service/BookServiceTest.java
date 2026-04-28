@@ -1,7 +1,7 @@
 package com.codeit.mission.deokhugam.book.service;
 
-import com.codeit.mission.deokhugam.book.dto.BookCreateRequest;
-import com.codeit.mission.deokhugam.book.dto.BookDto;
+import com.codeit.mission.deokhugam.book.dto.request.BookCreateRequest;
+import com.codeit.mission.deokhugam.book.dto.response.BookDto;
 import com.codeit.mission.deokhugam.book.dto.BookUpdateRequest;
 import com.codeit.mission.deokhugam.book.dto.CursorPageRequestDto;
 import com.codeit.mission.deokhugam.book.dto.CursorPageResponseBookDto;
@@ -29,8 +29,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
+import java.time.Instant;
+
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;

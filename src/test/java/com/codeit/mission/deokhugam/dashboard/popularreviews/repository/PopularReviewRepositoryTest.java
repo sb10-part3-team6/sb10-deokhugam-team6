@@ -6,13 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.PopularReviewDto;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.PopularReviewDto;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -41,8 +41,8 @@ class PopularReviewRepositoryTest {
   @DisplayName("해당 스냅샷에 해당하는 PopularReview만 개수 세기 (성공)")
   void countRankingsBySnapshotId_countsTargetSnapshotOnly() {
     // given
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
+    Instant periodEnd = Instant.parse("2026-04-21T00:00:00Z");
 
     // 타겟 스냅샷에 해당하는 리뷰 두개
     Review review1 = persistReview("user1@test.com", "user1", "book1", "isbn-1", "review1");
@@ -72,8 +72,8 @@ class PopularReviewRepositoryTest {
   void findByPeriodDescByScore_returnsRowsOrderedByScore() {
     // given
     // 집계 기간 범위 설정
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
+    Instant periodEnd = Instant.parse("2026-04-21T00:00:00Z");
 
     // 세 개의 리뷰 생성
     Review highScoreReview =
@@ -93,7 +93,13 @@ class PopularReviewRepositoryTest {
     PopularReview lowScore =
         persistPopularReview(lowScoreReview, 2L, 45.0, periodStart, periodEnd, SNAPSHOT_ID);
     persistPopularReview(ignoredReview, 1L, 100.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
-    persistPopularReview(outOfPeriod, 1L, 120.0, periodStart.minusWeeks(1), periodStart.minusDays(1), SNAPSHOT_ID);
+    persistPopularReview(
+        outOfPeriod,
+        1L,
+        120.0,
+        Instant.parse("2026-04-07T00:00:00Z"),
+        Instant.parse("2026-04-13T00:00:00Z"),
+        SNAPSHOT_ID);
 
     // 컨텍스트 플러시 & 클리어
     em.flush();
@@ -115,8 +121,8 @@ class PopularReviewRepositoryTest {
   @DisplayName("같은 스냅샷 내에서 동점일 때 rank 오름차순, createdAt 오름차순 조회")
   void findRankingDtosBySnapshotIdAsc_ordersByRankThenCreatedAt() {
     // given
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
+    Instant periodEnd = Instant.parse("2026-04-21T00:00:00Z");
 
     Review earlyReview =
         persistReview("a@test.com", "a", "book-a", "isbn-7", "early review");
@@ -132,8 +138,8 @@ class PopularReviewRepositoryTest {
     persistPopularReview(ignoredReview, 1L, 99.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
 
     em.flush();
-    updateCreatedAt(early.getId(), LocalDateTime.of(2026, 4, 21, 0, 0));
-    updateCreatedAt(later.getId(), LocalDateTime.of(2026, 4, 21, 0, 1));
+    updateCreatedAt(early.getId(), Instant.parse("2026-04-21T00:00:00Z"));
+    updateCreatedAt(later.getId(), Instant.parse("2026-04-21T00:01:00Z"));
     em.clear();
 
     // when
@@ -154,8 +160,8 @@ class PopularReviewRepositoryTest {
   @DisplayName("내림차순 조회 시 cursor 와 createdAt 기준 다음 페이지 조회")
   void findRankingDtosBySnapshotIdDesc_appliesCursorAndTieBreak() {
     // given
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
+    Instant periodEnd = Instant.parse("2026-04-21T00:00:00Z");
 
     Review rankThreeReview =
         persistReview("rank3@test.com", "rank3", "book-rank3", "isbn-10", "rank3 review");
@@ -177,8 +183,8 @@ class PopularReviewRepositoryTest {
     persistPopularReview(otherSnapshotReview, 1L, 100.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
 
     em.flush();
-    updateCreatedAt(earlyRankTwo.getId(), LocalDateTime.of(2026, 4, 21, 0, 0));
-    updateCreatedAt(lateRankTwo.getId(), LocalDateTime.of(2026, 4, 21, 0, 1));
+    updateCreatedAt(earlyRankTwo.getId(), Instant.parse("2026-04-21T00:00:00Z"));
+    updateCreatedAt(lateRankTwo.getId(), Instant.parse("2026-04-21T00:01:00Z"));
     em.clear();
 
     // when
@@ -186,7 +192,7 @@ class PopularReviewRepositoryTest {
         popularReviewRepository.findRankingDtosBySnapshotIdDesc(
             SNAPSHOT_ID,
             2L,
-            LocalDateTime.of(2026, 4, 21, 0, 1),
+            Instant.parse("2026-04-21T00:01:00Z"),
             PageRequest.of(0, 10));
     // then
     assertEquals(2, result.size());
@@ -246,8 +252,8 @@ class PopularReviewRepositoryTest {
       Review review,
       long rank,
       double score,
-      LocalDateTime periodStart,
-      LocalDateTime periodEnd,
+      Instant periodStart,
+      Instant periodEnd,
       UUID snapshotId) {
     PopularReview popularReview = PopularReview.builder()
         .reviewId(review.getId())
@@ -266,7 +272,7 @@ class PopularReviewRepositoryTest {
   }
 
   // 인기 리뷰의 생성 날짜를 변경하는 메서드
-  private void updateCreatedAt(UUID id, LocalDateTime createdAt) {
+  private void updateCreatedAt(UUID id, Instant createdAt) {
     int updatedRows =
         em.createQuery("update PopularReview pr set pr.createdAt = :createdAt where pr.id = :id")
             .setParameter("createdAt", createdAt)

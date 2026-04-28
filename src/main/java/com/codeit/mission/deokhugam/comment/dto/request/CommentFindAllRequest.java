@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Schema(description = "조회할 댓글 목록 정보")
@@ -36,13 +36,15 @@ public record CommentFindAllRequest(
 
     @Schema(
         description = "보조 커서 (createdAt)",
-        example = "2025-04-06T15:04:05.000"
+        example = "2025-04-06T15:04:05.000Z"
     )
-    LocalDateTime after,
+    Instant after,
 
     @Schema(
         description = "페이지 크기",
         defaultValue = "50",
+        minimum = "1",
+        maximum = "100",
         example = "50"
     )
     @Min(value = 1, message = "값은 최소 1 이상이어야 합니다.")

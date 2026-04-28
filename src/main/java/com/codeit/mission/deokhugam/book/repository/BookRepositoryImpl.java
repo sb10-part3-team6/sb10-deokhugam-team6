@@ -1,6 +1,6 @@
 package com.codeit.mission.deokhugam.book.repository;
 
-import com.codeit.mission.deokhugam.book.dto.BookSearchConditionDto;
+import com.codeit.mission.deokhugam.book.dto.request.BookSearchConditionDto;
 import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.entity.QBook;
@@ -10,6 +10,7 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,7 +29,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     String orderBy = condition.orderBy();
     SortDirection direction = condition.direction();
     Object cursor = condition.cursor();
-    LocalDateTime after = condition.after();
+    Instant after = condition.after();
     int limit = condition.limit();
 
     QBook book = QBook.book;
@@ -74,11 +75,11 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
       String orderBy,
       SortDirection direction,
       Object cursor,
-      LocalDateTime after
+      Instant after
   ) {
-      if (cursor == null || after == null) {
-          return null;
-      }
+    if (cursor == null || after == null) {
+      return null;
+    }
 
     BooleanBuilder builder = new BooleanBuilder();
 
@@ -143,7 +144,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     return new OrderSpecifier(order, getField(QBook.book, orderBy));
   }
 
-  private OrderSpecifier<LocalDateTime> createdAtOrder(SortDirection direction) {
+  private OrderSpecifier<Instant> createdAtOrder(SortDirection direction) {
     return new OrderSpecifier<>(
         direction == SortDirection.ASC ? Order.ASC : Order.DESC,
         QBook.book.createdAt

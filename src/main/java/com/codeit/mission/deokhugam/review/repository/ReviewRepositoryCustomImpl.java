@@ -11,7 +11,7 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -127,7 +127,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   }
 
   // 평점 기준 정렬 빌더 생성
-  private BooleanBuilder createRatingCursorBuilder(String remainingCursor, LocalDateTime after,
+  private BooleanBuilder createRatingCursorBuilder(String remainingCursor, Instant after,
       boolean isAsc) {
     // 1. 커서 (정렬 기준 + ID) 중 평점과 마지막 요소 ID 분리
     String[] parts = remainingCursor.split("_", 2);
@@ -161,7 +161,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   }
 
   // 생성 시간 기준 정렬 빌더 생성
-  private BooleanBuilder createTimeCursorBuilder(String remainingCursor, LocalDateTime after,
+  private BooleanBuilder createTimeCursorBuilder(String remainingCursor, Instant after,
       boolean isAsc) {
     // 1. 마지막 요소의 ID
     UUID cursorId = UUID.fromString(remainingCursor);

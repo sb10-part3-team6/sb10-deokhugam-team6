@@ -4,12 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.codeit.mission.deokhugam.config.QuerydslConfig;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
-import com.codeit.mission.deokhugam.dashboard.powerusers.dto.PowerUserDto;
+import com.codeit.mission.deokhugam.dashboard.powerusers.dto.response.PowerUserDto;
 import com.codeit.mission.deokhugam.dashboard.powerusers.entity.PowerUser;
 import com.codeit.mission.deokhugam.dashboard.powerusers.repository.PowerUserRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.EntityManager;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -38,8 +38,8 @@ class PowerUserRepositoryTest {
   @DisplayName("해당 스냅샷에 해당하는 PowerUser만 개수 세기")
   void countRankingsBySnapshotId_countsTargetSnapshotOnly() {
     // given
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
+    Instant periodEnd = Instant.parse("2026-04-21T00:00:00Z");
 
     // 유저 3명 생성 및 영속화
     User user1 = persistUser("user1@test.com", "user1");
@@ -64,8 +64,8 @@ class PowerUserRepositoryTest {
   @Test
   @DisplayName("한 스냅샷 내에서 동점자가 발생햇을 때 오름차순으로 정렬 테스트")
   void findRankingDtosBySnapshotIdAsc_ordersByRankThenCreatedAt() {
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
+    Instant periodEnd = Instant.parse("2026-04-21T00:00:00Z");
 
     User user1 = persistUser("a@test.com", "a");
     User user2 = persistUser("b@test.com", "b");
@@ -76,8 +76,8 @@ class PowerUserRepositoryTest {
     persistPowerUser(ignoredUser, 0L, 99.0, periodStart, periodEnd, OTHER_SNAPSHOT_ID);
 
     em.flush();
-    updateCreatedAt(early.getId(), LocalDateTime.of(2026, 4, 21, 0, 0));
-    updateCreatedAt(later.getId(), LocalDateTime.of(2026, 4, 21, 0, 1));
+    updateCreatedAt(early.getId(), Instant.parse("2026-04-21T00:00:00Z"));
+    updateCreatedAt(later.getId(), Instant.parse("2026-04-21T00:01:00Z"));
     em.clear();
 
     List<PowerUserDto> result =
@@ -93,8 +93,8 @@ class PowerUserRepositoryTest {
   @DisplayName("한 스냅샷 내에서 동점이 생길 때의 내림차 순 정렬 테스트")
   void findRankingDtosBySnapshotIdDesc_appliesCursorAndTieBreak() {
     // given
-    LocalDateTime periodStart = LocalDateTime.of(2026, 4, 14, 0, 0);
-    LocalDateTime periodEnd = LocalDateTime.of(2026, 4, 21, 0, 0);
+    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
+    Instant periodEnd = Instant.parse("2026-04-21T00:00:00Z");
 
     // 두 명의 유저의 랭크가 2인 상황
     User rankThreeUser = persistUser("rank3@test.com", "rank3");
@@ -113,8 +113,8 @@ class PowerUserRepositoryTest {
     em.flush();
 
     // 랭크가 같아도 earlyRankTwo 파워 유저가 더 일찍 만들어짐
-    updateCreatedAt(earlyRankTwo.getId(), LocalDateTime.of(2026, 4, 21, 0, 0));
-    updateCreatedAt(lateRankTwo.getId(), LocalDateTime.of(2026, 4, 21, 0, 1));
+    updateCreatedAt(earlyRankTwo.getId(), Instant.parse("2026-04-21T00:00:00Z"));
+    updateCreatedAt(lateRankTwo.getId(), Instant.parse("2026-04-21T00:01:00Z"));
     em.clear();
 
     // when
@@ -122,7 +122,7 @@ class PowerUserRepositoryTest {
         powerUserRepository.findRankingDtosBySnapshotIdDesc(
             SNAPSHOT_ID,
             2L,
-            LocalDateTime.of(2026, 4, 21, 0, 1),
+            Instant.parse("2026-04-21T00:01:00Z"),
             PageRequest.of(0, 10));
 
     // then
@@ -143,8 +143,8 @@ class PowerUserRepositoryTest {
       User user,
       long rank,
       double score,
-      LocalDateTime periodStart,
-      LocalDateTime periodEnd,
+      Instant periodStart,
+      Instant periodEnd,
       UUID snapshotId) {
     PowerUser powerUser =
         PowerUser.builder()
@@ -165,7 +165,7 @@ class PowerUserRepositoryTest {
   }
 
   // createdAt을 수정하는 메서드
-  private void updateCreatedAt(UUID id, LocalDateTime createdAt) {
+  private void updateCreatedAt(UUID id, Instant createdAt) {
     int updatedRows = em.createQuery("update PowerUser pu set pu.createdAt = :createdAt where pu.id = :id")
         .setParameter("createdAt", createdAt)
         .setParameter("id", id)

@@ -6,7 +6,8 @@ import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewLikeRepository;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import jakarta.persistence.EntityManagerFactory;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -68,7 +69,7 @@ public class ReviewBatchConfig {
       @Override
       // 사전 작업: 삭제 기준 날짜 지정
       public void beforeJob(@NonNull JobExecution jobExecution) {
-        LocalDateTime threshold = LocalDateTime.now().minusDays(1);
+        Instant threshold = Instant.now().minus(1, ChronoUnit.DAYS);
         jobExecution.getExecutionContext().put("threshold", threshold.toString());
       }
     };
@@ -94,7 +95,7 @@ public class ReviewBatchConfig {
       // JobExecutionListener가 수행한 삭제 날짜 기준
       @Value("#{jobExecutionContext['threshold']}") String thresholdStr) {
     // 1. 삭제 기준 날짜 설정
-    LocalDateTime threshold = LocalDateTime.parse(thresholdStr);
+    Instant threshold = Instant.parse(thresholdStr);
 
     // 2. 읽기 (Reader) 객체 반환
     return new JpaCursorItemReaderBuilder<UUID>()

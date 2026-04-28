@@ -8,14 +8,11 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 /*
     Review
@@ -62,7 +59,7 @@ public class Review extends BaseEntity {
   @Column(nullable = false)
   private ReviewStatus status = ReviewStatus.ACTIVE;           // 리뷰 상태 (기본값: 활성)
 
-  private LocalDateTime deletedAt;                             // 리뷰 논리 삭제 시점
+  private Instant deletedAt;                             // 리뷰 논리 삭제 시점
 
   // 생성자: 빌더 패턴을 통해 객체 생성 시, 유효성 검증 강제 수행
   @Builder
@@ -107,6 +104,6 @@ public class Review extends BaseEntity {
     }
 
     this.status = ReviewStatus.DELETED;
-    this.deletedAt = LocalDateTime.now();
+    this.deletedAt = Instant.now();
   }
 }

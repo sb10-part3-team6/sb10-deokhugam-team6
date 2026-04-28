@@ -13,14 +13,14 @@ import com.codeit.mission.deokhugam.dashboard.DirectionEnum;
 import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.CursorPageResponsePopularReviewDto;
-import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.PopularReviewDto;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.CursorPageResponsePopularReviewDto;
+import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.PopularReviewDto;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularReviewRepository;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshot;
 import com.codeit.mission.deokhugam.dashboard.snapshot.AggregateSnapshotRepository;
 import com.codeit.mission.deokhugam.error.DeokhugamException;
 import com.codeit.mission.deokhugam.error.ErrorCode;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,8 +53,8 @@ class PopularReviewServiceTest {
   void getReviews_firstPageAsc() {
     // given
     // 집계 기간 범위
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
 
     // 리뷰 DTO
     PopularReviewDto review1 =
@@ -63,8 +63,9 @@ class PopularReviewServiceTest {
         popularReviewDto("review-2", "book-2", "user-2", PeriodType.WEEKLY, createdAt2, 2L, 24.0);
 
     // Weekly 스냅샷 객체 생성하도록 설정
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.WEEKLY, WEEKLY_SNAPSHOT_ID)));
 
     // Weekly 스냅샷 객체를 바탕으로 인기 리뷰를 스코어 기준으로 오름차순으로 뽑아옴. (review1, review2)
@@ -101,8 +102,8 @@ class PopularReviewServiceTest {
   @DisplayName("인기 리뷰 첫 페이지를 내림차순으로 조회한다")
   void getReviews_firstPageDesc() {
     // given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
 
     // 인기 리뷰 Dto
     PopularReviewDto review1 =
@@ -111,8 +112,9 @@ class PopularReviewServiceTest {
         popularReviewDto("review-2", "book-2", "user-2", PeriodType.WEEKLY, createdAt2, 2L, 24.0);
 
     // WEEKLY 스냅샷 생성
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.WEEKLY, WEEKLY_SNAPSHOT_ID)));
 
     // 주간 기간동안 인기 리뷰를 조회 (첫페이지) 내림차순으로 조회하면 review2, review1 순으로 반환
@@ -146,9 +148,9 @@ class PopularReviewServiceTest {
   @DisplayName("다음 페이지가 있으면 next cursor를 반환한다")
   void getReviews_returnsNextCursor() {
     // given
-    LocalDateTime createdAt1 = LocalDateTime.of(2026, 4, 15, 10, 0);
-    LocalDateTime createdAt2 = LocalDateTime.of(2026, 4, 15, 10, 1);
-    LocalDateTime createdAt3 = LocalDateTime.of(2026, 4, 15, 10, 2);
+    Instant createdAt1 = Instant.parse("2026-04-15T10:00:00Z");
+    Instant createdAt2 = Instant.parse("2026-04-15T10:01:00Z");
+    Instant createdAt3 = Instant.parse("2026-04-15T10:02:00Z");
 
     // 조회하고자 하는 인기 리뷰는 3개
     PopularReviewDto review1 =
@@ -159,8 +161,9 @@ class PopularReviewServiceTest {
         popularReviewDto("review-3", "book-3", "user-3", PeriodType.WEEKLY, createdAt3, 3L, 8.0);
 
     // 도메인 종류, 기간 종류, 스냅샷 스테이징 상태를 기반으로 스냅샷 객체들을 뽑아냄
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_REVIEW, PeriodType.WEEKLY, StagingType.PUBLISHED))
         .thenReturn(Optional.of(publishedSnapshot(PeriodType.WEEKLY, WEEKLY_SNAPSHOT_ID)));
 
     // 오름차 순으로 인기 리뷰 리스트 조회 페이지 사이즈는 (3)
@@ -178,7 +181,8 @@ class PopularReviewServiceTest {
 
     // then
     assertTrue(result.hasNext()); // 다음 페이지가 존재하는지 검증
-    assertEquals(List.of(review1, review2), result.content()); // 첫 페이지의 사이즈는 두개 -> review1, review2 두개
+    assertEquals(List.of(review1, review2),
+        result.content()); // 첫 페이지의 사이즈는 두개 -> review1, review2 두개
     assertEquals("2", result.nextCursor());
     assertEquals(createdAt2.toString(), result.nextAfter());
     assertEquals(2, result.size());
@@ -198,7 +202,7 @@ class PopularReviewServiceTest {
                     PeriodType.WEEKLY,
                     DirectionEnum.DESC,
                     "invalid-cursor",
-                    "2026-04-15T10:00:00",
+                    "2026-04-15T10:00:00Z",
                     50));
     // then
     assertEquals(ErrorCode.CURSOR_OR_AFTER_FORMAT_NOT_VALID, exception.getErrorCode());
@@ -238,22 +242,26 @@ class PopularReviewServiceTest {
   }
 
   @Test
-  @DisplayName("발행된 스냅샷이 없으면 예외가 발생한다")
+  @DisplayName("발행된 스냅샷이 없으면 빈 Content를 반환한다.")
   void getReviews_snapshotNotFound() {
-    // when + then
-    when(aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-        DomainType.POPULAR_REVIEW, PeriodType.MONTHLY, StagingType.PUBLISHED))
+    // given
+    when(
+        aggregateSnapshotRepository.findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
+            DomainType.POPULAR_REVIEW, PeriodType.MONTHLY, StagingType.PUBLISHED))
         .thenReturn(Optional.empty());
 
-    DeokhugamException exception =
-        assertThrows(
-            DeokhugamException.class,
-            () ->
-                popularReviewService.getReviews(
-                    PeriodType.MONTHLY, DirectionEnum.ASC, null, null, 20));
+    // when
+    CursorPageResponsePopularReviewDto result = popularReviewService.getReviews(PeriodType.MONTHLY,
+        DirectionEnum.DESC, null, null, 1);
 
-    assertEquals(ErrorCode.SNAPSHOT_NOT_FOUND, exception.getErrorCode());
-    verify(aggregateSnapshotRepository)
+    // then
+    assertTrue(result.content().isEmpty()); // content는 비어있음.
+    assertEquals(0L, result.totalElements()); // 총 요소의 개수도 0
+    assertFalse(result.hasNext()); // next도 없으며
+    assertNull(result.nextCursor()); // 커서도 없다.
+    assertNull(result.nextAfter());
+
+    verify(aggregateSnapshotRepository) // 도메인 타입과 period, 스냅샷 스테이징 상태를 통한 조회 쿼리 메서드를 실행했는가?
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
             DomainType.POPULAR_REVIEW, PeriodType.MONTHLY, StagingType.PUBLISHED);
     verifyNoInteractions(popularReviewRepository);
@@ -265,7 +273,7 @@ class PopularReviewServiceTest {
         .domainType(DomainType.POPULAR_REVIEW)
         .snapshotId(snapshotId)
         .periodType(periodType)
-        .aggregatedAt(LocalDateTime.of(2026, 4, 15, 0, 0))
+        .aggregatedAt(Instant.parse("2026-04-15T00:00:00Z"))
         .stagingType(StagingType.PUBLISHED)
         .build();
   }
@@ -275,7 +283,7 @@ class PopularReviewServiceTest {
       String bookTitle,
       String userNickname,
       PeriodType periodType,
-      LocalDateTime createdAt,
+      Instant createdAt,
       long rank,
       double score) {
     return new PopularReviewDto(

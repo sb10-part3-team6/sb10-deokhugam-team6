@@ -11,7 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,9 +29,9 @@ import lombok.NoArgsConstructor;
     },
     indexes = {
         @Index(name = "idx_review_likes_liked_at_review_id", columnList = "liked_at, review_id"),
-        @Index(name = "idx_review_likes_liked_at_user_id", columnList= "liked_at, user_id")
+        @Index(name = "idx_review_likes_liked_at_user_id", columnList = "liked_at, user_id")
     }
-    )
+)
 public class ReviewLike extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -43,10 +43,10 @@ public class ReviewLike extends BaseEntity {
   private User user;
 
   @Column(name = "liked_at", nullable = false, updatable = false)
-  private LocalDateTime likedAt;
+  private Instant likedAt;
 
   @Builder
-  public ReviewLike(Review review, User user, LocalDateTime likedAt) {
+  public ReviewLike(Review review, User user, Instant likedAt) {
     this.review = review;
     this.user = user;
     this.likedAt = likedAt;
@@ -56,7 +56,7 @@ public class ReviewLike extends BaseEntity {
   @PrePersist
   void assignLikedAt() {
     if (likedAt == null) {
-      likedAt = LocalDateTime.now();
+      likedAt = Instant.now();
     }
   }
 }

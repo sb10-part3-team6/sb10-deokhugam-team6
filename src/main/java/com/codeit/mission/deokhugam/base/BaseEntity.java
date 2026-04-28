@@ -1,18 +1,15 @@
 package com.codeit.mission.deokhugam.base;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
-/*
-    공통 엔티티
- */
 @Getter
 @NoArgsConstructor
 @MappedSuperclass                                       // 하위 클래스에도 자동 기록 적용
@@ -25,8 +22,8 @@ public abstract class BaseEntity {
 
   @CreatedDate
   @Column(updatable = false)
-  private LocalDateTime createdAt;                    // 객체 생성 시점
+  private Instant createdAt;                    // 객체 생성 시점
 
   @LastModifiedDate
-  private LocalDateTime updatedAt;                    // 객체 수정 시점
+  private Instant updatedAt;                    // 객체 수정 시점
 }

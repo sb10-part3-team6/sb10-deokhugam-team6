@@ -8,8 +8,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -62,7 +62,7 @@ public class Book extends BaseEntity {
   private BookStatus bookStatus;
 
   @Column
-  private LocalDateTime deletedAt;
+  private Instant deletedAt;
 
   //빌더 패턴 적용
   @Builder
@@ -98,6 +98,6 @@ public class Book extends BaseEntity {
   //논리 삭제 메서드
   public void delete() {
     this.bookStatus = BookStatus.DELETED;
-    this.deletedAt = LocalDateTime.now();
+    this.deletedAt = Instant.now();
   }
 }

@@ -9,7 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(
     name = "popular_reviews",
-    indexes={
+    indexes = {
         @Index(name = "idx_popular_reviews_period_start_rank", columnList = "period_type, period_start, rank"),
         @Index(name = "idx_popular_reviews_snapshot_rank", columnList = "snapshot_id, rank")
     },
@@ -32,6 +32,7 @@ import lombok.NoArgsConstructor;
     })
 
 public class PopularReview extends BaseEntity {
+
   @Column(name = "review_id", nullable = false)
   private UUID reviewId;
 
@@ -40,10 +41,10 @@ public class PopularReview extends BaseEntity {
   private PeriodType periodType;
 
   @Column(name = "period_start", nullable = false)
-  private LocalDateTime periodStart;
+  private Instant periodStart;
 
   @Column(name = "period_end", nullable = false)
-  private LocalDateTime periodEnd;
+  private Instant periodEnd;
 
   @Column(nullable = false)
   private double score;
@@ -58,7 +59,7 @@ public class PopularReview extends BaseEntity {
   private long commentCount;
 
   @Column(name = "aggregated_at", nullable = false)
-  private LocalDateTime aggregatedAt;
+  private Instant aggregatedAt;
 
   @Column(name = "snapshot_id", nullable = false)
   private UUID snapshotId;
@@ -67,15 +68,15 @@ public class PopularReview extends BaseEntity {
   public PopularReview(
       UUID reviewId,
       PeriodType periodType,
-      LocalDateTime periodStart,
-      LocalDateTime periodEnd,
+      Instant periodStart,
+      Instant periodEnd,
       double score,
       long rank,
       long likeCount,
       long commentCount,
-      LocalDateTime aggregatedAt,
+      Instant aggregatedAt,
       UUID snapshotId
-  ){
+  ) {
     this.reviewId = reviewId;
     this.periodType = periodType;
     this.periodStart = periodStart;
@@ -88,5 +89,7 @@ public class PopularReview extends BaseEntity {
     this.snapshotId = snapshotId;
   }
 
-  public void updateRank(long rank) {this.rank = rank;}
+  public void updateRank(long rank) {
+    this.rank = rank;
+  }
 }
