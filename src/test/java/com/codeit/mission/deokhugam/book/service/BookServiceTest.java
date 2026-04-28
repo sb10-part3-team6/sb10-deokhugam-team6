@@ -9,7 +9,6 @@ import com.codeit.mission.deokhugam.book.entity.Book;
 import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.entity.SortDirection;
 import com.codeit.mission.deokhugam.book.event.BookDeletedEvent;
-import com.codeit.mission.deokhugam.book.event.BookDeletedEventListener;
 import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
 import com.codeit.mission.deokhugam.book.exception.CursorOrAfterFormatNotValidException;
 import com.codeit.mission.deokhugam.book.exception.IllegalLimitException;
@@ -258,7 +257,7 @@ class BookServiceTest {
         Boolean result = ReflectionTestUtils.invokeMethod(bookService, "isValidIsbn13", isbn);
 
         //then
-        assertThat(result).isEqualTo(true);
+        assertThat(result).isTrue();
     }
 
     @Test
@@ -271,7 +270,7 @@ class BookServiceTest {
         Boolean result = ReflectionTestUtils.invokeMethod(bookService, "isValidIsbn13", isbn);
 
         //then
-        assertThat(result).isEqualTo(false);
+        assertThat(result).isFalse();
     }
 
     @Test
