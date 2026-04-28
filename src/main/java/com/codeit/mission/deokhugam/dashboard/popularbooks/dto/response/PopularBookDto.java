@@ -58,7 +58,7 @@ public record PopularBookDto(
 
     @Schema(
         description = "도서 평점",
-        example = "0.1"
+        example = "1.0"
     )
     double rating,
 

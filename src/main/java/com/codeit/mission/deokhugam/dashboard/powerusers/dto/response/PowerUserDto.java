@@ -40,13 +40,13 @@ public record PowerUserDto(
 
     @Schema(
         description = "인기도 점수",
-        example = "0.1"
+        example = "1.0"
     )
     double score,
 
     @Schema(
         description = "리뷰 인기도 점수 합계",
-        example = "0.1"
+        example = "1.0"
     )
     double reviewScoreSum,
 
