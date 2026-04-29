@@ -70,7 +70,7 @@ class PopularReviewRepositoryTest {
 
   @Test
   @DisplayName("기간별 인기 리뷰를 점수 기준 내림차순으로 조회 (성공)")
-  void findByPeriodDescByScore_returnsRowsOrderedByScore() {
+  void findBySnapshotIdDescByScore_returnsRowsOrderedByScore() {
     // given
     // 집계 기간 범위 설정
     Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
@@ -100,7 +100,7 @@ class PopularReviewRepositoryTest {
         120.0,
         Instant.parse("2026-04-07T00:00:00Z"),
         Instant.parse("2026-04-13T00:00:00Z"),
-        SNAPSHOT_ID);
+        OTHER_SNAPSHOT_ID);
 
     // 컨텍스트 플러시 & 클리어
     em.flush();
@@ -109,8 +109,7 @@ class PopularReviewRepositoryTest {
     // when
     // 타겟 스냅샷과 타겟 기간에 해당하는 인기 리뷰를 점수별로 내림차순 조회함.
     List<PopularReview> result =
-        popularReviewRepository.findByPeriodDescByScore(
-            PeriodType.WEEKLY, periodStart, periodEnd, SNAPSHOT_ID);
+        popularReviewRepository.findBySnapshotIdDescByScore(SNAPSHOT_ID);
 
     // then
     assertEquals(2, result.size()); // 두 개의 인기 리뷰가 산출되었는지?
