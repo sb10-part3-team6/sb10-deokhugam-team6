@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 public class NotificationBatchScheduler {
 
   private final JobLauncher jobLauncher;
-  private final Job deleteOldNotificationsJob; // todo: 명시적 주입 필요?
+  private final Job deleteOldNotificationsJob;
 
   // 매일 자정에 배치 작업 시작
   @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
@@ -31,7 +31,7 @@ public class NotificationBatchScheduler {
 
       // 실행
       JobExecution jobExecution = jobLauncher.run(deleteOldNotificationsJob, params);
-      
+
       if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
         log.info("[NOTIFICATION_BATCH_SCHEDULER] Delete Old Notification Job has been completed.");
       } else if (jobExecution.getStatus() == BatchStatus.FAILED) {
