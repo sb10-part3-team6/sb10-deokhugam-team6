@@ -19,6 +19,7 @@ spring:
     init:
       mode: embedded
       schema-locations: classpath:schema.sql
+      data-locations: classpath:dummy-data.sql
 
   # JPA/Hibernate 운영 설정
   jpa:
@@ -48,11 +49,11 @@ logging:
 cloud:
   aws:
     credentials:
-      access-key: ${AWS_ACCESS_KEY_ID}
-      secret-key: ${AWS_SECRET_ACCESS_KEY}
+      access-key: ${AWS_ACCESS_KEY_ID:dummy-local}
+      secret-key: ${AWS_SECRET_ACCESS_KEY:dummy-local}
     s3:
       region: ap-northeast-2
-      bucket: ${AWS_BUCKET_NAME}
+      bucket: ${AWS_BUCKET_NAME:dummy-local}
 
 springdoc:
   api-docs:
@@ -64,9 +65,9 @@ springdoc:
     operations-sorter: alpha
 
 naverapi:
-  client-id: ${NAVER_CLIENT_ID}
-  client-secret: ${NAVER_CLIENT_SECRET}
+  client-id: ${NAVER_CLIENT_ID:dummy-local}
+  client-secret: ${NAVER_CLIENT_SECRET:dummy-local}
 
 ocr:
   url: https://api.ocr.space/parse/image
-  apikey: ${SPACE_OCR_API_KEY}
+  apikey: ${SPACE_OCR_API_KEY:dummy-local}
