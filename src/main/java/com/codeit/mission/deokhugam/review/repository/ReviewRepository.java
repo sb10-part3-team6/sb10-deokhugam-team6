@@ -6,6 +6,7 @@ import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewL
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.request.UserReviewAggregate;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
+import com.codeit.mission.deokhugam.review.repository.custom.ReviewRepositoryCustom;
 import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
