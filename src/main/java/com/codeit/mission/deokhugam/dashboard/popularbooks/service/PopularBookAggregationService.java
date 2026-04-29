@@ -74,16 +74,10 @@ public class PopularBookAggregationService {
   public void rankPopularBooks(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
     List<PopularBook> popularBooks = popularBookRepository.findBySnapshotIdDescByScore(snapshotId);
 
-    long rank = 1L;
-    double previousScore = Double.NaN;
     long index = 1L;
 
     for (PopularBook popularBook : popularBooks) {
-      if (index == 1L || Double.compare(popularBook.getScore(), previousScore) != 0) {
-        rank = index;
-        previousScore = popularBook.getScore();
-      }
-      popularBook.updateRank(rank);
+      popularBook.updateRank(index);
       index++;
     }
   }
