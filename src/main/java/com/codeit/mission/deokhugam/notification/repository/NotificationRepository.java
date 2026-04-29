@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID>,
-    NotificationRepositoryCustom {
+  NotificationRepositoryCustom {
 
   // 사용자와 관련된 모든 알림을 일괄 삭제
   @Modifying
@@ -42,6 +42,6 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   // 확인한 알림 중 1주일이 경과된 알림을 일괄적으로 삭제
   @Modifying(clearAutomatically = true)
   @Transactional
-  @Query("DELETE Notification n WHERE n.updatedAt < :cutoff AND n.confirmed = true")
+  @Query("DELETE FROM Notification n WHERE n.updatedAt < :cutoff AND n.confirmed = true")
   int deleteByConfirmedTrueAndUpdatedAtBefore(Instant cutoff);
 }
