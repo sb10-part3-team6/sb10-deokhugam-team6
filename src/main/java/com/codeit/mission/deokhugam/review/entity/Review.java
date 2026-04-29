@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
     uniqueConstraints = {                                       // 중복 방지를 위한 제약 조건 설정
         @UniqueConstraint(
             name = "uk_book_user",
-            columnNames = {"book_id", "user_id"}
+            columnNames = {"book_id", "user_id", "deleted_at"}
         )
     }
 )
@@ -59,7 +59,7 @@ public class Review extends BaseEntity {
   @Column(nullable = false)
   private ReviewStatus status = ReviewStatus.ACTIVE;           // 리뷰 상태 (기본값: 활성)
 
-  private Instant deletedAt;                             // 리뷰 논리 삭제 시점
+  private Instant deletedAt;                                   // 리뷰 논리 삭제 시점
 
   // 생성자: 빌더 패턴을 통해 객체 생성 시, 유효성 검증 강제 수행
   @Builder
