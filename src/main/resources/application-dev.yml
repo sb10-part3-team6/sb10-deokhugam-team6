@@ -19,6 +19,7 @@ spring:
     init:
       mode: embedded
       schema-locations: classpath:schema.sql
+      data-locations: classpath:dummy-data.sql
 
   # JPA/Hibernate 운영 설정
   jpa:
@@ -43,6 +44,16 @@ logging:
     com.codeit.mission.deokhugam: debug
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
+
+# AWS S3 설정
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID:dummy-local}
+      secret-key: ${AWS_SECRET_ACCESS_KEY:dummy-local}
+    s3:
+      region: ap-northeast-2
+      bucket: ${AWS_BUCKET_NAME:dummy-local}
 
 springdoc:
   api-docs:

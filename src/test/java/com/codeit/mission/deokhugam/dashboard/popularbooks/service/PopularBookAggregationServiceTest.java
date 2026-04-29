@@ -91,35 +91,29 @@ class PopularBookAggregationServiceTest {
 
   @Test
   @DisplayName("주중 시각을 기준으로 배치 테스트 (성공)")
-  void rankPopularBooks_usesMidWeekCalculatedPeriod() {
+  void rankPopularBooks_findsRowsBySnapshotId() {
     Instant aggregatedAt = Instant.parse("2026-04-23T15:30:00Z");
-    Instant periodStart = Instant.parse("2026-04-16T15:30:00Z");
     UUID snapshotId = UUID.randomUUID();
 
-    when(popularBookRepository.findByPeriodAndSnapshotIdDescByScore(
-        PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId))
+    when(popularBookRepository.findBySnapshotIdDescByScore(snapshotId))
         .thenReturn(List.of());
 
     popularBookAggregationService.rankPopularBooks(PeriodType.WEEKLY, aggregatedAt, snapshotId);
 
-    verify(popularBookRepository)
-        .findByPeriodAndSnapshotIdDescByScore(PeriodType.WEEKLY, periodStart, aggregatedAt,
-            snapshotId);
+    verify(popularBookRepository).findBySnapshotIdDescByScore(snapshotId);
   }
 
   @Test
   @DisplayName("같은 랭크를 가진 도서를 조회할 때 타이브레이킹 (성공)")
   void rankPopularBooks_assignsSameRankForSameScore() {
     Instant aggregatedAt = Instant.parse("2026-04-21T00:00:00Z");
-    Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
     UUID snapshotId = UUID.randomUUID();
 
     PopularBook first = createPopularBook(UUID.randomUUID(), 9.0, snapshotId, aggregatedAt);
     PopularBook second = createPopularBook(UUID.randomUUID(), 9.0, snapshotId, aggregatedAt);
     PopularBook third = createPopularBook(UUID.randomUUID(), 7.0, snapshotId, aggregatedAt);
 
-    when(popularBookRepository.findByPeriodAndSnapshotIdDescByScore(
-        PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId))
+    when(popularBookRepository.findBySnapshotIdDescByScore(snapshotId))
         .thenReturn(List.of(first, second, third));
 
     popularBookAggregationService.rankPopularBooks(PeriodType.WEEKLY, aggregatedAt, snapshotId);
@@ -127,9 +121,7 @@ class PopularBookAggregationServiceTest {
     assertEquals(1L, first.getRank());
     assertEquals(1L, second.getRank());
     assertEquals(3L, third.getRank());
-    verify(popularBookRepository)
-        .findByPeriodAndSnapshotIdDescByScore(PeriodType.WEEKLY, periodStart, aggregatedAt,
-            snapshotId);
+    verify(popularBookRepository).findBySnapshotIdDescByScore(snapshotId);
   }
 
   @Test

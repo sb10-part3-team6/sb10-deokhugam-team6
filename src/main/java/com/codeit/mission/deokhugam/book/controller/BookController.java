@@ -119,7 +119,7 @@ public class BookController {
   @PatchMapping("/{bookId}")
   public ResponseEntity<BookDto> updateBook(
       @PathVariable UUID bookId,
-      @Valid @RequestPart BookUpdateRequest bookUpdateRequest,
+      @Valid @RequestPart("bookData") BookUpdateRequest bookUpdateRequest,
       @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
   ) {
     return ResponseEntity.ok(bookService.updateBook(bookId, bookUpdateRequest, thumbnailImage));

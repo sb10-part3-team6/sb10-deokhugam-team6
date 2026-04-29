@@ -38,6 +38,9 @@ spring:
 # AWS S3 설정
 cloud:
   aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
     s3:
       region: ap-northeast-2
       bucket: ${AWS_BUCKET_NAME}
