@@ -44,6 +44,16 @@ logging:
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
 
+# AWS S3 설정
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+    s3:
+      region: ap-northeast-2
+      bucket: ${AWS_BUCKET_NAME}
+
 springdoc:
   api-docs:
     enabled: true
@@ -54,9 +64,9 @@ springdoc:
     operations-sorter: alpha
 
 naverapi:
-  client-id: ${NAVER_CLIENT_ID:dummy-local}
-  client-secret: ${NAVER_CLIENT_SECRET:dummy-local}
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
 
 ocr:
   url: https://api.ocr.space/parse/image
-  apikey: ${SPACE_OCR_API_KEY:dummy-local}
+  apikey: ${SPACE_OCR_API_KEY}
