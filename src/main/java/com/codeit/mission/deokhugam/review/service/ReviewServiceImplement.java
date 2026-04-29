@@ -5,6 +5,7 @@ import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.notification.event.ReviewLikedEvent;
 import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,6 +63,8 @@ public class ReviewServiceImplement implements ReviewService {
 
   private final ReviewMapper reviewMapper;
   private final ReviewLikeMapper reviewLikeMapper;
+
+  private final ApplicationEventPublisher eventPublisher;
 
   // 리뷰 상세 조회
   @Override
@@ -291,6 +295,13 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 3. 좋아요 추가 및 취소 (동시성 처리 포함)
     boolean isLiked = executeToggleWithConcurrencyHandle(targetReview, requestUser);
+
+    // 3-1. 좋아요를 추가한 경우 이벤트 발생
+    if (isLiked) {
+      eventPublisher.publishEvent(
+        new ReviewLikedEvent(requestUser.getId(), targetReview.getUser().getId(),
+          targetReview.getId()));
+    }
 
     // 4. 응답 DTO 생성 및 반환
     return reviewLikeMapper.toDto(targetReview, requestUser, isLiked);
