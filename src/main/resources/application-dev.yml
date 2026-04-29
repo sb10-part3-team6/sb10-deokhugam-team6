@@ -19,6 +19,7 @@ spring:
     init:
       mode: embedded
       schema-locations: classpath:schema.sql
+      data-locations: classpath:dummy-data.sql
 
   # JPA/Hibernate 운영 설정
   jpa:
