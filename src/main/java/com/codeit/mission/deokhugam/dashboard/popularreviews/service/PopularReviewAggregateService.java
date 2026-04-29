@@ -10,6 +10,7 @@ import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewS
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularReviewRepository;
 import com.codeit.mission.deokhugam.dashboard.util.Utils;
+import com.codeit.mission.deokhugam.notification.event.ReviewRankedEvent;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import java.time.Instant;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,8 @@ public class PopularReviewAggregateService {
   private final CommentRepository commentRepository;
   private final PopularReviewRepository popularReviewRepository;
 
+  private final ApplicationEventPublisher eventPublisher;
+
   // 일괄적으로 리뷰의 점수를 로드
   @Transactional(readOnly = true)
   public Map<UUID, ReviewStat> loadReviewStat(PeriodType periodType, Instant aggregatedAt) {
@@ -42,13 +46,13 @@ public class PopularReviewAggregateService {
 
     Map<UUID, Long> reviewCommentCounts = new HashMap<>();
     for (ReviewCommentCount item : commentRepository.findReviewCommentCounts(periods.get(0),
-        periods.get(1))) {
+      periods.get(1))) {
       reviewCommentCounts.put(item.reviewId(), item.commentCount());
     }
 
     Map<UUID, Long> reviewLikeCounts = new HashMap<>();
     for (ReviewLikeCount item
-        : reviewRepository.countReviewLikes(periods.get(0), periods.get(1), ReviewStatus.ACTIVE)) {
+      : reviewRepository.countReviewLikes(periods.get(0), periods.get(1), ReviewStatus.ACTIVE)) {
       reviewLikeCounts.put(item.reviewId(), item.likeCount());
     }
 
@@ -72,8 +76,8 @@ public class PopularReviewAggregateService {
     List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
 
     List<PopularReview> popularReviews =
-        popularReviewRepository.findByPeriodDescByScore(
-            periodType, periods.get(0), periods.get(1), snapshotId);
+      popularReviewRepository.findByPeriodDescByScore(
+        periodType, periods.get(0), periods.get(1), snapshotId);
     long rank = 1L;
     double previousScore = NaN;
     long index = 1L;
@@ -85,31 +89,34 @@ public class PopularReviewAggregateService {
       }
       popularReview.updateRank(rank);
       index++;
+
+      // 인기 리뷰 알림 이벤트 발행
+      eventPublisher.publishEvent(new ReviewRankedEvent(popularReview.getReviewId()));
     }
   }
 
   public PopularReview toPopularReview(
-      UUID reviewId,
-      ReviewStat stat,
-      PeriodType periodType,
-      Instant aggregatedAt,
-      UUID snapshotId
+    UUID reviewId,
+    ReviewStat stat,
+    PeriodType periodType,
+    Instant aggregatedAt,
+    UUID snapshotId
   ) {
     Instant periodStart = periodType.calculateStart(aggregatedAt);
     Instant periodEnd = periodType.calculateEnd(aggregatedAt);
 
     return PopularReview.builder()
-        .reviewId(reviewId)
-        .periodType(periodType)
-        .periodStart(periodStart)
-        .periodEnd(periodEnd)
-        .rank(0L)
-        .score(calculateScore(stat.likeCount(), stat.commentCount()))
-        .likeCount(stat.likeCount())
-        .commentCount(stat.commentCount())
-        .aggregatedAt(aggregatedAt)
-        .snapshotId(snapshotId)
-        .build();
+      .reviewId(reviewId)
+      .periodType(periodType)
+      .periodStart(periodStart)
+      .periodEnd(periodEnd)
+      .rank(0L)
+      .score(calculateScore(stat.likeCount(), stat.commentCount()))
+      .likeCount(stat.likeCount())
+      .commentCount(stat.commentCount())
+      .aggregatedAt(aggregatedAt)
+      .snapshotId(snapshotId)
+      .build();
   }
 
 
