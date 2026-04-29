@@ -63,8 +63,7 @@ public class NotificationService {
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void createByReviewRanked(UUID userId, UUID reviewId) {
-    User user = getUserOrThrow(userId);
+  public void createByReviewRanked(UUID reviewId) {
     Review review = getReviewOrThrow(reviewId);
 
     notificationRepository.save(

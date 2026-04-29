@@ -30,6 +30,6 @@ public class NotificationEventListener {
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleReviewRankedEvent(ReviewRankedEvent event) {
-    notificationService.createByReviewRanked(event.getReceiverId(), event.getReviewId());
+    notificationService.createByReviewRanked(event.getReviewId());
   }
 }

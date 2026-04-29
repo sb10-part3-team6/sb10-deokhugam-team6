@@ -12,7 +12,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ReviewRankedEvent {
 
-    private UUID receiverId; // 알림을 받을 유저의 id
-    private UUID reviewId; // 랭킹에 선정된 리뷰의 id
+  private UUID reviewId; // 랭킹에 선정된 리뷰의 id
 
 }
