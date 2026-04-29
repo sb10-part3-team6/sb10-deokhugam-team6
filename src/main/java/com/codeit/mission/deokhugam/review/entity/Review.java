@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
     name = "reviews",                                           // 데이터베이스 테이블 이름
     uniqueConstraints = {                                       // 중복 방지를 위한 제약 조건 설정
         @UniqueConstraint(
-            name = "uk_book_user_deleteAt",
+            name = "uk_book_user_active",
             columnNames = {"book_id", "user_id", "deleted_at"}
         )
     }

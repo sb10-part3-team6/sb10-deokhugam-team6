@@ -431,7 +431,7 @@ public class ReviewServiceImplement implements ReviewService {
     Throwable cause = e.getMostSpecificCause();
 
     return cause != null && cause.getMessage() != null && cause.getMessage()
-        .contains("uk_book_user");
+        .contains("uk_book_user_active");
   }
 
   // 유니크 제약 조건 (uk_review_user_like) 위반 확인: 발생한 예외가 중복 리뷰 좋아요 요청 예외에 해당하는지 확인
