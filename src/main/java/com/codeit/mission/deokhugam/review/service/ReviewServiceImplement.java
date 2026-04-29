@@ -180,8 +180,7 @@ public class ReviewServiceImplement implements ReviewService {
       reviewRepository.saveAndFlush(newReview);
 
       // 7. 도서에 추가된 리뷰 집계
-      book.addReview(newReview.getRating());
-      bookRepository.save(book);
+      bookRepository.incrementReviewCountAndRating(book.getId(), newReview.getRating());
 
       // 8. 로그 기록
       log.info("[REVIEW_CREATE] Create Review Id: {}]", newReview.getId());
@@ -219,12 +218,13 @@ public class ReviewServiceImplement implements ReviewService {
     validateOwner(targetReview, requestUser);
 
     // 4. 리뷰 수정 및 도서에 반영
-    targetBook.removeReview(targetReview.getRating());
+    bookRepository.decrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
     targetReview.updateContentAndRating(reviewUpdateRequest.content(),
         reviewUpdateRequest.rating());
+    reviewRepository.save(targetReview);
 
     // 5. 수정된 리뷰 점수를 도서에 반영
-    targetBook.addReview(reviewUpdateRequest.rating());
+    bookRepository.incrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
 
     // 6. 로그 작성
     log.info("[REVIEW_UPDATE] Update Review Id: {}", targetReview.getId());
@@ -254,7 +254,7 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 4. 리뷰 논리 삭제 및 도서에 반영
     targetReview.delete();
-    targetBook.removeReview(targetReview.getRating());
+    bookRepository.decrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
 
     // 5. 로그 기록
     log.info("[REVIEW_LOGICAL_DELETE] Logical Delete Review Id: {}", targetReview.getId());
@@ -287,7 +287,7 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 6. 도서 리뷰 집계에 반영
     if(isActive) {
-      targetBook.removeReview(targetReview.getRating());
+      bookRepository.decrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
     }
 
     // 7. 로그 기록

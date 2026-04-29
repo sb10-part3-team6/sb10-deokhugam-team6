@@ -65,9 +65,6 @@ public class Book extends BaseEntity {
   @Column
   private Instant deletedAt;
 
-  @Version
-  private Long version;
-
   //빌더 패턴 적용
   @Builder
   public Book(String title, String author, String description,
