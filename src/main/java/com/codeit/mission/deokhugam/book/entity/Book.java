@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.time.Instant;
@@ -63,6 +64,9 @@ public class Book extends BaseEntity {
 
   @Column
   private Instant deletedAt;
+
+  @Version
+  private Long version;
 
   //빌더 패턴 적용
   @Builder
