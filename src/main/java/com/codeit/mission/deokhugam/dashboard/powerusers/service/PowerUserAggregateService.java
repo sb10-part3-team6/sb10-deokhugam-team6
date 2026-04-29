@@ -107,11 +107,7 @@ public class PowerUserAggregateService {
 
   @Transactional
   public void rankPowerUsers(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
-    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
-
-    List<PowerUser> powers =
-        powerUserRepository.findByPeriodDescByScore(periodType, periods.get(0), periods.get(1),
-            snapshotId);
+    List<PowerUser> powers = powerUserRepository.findBySnapshotIdDescByScore(snapshotId);
     long rank = 1L;
     double previousScore = NaN;
     long index = 1L;
