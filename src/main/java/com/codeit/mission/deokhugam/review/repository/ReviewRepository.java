@@ -22,8 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRepositoryCustom {
 
-  // 중복 검사: 특정 도서에 대한 사용자 리뷰 존재 유무
-  boolean existsByBookIdAndUserId(UUID bookId, UUID userId);
+  // 중복 검사: 특정 도서에 대해 활성화 된 사용자 리뷰 존재 유무
+  boolean existsByBookIdAndUserIdAndStatus(UUID bookId, UUID userId, ReviewStatus status);
 
   // 비관적 락이 적용된 리뷰 조회
   @Lock(LockModeType.PESSIMISTIC_WRITE)

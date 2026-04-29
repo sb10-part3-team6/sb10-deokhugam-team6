@@ -432,8 +432,8 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
-    given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(
-        false);                                   // 중복체크 통과
+    given(reviewRepository.existsByBookIdAndUserIdAndStatus(bookId, userId, ReviewStatus.ACTIVE))
+        .willReturn(false);                        // 중복체크 통과
     given(bookRepository.findById(bookId)).willReturn(
         Optional.of(mockBook));                         // mockBook 반환
     given(userRepository.findById(userId)).willReturn(
@@ -487,7 +487,8 @@ public class ReviewServiceImplementTest {
         4
     );
 
-    given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(true);       // 리뷰 중복
+    given(reviewRepository.existsByBookIdAndUserIdAndStatus(bookId, userId,
+        ReviewStatus.ACTIVE)).willReturn(true);       // 리뷰 중복
 
     // when & then
     assertThrows(DuplicateReviewException.class, () -> {
@@ -523,7 +524,8 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
-    given(reviewRepository.existsByBookIdAndUserId(bookId, userId)).willReturn(
+    given(reviewRepository.existsByBookIdAndUserIdAndStatus(bookId, userId,
+        ReviewStatus.ACTIVE)).willReturn(
         false);                                   // 중복체크 통과
     given(bookRepository.findById(bookId)).willReturn(
         Optional.of(mockBook));                         // mockBook 반환
