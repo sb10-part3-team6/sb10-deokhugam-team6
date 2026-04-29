@@ -11,6 +11,7 @@ import com.codeit.mission.deokhugam.comment.exception.CommentAuthorException;
 import com.codeit.mission.deokhugam.comment.exception.CommentNotFoundException;
 import com.codeit.mission.deokhugam.comment.mapper.CommentMapper;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.notification.event.CommentRegisteredEvent;
 import com.codeit.mission.deokhugam.review.entity.Review;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
@@ -20,12 +21,14 @@ import com.codeit.mission.deokhugam.user.entity.UserStatus;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
 
 @Slf4j
 @Service
@@ -37,6 +40,8 @@ public class CommentService {
   private final ReviewRepository reviewRepository;
   private final UserRepository userRepository;
   private final CommentMapper commentMapper;
+
+  private final ApplicationEventPublisher eventPublisher;
 
   // 댓글 등록
   @Transactional
@@ -52,16 +57,20 @@ public class CommentService {
     validUserStatus(user);
 
     Comment comment = Comment.builder()
-        .reviewId(request.reviewId())
-        .userId(request.userId())
-        .content(request.content())
-        .status(CommentStatus.ACTIVE)
-        .build();
+      .reviewId(request.reviewId())
+      .userId(request.userId())
+      .content(request.content())
+      .status(CommentStatus.ACTIVE)
+      .build();
 
     Comment savedComment = commentRepository.saveAndFlush(comment);
     reviewRepository.incrementCommentCount(review.getId());
 
     log.info("[COMMENT_CREATE] Created Comment: id={}", savedComment.getId());
+
+    // 댓글 등록 이벤트 발행
+    eventPublisher.publishEvent(
+      new CommentRegisteredEvent(user.getId(), review.getUser().getId(), review.getId()));
 
     return commentMapper.toDto(savedComment, user.getNickname());
   }
@@ -69,7 +78,7 @@ public class CommentService {
   // 댓글 수정
   @Transactional
   public CommentDto updateComment(UUID commentId, UUID requestUserId,
-      CommentUpdateRequest request) {
+    CommentUpdateRequest request) {
     // 요청자 조회
     User user = getUserOrThrow(requestUserId);
     // 요청자 상태 검증
@@ -119,22 +128,22 @@ public class CommentService {
     }
 
     Map<UUID, String> nicknameMap = userRepository.findAllById(
-            comments.stream()
-                .map(Comment::getUserId)
-                .distinct()
-                .toList()
-        ).stream()
-        .collect(java.util.stream.Collectors.toMap(
-            User::getId,
-            User::getNickname
-        ));
+        comments.stream()
+          .map(Comment::getUserId)
+          .distinct()
+          .toList()
+      ).stream()
+      .collect(java.util.stream.Collectors.toMap(
+        User::getId,
+        User::getNickname
+      ));
 
     List<CommentDto> content = comments.stream()
-        .map(comment -> commentMapper.toDto(
-            comment,
-            nicknameMap.get(comment.getUserId())
-        ))
-        .toList();
+      .map(comment -> commentMapper.toDto(
+        comment,
+        nicknameMap.get(comment.getUserId())
+      ))
+      .toList();
 
     String nextCursor = null;
     Instant nextAfter = null;
@@ -145,15 +154,16 @@ public class CommentService {
       nextAfter = last.getCreatedAt();
     }
 
-    long totalElements = commentRepository.countByReviewIdAndStatus(request.reviewId(), CommentStatus.ACTIVE);
+    long totalElements = commentRepository.countByReviewIdAndStatus(request.reviewId(),
+      CommentStatus.ACTIVE);
 
     return new CursorPageResponseCommentDto(
-        content,
-        nextCursor,
-        nextAfter,
-        content.size(),
-        totalElements,
-        hasNext
+      content,
+      nextCursor,
+      nextAfter,
+      content.size(),
+      totalElements,
+      hasNext
     );
   }
 
@@ -224,7 +234,7 @@ public class CommentService {
   // 리뷰 조회 후 반환
   private Review getReviewOrThrow(UUID reviewId) {
     return reviewRepository.findById(reviewId)
-        .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+      .orElseThrow(() -> new ReviewNotFoundException(reviewId));
   }
 
   // 유저 조회 후 반환
@@ -235,7 +245,7 @@ public class CommentService {
   // 댓글 조회 후 반환
   private Comment getCommentOrThrow(UUID commentId) {
     return commentRepository.findById(commentId)
-        .orElseThrow(() -> new CommentNotFoundException(commentId));
+      .orElseThrow(() -> new CommentNotFoundException(commentId));
   }
 
   // 댓글 작성자와 요청자 ID 비교
