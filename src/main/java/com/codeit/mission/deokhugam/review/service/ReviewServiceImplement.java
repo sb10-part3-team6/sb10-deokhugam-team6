@@ -179,10 +179,13 @@ public class ReviewServiceImplement implements ReviewService {
       // 6. 리뷰 저장 및 즉시 반영하여, try-catch 블록 내에서 제약 조건 위반 예외 포착
       reviewRepository.saveAndFlush(newReview);
 
-      // 7. 로그 기록
+      // 7. 도서에 추가된 리뷰 집계
+      bookRepository.incrementReviewCountAndRating(book.getId(), newReview.getRating());
+
+      // 8. 로그 기록
       log.info("[REVIEW_CREATE] Create Review Id: {}]", newReview.getId());
 
-      // 8. 리뷰 응답 DTO 변환 및 반환
+      // 9. 리뷰 응답 DTO 변환 및 반환
       return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0
 
       // 만약 동시에 똑같은 요청이 들어와서, DB 유니크 제약 (uk_book_user)가 발생한다면 커스텀 중복 예외 발생
@@ -201,9 +204,10 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public ReviewDto update(UUID id, UUID requestUserId, ReviewUpdateRequest reviewUpdateRequest) {
-    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
+    // 1. Review / User / book 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
+    Book targetBook = getBookEntityOrThrow(targetReview.getBook().getId());
 
     // 2. Review / Book / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
@@ -213,17 +217,22 @@ public class ReviewServiceImplement implements ReviewService {
     // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 수정 가능
     validateOwner(targetReview, requestUser);
 
-    // 4. 리뷰 수정
+    // 4. 리뷰 수정 및 도서에 반영
+    bookRepository.decrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
     targetReview.updateContentAndRating(reviewUpdateRequest.content(),
         reviewUpdateRequest.rating());
+    reviewRepository.save(targetReview);
 
-    // 5. 로그 작성
+    // 5. 수정된 리뷰 점수를 도서에 반영
+    bookRepository.incrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
+
+    // 6. 로그 작성
     log.info("[REVIEW_UPDATE] Update Review Id: {}", targetReview.getId());
 
-    // 6. 특정 리뷰에 대한 작성자의 좋아요 여부 확인
+    // 7. 특정 리뷰에 대한 작성자의 좋아요 여부 확인
     boolean isLiked = isReviewLiked(targetReview.getId(), requestUser.getId());
 
-    // 7. 리뷰 응답 DTO 반환 및 변환
+    // 8. 리뷰 응답 DTO 반환 및 변환
     return reviewMapper.toDto(targetReview, isLiked);
   }
 
@@ -231,9 +240,10 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public void delete(UUID id, UUID requestUserId) {
-    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
+    // 1. Review / User/ Book 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
+    Book targetBook = getBookEntityOrThrow(targetReview.getBook().getId());
 
     // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
@@ -242,8 +252,9 @@ public class ReviewServiceImplement implements ReviewService {
     // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
     validateOwner(targetReview, requestUser);
 
-    // 4. 리뷰 논리 삭제
+    // 4. 리뷰 논리 삭제 및 도서에 반영
     targetReview.delete();
+    bookRepository.decrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
 
     // 5. 로그 기록
     log.info("[REVIEW_LOGICAL_DELETE] Logical Delete Review Id: {}", targetReview.getId());
@@ -256,7 +267,7 @@ public class ReviewServiceImplement implements ReviewService {
     // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
-
+    Book targetBook = getBookEntityOrThrow(targetReview.getBook().getId());
     // 2. User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateUserActive(requestUser);
 
@@ -272,7 +283,12 @@ public class ReviewServiceImplement implements ReviewService {
     // 5. 리뷰 물리 삭제
     reviewRepository.delete(targetReview);
 
-    // 6. 로그 기록
+    // 6. 도서 리뷰 집계에 반영
+    if(targetReview.isActive()) {
+      bookRepository.decrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
+    }
+
+    // 7. 로그 기록
     log.info("[REVIEW_Hard_DELETE] Hard Delete Review Id: {}", targetReview.getId());
   }
 

@@ -105,7 +105,7 @@ class PopularBookAggregationServiceTest {
 
   @Test
   @DisplayName("같은 랭크를 가진 도서를 조회할 때 타이브레이킹 (성공)")
-  void rankPopularBooks_assignsSameRankForSameScore() {
+  void rankPopularBooks_assignsSequentialRankForSameScore() {
     Instant aggregatedAt = Instant.parse("2026-04-21T00:00:00Z");
     UUID snapshotId = UUID.randomUUID();
 
@@ -119,7 +119,7 @@ class PopularBookAggregationServiceTest {
     popularBookAggregationService.rankPopularBooks(PeriodType.WEEKLY, aggregatedAt, snapshotId);
 
     assertEquals(1L, first.getRank());
-    assertEquals(1L, second.getRank());
+    assertEquals(2L, second.getRank());
     assertEquals(3L, third.getRank());
     verify(popularBookRepository).findBySnapshotIdDescByScore(snapshotId);
   }

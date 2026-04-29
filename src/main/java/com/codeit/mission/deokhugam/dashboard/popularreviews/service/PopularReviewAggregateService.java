@@ -1,7 +1,5 @@
 package com.codeit.mission.deokhugam.dashboard.popularreviews.service;
 
-import static java.lang.Double.NaN;
-
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewCommentCount;
@@ -69,21 +67,12 @@ public class PopularReviewAggregateService {
 
   @Transactional
   public void rankPopularReviews(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
-    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
-
     List<PopularReview> popularReviews =
-        popularReviewRepository.findByPeriodDescByScore(
-            periodType, periods.get(0), periods.get(1), snapshotId);
-    long rank = 1L;
-    double previousScore = NaN;
+        popularReviewRepository.findBySnapshotIdDescByScore(snapshotId);
     long index = 1L;
 
     for (PopularReview popularReview : popularReviews) {
-      if (index == 1L || Double.compare(popularReview.getScore(), previousScore) != 0) {
-        rank = index;
-        previousScore = popularReview.getScore();
-      }
-      popularReview.updateRank(rank);
+      popularReview.updateRank(index);
       index++;
     }
   }
