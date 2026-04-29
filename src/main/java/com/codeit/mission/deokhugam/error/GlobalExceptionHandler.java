@@ -29,7 +29,8 @@ public class GlobalExceptionHandler {
     ErrorResponse error = ErrorResponse.builder()
         .timestamp(e.getTimestamp())                                // 에러 발생 시각
         .code(errorCode.name())                                     // 에러 발생 코드 ex) U001
-        .message(e.getMessage())                                    // 에러 메시지 ex) "user with id not found"
+        .message(
+            e.getMessage())                                    // 에러 메시지 ex) "user with id not found"
         .details(e.getDetails())                                    // 에러와 관련된 추가 정보 ex) userid
         .exceptionType(e.getClass().getSimpleName())                // 발생한 예외 클래스 이름
         .status(errorCode.getHttpStatus().value())                  // 발생한 에러의 HTTP Status
@@ -55,7 +56,7 @@ public class GlobalExceptionHandler {
   // DTO 검증 오류 (@Valid)
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
-          MethodArgumentNotValidException e) {
+      MethodArgumentNotValidException e) {
     // 첫번째 에러의 메시지를 전체 응답의 대표 메시지로 설정
     String firstErrorMessage = e.getBindingResult().getAllErrors().stream()
         .findFirst()
@@ -107,6 +108,28 @@ public class GlobalExceptionHandler {
     log.warn("[MISSING_PARAM_EXCEPTION] ERROR_CODE={}, Message={}",
         error.code(),
         error.message()
+    );
+    return ResponseEntity.status(error.status()).body(error);
+  }
+
+  // 필수 헤더 누락 오류 (@RequestHeader)
+  @ExceptionHandler(org.springframework.web.bind.MissingRequestHeaderException.class)
+  public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(
+      org.springframework.web.bind.MissingRequestHeaderException e) {
+    ErrorCode errorCode = ErrorCode.MISSING_REQUEST_HEADER;
+
+    ErrorResponse error = ErrorResponse.builder()
+        .timestamp(Instant.now())
+        .code(errorCode.name())
+        .message(errorCode.getMessage())
+        .exceptionType(e.getClass().getSimpleName())
+        .status(errorCode.getHttpStatus().value())
+        .build();
+
+    log.warn("[MISSING_HEADER_EXCEPTION] ERROR_CODE={}, Message={}, Header={}",
+        error.code(),
+        error.message(),
+        e.getHeaderName()
     );
     return ResponseEntity.status(error.status()).body(error);
   }
