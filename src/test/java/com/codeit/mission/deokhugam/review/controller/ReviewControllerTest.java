@@ -1,16 +1,19 @@
 package com.codeit.mission.deokhugam.review.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
+import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.CursorPageResponseReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
+import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
+import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -166,6 +170,83 @@ public class ReviewControllerTest {
       리뷰 등록
    */
 
+  // [성공]
+  @Test
+  @DisplayName("리뷰 등록 성공")
+  void create_review_success() throws Exception {
+    // given
+
+    // 생성할 리뷰 정보
+    ReviewCreateRequest request = new ReviewCreateRequest(
+        UUID.randomUUID(),
+        UUID.randomUUID(),
+        "good",
+        5
+    );
+
+    ReviewDto response = ReviewDto.builder()
+        .id(UUID.randomUUID())
+        .content(request.content())
+        .rating(request.rating())
+        .build();
+
+    given(reviewService.create(any(ReviewCreateRequest.class))).willReturn(response);
+
+    // when & then
+    mockMvc.perform(post("/api/reviews")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.content").value("good"))
+        .andExpect(jsonPath("$.rating").value(5));
+  }
+
+  // [실패]
+  @Test
+  @DisplayName("리뷰 등록 실패: 평점 범위가 초과될 경우, 400 Bad Request 반환")
+  void create_review_failure_invalid_request() throws Exception {
+    // given
+
+    // 생성할 리뷰 정보
+    ReviewCreateRequest request = new ReviewCreateRequest(
+        UUID.randomUUID(),
+        UUID.randomUUID(),
+        "good",
+        10
+    );
+
+    // when & then
+    mockMvc.perform(post("/api/reviews")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
+  }
+
+  // [실패]
+  @Test
+  @DisplayName("리뷰 등록 실패: 사용자가 특정 도서에 이미 리뷰를 작성한 경우, 409 Conflict 반환")
+  void create_review_failure_duplicate() throws Exception {
+    // given
+    UUID userId = UUID.randomUUID();
+    UUID bookId = UUID.randomUUID();
+
+    // 생성할 리뷰 정보
+    ReviewCreateRequest request = new ReviewCreateRequest(
+        UUID.randomUUID(),
+        UUID.randomUUID(),
+        "good",
+        5
+    );
+
+    given(reviewService.create(any())).willThrow(new DuplicateReviewException(userId, bookId));
+
+    // when & then
+    mockMvc.perform(post("/api/reviews")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isConflict());
+  }
 
   /*
       리뷰 수정
