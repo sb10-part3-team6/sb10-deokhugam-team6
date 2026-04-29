@@ -252,6 +252,86 @@ public class ReviewControllerTest {
       리뷰 수정
    */
 
+  // [성공]
+  @Test
+  @DisplayName("리뷰 수정 성공")
+  void update_review_success() throws Exception {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    // 수정할 리뷰 정보
+    ReviewUpdateRequest request = new ReviewUpdateRequest(
+        "bad",
+        4
+    );
+
+    ReviewDto response = ReviewDto.builder()
+        .id(reviewId)
+        .content(request.content())
+        .rating(request.rating())
+        .build();
+
+    given(reviewService.update(eq(reviewId), eq(userId), any(ReviewUpdateRequest.class)))
+        .willReturn(response);
+
+    // when & then
+    mockMvc.perform(patch("/api/reviews/{reviewId}", reviewId)
+            .header("Deokhugam-Request-User-ID", userId.toString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").value("bad"));
+  }
+
+  // [실패]
+  @Test
+  @DisplayName("리뷰 수정 실패: 다른 사용자의 리뷰를 수정하고자 하는 경우, 403 Forbidden 반환")
+  void update_review_failure_forbidden() throws Exception {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    // 수정할 리뷰 정보
+    ReviewUpdateRequest request = new ReviewUpdateRequest(
+        "bad",
+        4
+    );
+
+    given(reviewService.update(any(), any(), any())).willThrow(
+        new ReviewAuthorMismatchException(requestUserId, reviewId));
+
+    // when & then
+    mockMvc.perform(patch("/api/reviews/{reviewId}", reviewId)
+            .header("Deokhugam-Request-User-ID", requestUserId.toString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isForbidden());
+  }
+
+  // [실패]
+  @Test
+  @DisplayName("리뷰 수정 실패: 평점 범위가 초과할 경우, 400 Bad Request 반환")
+  void update_review_failure_invalid_request() throws Exception {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    // 수정할 리뷰 정보
+    ReviewUpdateRequest request = new ReviewUpdateRequest(
+        "bad",
+        10
+    );
+
+    // when & then
+    mockMvc.perform(patch("/api/reviews/" + reviewId)
+            .header("Deokhugam-Request-User-ID", requestUserId.toString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
+  }
+
 
   /*
       리뷰 논리 삭제
