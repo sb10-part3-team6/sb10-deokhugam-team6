@@ -87,24 +87,21 @@ class PopularReviewAggregateServiceTest {
 
   @Test
   @DisplayName("주중 시각을 기준으로 ")
-  void rankPopularReviews_usesMidWeekCalculatedPeriod() {
+  void rankPopularReviews_findsRowsBySnapshotId() {
     // given
     // 주중 집계 시간
     Instant aggregatedAt = Instant.parse("2026-04-23T15:30:00Z");
     // 주간이므로 집계시간으로 부터 7일 이전이 periodStart가 된다.
-    Instant periodStart = Instant.parse("2026-04-16T15:30:00Z");
     // 스냅샷 ID
     UUID snapshotId = UUID.randomUUID();
 
-    when(popularReviewRepository.findByPeriodDescByScore(
-        PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId))
+    when(popularReviewRepository.findBySnapshotIdDescByScore(snapshotId))
         .thenReturn(List.of());
 
     // when
     popularReviewAggregateService.rankPopularReviews(PeriodType.WEEKLY, aggregatedAt, snapshotId);
 
-    verify(popularReviewRepository)
-        .findByPeriodDescByScore(PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId);
+    verify(popularReviewRepository).findBySnapshotIdDescByScore(snapshotId);
   }
 
   @Test
@@ -140,7 +137,7 @@ class PopularReviewAggregateServiceTest {
 
   @Test
   @DisplayName("같은 랭크를 가진 리뷰를 조회할 때 타이브레이킹 (성공)")
-  void rankPopularReviews_assignsSameRankForSameScore() {
+  void rankPopularReviews_assignsSequentialRankForSameScore() {
     // given
     Instant aggregatedAt = Instant.parse("2026-04-21T00:00:00Z");
     Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
@@ -153,21 +150,18 @@ class PopularReviewAggregateServiceTest {
 
     // 점수 별 내림차순으로 인기 리뷰를 가져올 때 1, 2, 3 순으로 가져옴
     // first와 second는 동점이지만 first의 createdAt이 더 빠르므로 first가 우선이 된다.
-    when(popularReviewRepository.findByPeriodDescByScore(
-        PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId))
+    when(popularReviewRepository.findBySnapshotIdDescByScore(snapshotId))
         .thenReturn(List.of(first, second, third));
 
     // when
     // 주간 기간 내에 해당 스냅샷을 참조하는 리뷰들에게 랭크를 부여한다
     popularReviewAggregateService.rankPopularReviews(PeriodType.WEEKLY, aggregatedAt, snapshotId);
 
-    // 동점은 공동 1위 처리
     assertEquals(1L, first.getRank());
-    assertEquals(1L, second.getRank());
+    assertEquals(2L, second.getRank());
     assertEquals(3L, third.getRank());
     // 해당 레포지토리 메서드가 한번 수행 되었는지 검증
-    verify(popularReviewRepository)
-        .findByPeriodDescByScore(PeriodType.WEEKLY, periodStart, aggregatedAt, snapshotId);
+    verify(popularReviewRepository).findBySnapshotIdDescByScore(snapshotId);
   }
 
   @Test
