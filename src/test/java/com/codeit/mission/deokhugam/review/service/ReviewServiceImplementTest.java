@@ -95,6 +95,7 @@ public class ReviewServiceImplementTest {
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
     ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User requestUser = User.builder().build();
     ReflectionTestUtils.setField(requestUser, "id",
         requestUserId);                                             // NPE 방지를 위한 id 강제 주입
@@ -108,17 +109,17 @@ public class ReviewServiceImplementTest {
         .rating(5)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                  // NPE 방지를 위한 id 강제 주입
+        reviewId);
     ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.ACTIVE);                                       // status 강제 주입
+        ReviewStatus.ACTIVE);
 
     // 내부 로직 흐름 설정
     given(reviewRepository.findById(reviewId)).willReturn(
-        Optional.of(savedReview));                                  // savedReview 반환
+        Optional.of(savedReview));
     given(userRepository.findById(requestUserId)).willReturn(
-        Optional.of(requestUser));                                  // requestUser 반환
+        Optional.of(requestUser));
     given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, requestUserId)).willReturn(
-        true);                                                // 특정 리뷰에 대한 사용자의 좋아요 여부
+        true);
 
     // 응답 DTO 객체
     ReviewDto expectedReviewDto = ReviewDto.builder()
@@ -127,7 +128,7 @@ public class ReviewServiceImplementTest {
         .likedByMe(true)
         .build();
     given(reviewMapper.toDto(any(Review.class), anyBoolean())).willReturn(
-        expectedReviewDto);                                         // exceptedReviewDto 반환
+        expectedReviewDto);
 
     // when
     ReviewDto result = reviewServiceImplement.findById(reviewId, requestUserId);
@@ -258,6 +259,7 @@ public class ReviewServiceImplementTest {
         .nextCursor(expectedNextCursor)
         .nextAfter(expectedNextAfter)
         .build();
+
     given(reviewRepository.countWithFilter(condition)).willReturn(15L);
     given(reviewMapper.toCursorPageResponse(
         eq(dtoList),
@@ -326,7 +328,8 @@ public class ReviewServiceImplementTest {
     assertNotNull(result);
     assertFalse(result.hasNext());                                                // 다음 페이지 존재 여부
     assertTrue(
-        result.content().isEmpty());                                       // 검색 결과가 빈 내용인지 확인
+        result.content()
+            .isEmpty());                                              // 검색 결과가 빈 내용인지 확인
     assertEquals(0L, result.totalElements());
     verify(reviewRepository).searchReviews(condition);
     verify(reviewLikeRepository, never()).findReviewIdsByUserIdAndReviewIdIn(any(), any());
@@ -426,18 +429,19 @@ public class ReviewServiceImplementTest {
 
     // 가짜 객체 | 도서 및 사용자
     Book mockBook = Book.builder().build();
-    ReflectionTestUtils.setField(mockBook, "id", bookId);               // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockBook, "id", bookId);
     ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User mockUser = User.builder().build();
-    ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "id", userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     given(reviewRepository.existsByBookIdAndUserIdAndStatus(bookId, userId, ReviewStatus.ACTIVE))
         .willReturn(false);                        // 중복체크 통과
     given(bookRepository.findById(bookId)).willReturn(
-        Optional.of(mockBook));                         // mockBook 반환
+        Optional.of(mockBook));
     given(userRepository.findById(userId)).willReturn(
-        Optional.of(mockUser));                         // mockUser 반환
+        Optional.of(mockUser));
 
     // 생성할 리뷰
     Review createdReview = Review.builder()
@@ -456,9 +460,9 @@ public class ReviewServiceImplementTest {
     given(reviewMapper.toEntity(any(ReviewCreateRequest.class), any(Book.class), any(User.class)))
         .willReturn(createdReview);
     given(reviewRepository.saveAndFlush(any(Review.class))).willReturn(
-        createdReview);                                                     // createdReview 반환
+        createdReview);
     given(reviewMapper.toDto(any(Review.class), eq(false))).willReturn(
-        expectedDto);                                                       // exceptedDto 반환
+        expectedDto);
 
     // when
     ReviewDto result = reviewServiceImplement.create(createRequest);
@@ -469,6 +473,7 @@ public class ReviewServiceImplementTest {
         result.content());                                                  // 가짜 DTO 결과와 실제 실행 결과 비교
     assertEquals(expectedDto.rating(), result.rating());
     verify(reviewMapper).toEntity(createRequest, mockBook, mockUser);
+    verify(bookRepository).incrementReviewCountAndRating(eq(bookId), eq(createRequest.rating()));
   }
 
   // [실패] 특정 리뷰에 대한 사용자의 리뷰 중복 생성 요청
@@ -518,19 +523,20 @@ public class ReviewServiceImplementTest {
 
     // 가짜 객체 | 도서 및 사용자
     Book mockBook = Book.builder().build();
-    ReflectionTestUtils.setField(mockBook, "id", bookId);               // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockBook, "id", bookId);
     ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User mockUser = User.builder().build();
-    ReflectionTestUtils.setField(mockUser, "id", userId);               // NPE 방지를 위한 id 강제 삽입
+    ReflectionTestUtils.setField(mockUser, "id", userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     given(reviewRepository.existsByBookIdAndUserIdAndStatus(bookId, userId,
         ReviewStatus.ACTIVE)).willReturn(
         false);                                   // 중복체크 통과
     given(bookRepository.findById(bookId)).willReturn(
-        Optional.of(mockBook));                         // mockBook 반환
+        Optional.of(mockBook));
     given(userRepository.findById(userId)).willReturn(
-        Optional.of(mockUser));                         // mockUser 반환
+        Optional.of(mockUser));
 
     // 가짜 객체
     Review createdReview = Review.builder()
@@ -543,13 +549,11 @@ public class ReviewServiceImplementTest {
     given(reviewMapper.toEntity(any(ReviewCreateRequest.class), any(Book.class), any(User.class)))
         .willReturn(createdReview);
 
-    // saveAndFlush 시점에 데이터베이스 제약 위반 예외 발생
-    DataIntegrityViolationException exception = mock(DataIntegrityViolationException.class);
-    Throwable cause = mock(Throwable.class);
+    RuntimeException rootCause = new RuntimeException(
+        "Unique index violation: uk_book_user_active");
+    DataIntegrityViolationException exception = new DataIntegrityViolationException("Conflict",
+        rootCause);
 
-    given(exception.getMostSpecificCause()).willReturn(cause);
-    given(cause.getMessage()).willReturn(
-        "Unique index or primary key violation: uk_book_user_active");        // 발생한 제약 위반 예외 = 중복 리뷰 예외
     given(reviewRepository.saveAndFlush(any(Review.class))).willThrow(
         exception);                                                                 // exception 반환
 
@@ -578,9 +582,10 @@ public class ReviewServiceImplementTest {
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
     ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
-        userId);                                                           // NPE 방지를 위한 id 강제 삽입
+        userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 기존 리뷰 정보
@@ -591,9 +596,9 @@ public class ReviewServiceImplementTest {
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                        // NPE 방지를 위한 id 강제 주입
+        reviewId);
     ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.ACTIVE);                                             // status 강제 주입
+        ReviewStatus.ACTIVE);
 
     // 수정할 리뷰 내용
     ReviewUpdateRequest updateRequest = new ReviewUpdateRequest(
@@ -603,9 +608,10 @@ public class ReviewServiceImplementTest {
 
     // 내부 로직 흐름 설정
     given(reviewRepository.findById(reviewId)).willReturn(
-        Optional.of(savedReview));                                        // savedReview 반환
+        Optional.of(savedReview));
     given(userRepository.findById(userId)).willReturn(
-        Optional.of(mockUser));                                           // mockUser 반환
+        Optional.of(mockUser));
+    given(bookRepository.findById(any())).willReturn(Optional.of(mockBook));
     given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(
         false);                                                     // 특정 리뷰에 대한 사용자의 좋아요 여부
 
@@ -616,7 +622,7 @@ public class ReviewServiceImplementTest {
         .likedByMe(false)
         .build();
     given(reviewMapper.toDto(any(Review.class), anyBoolean())).willReturn(
-        expectedDto);                                                    // expectedDto 반환
+        expectedDto);
 
     // when
     ReviewDto result = reviewServiceImplement.update(reviewId, userId, updateRequest);
@@ -626,6 +632,10 @@ public class ReviewServiceImplementTest {
     assertEquals(updateRequest.content(),
         result.content());                                                       // 가짜 DTO와 실제 실행 결과 확인
     assertEquals(updateRequest.rating(), result.rating());
+
+    verify(bookRepository).decrementReviewCountAndRating(eq(bookId), eq(3)); // 기존 평점 3점 제거
+    verify(bookRepository).incrementReviewCountAndRating(eq(bookId), eq(5)); // 신규 평점 5점 반영
+
     verify((reviewMapper)).toDto(savedReview, false);                    // Mapper 호출 내역 확인
   }
 
@@ -646,7 +656,7 @@ public class ReviewServiceImplementTest {
 
     User author = User.builder().build();
     ReflectionTestUtils.setField(author, "id",
-        userId);                                                        // NPE 방지를 위한 id 강제 삽입
+        userId);
     ReflectionTestUtils.setField(author, "status", UserStatus.ACTIVE);
 
     User requestUser = User.builder().build();
@@ -661,9 +671,9 @@ public class ReviewServiceImplementTest {
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                      // NPE 방지를 위한 id 강제 주입
+        reviewId);
     ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.ACTIVE);                                           // status 강제 주입
+        ReviewStatus.ACTIVE);
 
     // 수정할 리뷰 내용
     ReviewUpdateRequest updateRequest = new ReviewUpdateRequest(
@@ -673,9 +683,10 @@ public class ReviewServiceImplementTest {
 
     // 내부 로직 흐름 설정
     given(reviewRepository.findById(reviewId)).willReturn(
-        Optional.of(savedReview));                                      // savedReview 반환
+        Optional.of(savedReview));
+    given(bookRepository.findById(bookId)).willReturn(Optional.of(mockBook));
     given(userRepository.findById(requestUserId)).willReturn(
-        Optional.of(requestUser));                                      // requestUser 반환
+        Optional.of(requestUser));
 
     // when & then
     assertThrows(ReviewAuthorMismatchException.class, () -> {
@@ -699,37 +710,45 @@ public class ReviewServiceImplementTest {
     // given
     UUID reviewId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
+    UUID bookId = UUID.randomUUID();
 
-    // 가짜 객체 | 논리 삭제 요청자
+    // 가짜 객체 | 도서 및 논리 삭제 요청자
+    Book mockBook = Book.builder().build();
+    ReflectionTestUtils.setField(mockBook, "id", bookId);
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
-        userId);                                                      // NPE 방지를 위한 id 강제 삽입
+        userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 삭제할 리뷰 정보
     Review savedReview = Review.builder()
         .user(mockUser)
+        .book(mockBook)
         .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                    // NPE 방지를 위한 id 강제 주입
+        reviewId);
     ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.ACTIVE);                                         // status 강제 주입
+        ReviewStatus.ACTIVE);
 
     given(reviewRepository.findById(reviewId)).willReturn(
-        Optional.of(savedReview));                                    // savedReview 반환
+        Optional.of(savedReview));
+    given(bookRepository.findById(bookId)).willReturn(Optional.of(mockBook));
     given(userRepository.findById(userId)).willReturn(
-        Optional.of(mockUser));                                       // mockUser 반환
+        Optional.of(mockUser));
 
     // when
     reviewServiceImplement.delete(reviewId, userId);
 
     // then
     assertEquals(ReviewStatus.DELETED,
-        savedReview.getStatus());                                     // 특정 리뷰의 논리 삭제 여부 검증
+        savedReview.getStatus());
+    verify(bookRepository).decrementReviewCountAndRating(eq(bookId), eq(3));
     verify(reviewRepository, never()).delete(
-        any(Review.class));                                           // Repository의 delete 함수 미호출 확인
+        any(Review.class));
   }
 
   // [실패] 특정 리뷰가 이미 논리적으로 삭제된 경우
@@ -739,28 +758,34 @@ public class ReviewServiceImplementTest {
     // given
     UUID reviewId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
+    UUID bookId = UUID.randomUUID();
 
-    // 가짜 객체 | 논리 삭제 요청자
+    // 가짜 객체 | 도서 및 논리 삭제 요청자
+    Book mockBook = Book.builder().build();
+    ReflectionTestUtils.setField(mockBook, "id", bookId);
+
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
-        userId);                                                      // NPE 방지를 위한 id 강제 삽입
+        userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 삭제할 리뷰 정보
     Review savedReview = Review.builder()
+        .book(mockBook)
         .user(mockUser)
         .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                    // NPE 방지를 위한 id 강제 주입
+        reviewId);
     ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.DELETED);                                        // status 강제 주입
+        ReviewStatus.DELETED);
 
     given(reviewRepository.findById(reviewId)).willReturn(
-        Optional.of(savedReview));                                    // savedReview 반환
+        Optional.of(savedReview));
+    given(bookRepository.findById(bookId)).willReturn(Optional.of(mockBook));
     given(userRepository.findById(userId)).willReturn(
-        Optional.of(mockUser));                                       // mockUser 반환
+        Optional.of(mockUser));
 
     // when & then
     assertThrows(ReviewNotFoundException.class, () -> {
@@ -781,28 +806,34 @@ public class ReviewServiceImplementTest {
     // given
     UUID reviewId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
+    UUID bookId = UUID.randomUUID();
+
+    Book mockBook = Book.builder().build();
+    ReflectionTestUtils.setField(mockBook, "id", bookId);
 
     // 가짜 객체 | 물리 삭제 요청자
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
-        userId);                                                // NPE 방지를 위한 id 강제 삽입
+        userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 삭제할 리뷰 정보
     Review savedReview = Review.builder()
         .user(mockUser)
+        .book(mockBook)
         .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                              // NPE 방지를 위한 id 강제 주입
+        reviewId);
     ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.ACTIVE);                                   // status 강제 주입
+        ReviewStatus.ACTIVE);
 
     given(reviewRepository.findById(reviewId)).willReturn(
-        Optional.of(savedReview));                              // savedReview 반환
+        Optional.of(savedReview));
+    given(bookRepository.findById(bookId)).willReturn(Optional.of(mockBook));
     given(userRepository.findById(userId)).willReturn(
-        Optional.of(mockUser));                                 // mockUser 반환
+        Optional.of(mockUser));
 
     // 삭제할 리뷰 목록
     List<UUID> reviewIds = List.of(reviewId);
@@ -814,6 +845,7 @@ public class ReviewServiceImplementTest {
     verify(commentRepository, times(1)).deleteByReviewIdIn(reviewIds);
     verify(reviewLikeRepository, times(1)).deleteByReviewIdIn(reviewIds);
     verify(notificationRepository, times(1)).deleteByReviewIdIn(reviewIds);
+    verify(bookRepository).decrementReviewCountAndRating(eq(bookId), eq(3));
     verify(reviewRepository, times(1)).delete(
         any(Review.class));                                     // Repository의 delete 함수 호출 확인
   }
@@ -825,36 +857,44 @@ public class ReviewServiceImplementTest {
   void hard_delete_review_failure() {
     // given
     UUID reviewId = UUID.randomUUID();
+    UUID bookId = UUID.randomUUID();
     UUID authorId = UUID.randomUUID();
     UUID requestUserId = UUID.randomUUID();
 
-    // 가짜 객체 | 리뷰 작성자 및 논리 삭제 요청자
+    // 가짜 객체 | 도서 및 리뷰 작성자 및 논리 삭제 요청자
+    Book mockBook = Book.builder().build();
+    ReflectionTestUtils.setField(mockBook, "id", bookId);
+    ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User author = User.builder().build();
     ReflectionTestUtils.setField(author, "id",
-        authorId);                                                    // NPE 방지를 위한 id 강제 삽입
+        authorId);
     ReflectionTestUtils.setField(author, "status", UserStatus.ACTIVE);
+
     User requestUser = User.builder().build();
     ReflectionTestUtils.setField(requestUser, "id", requestUserId);
     ReflectionTestUtils.setField(requestUser, "status", UserStatus.ACTIVE);
 
     // 삭제할 리뷰 정보
     Review savedReview = Review.builder()
+        .book(mockBook)
         .user(author)
         .content("돌덩이 외게인이 뭐가 재밌다고 난리야")
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                    // NPE 방지를 위한 id 강제 주입
+        reviewId);
     ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.ACTIVE);                                         // status 강제 주입
+        ReviewStatus.ACTIVE);
 
     // 삭제할 리뷰 목록
     List<UUID> reviewIds = List.of(reviewId);
 
     given(reviewRepository.findById(reviewId)).willReturn(
-        Optional.of(savedReview));                                    // savedReview 반환
+        Optional.of(savedReview));
+    given(bookRepository.findById(bookId)).willReturn(Optional.of(mockBook));
     given(userRepository.findById(requestUserId)).willReturn(
-        Optional.of(requestUser));                                    // requestUser 반환
+        Optional.of(requestUser));
 
     // when
     assertThrows(ReviewAuthorMismatchException.class, () -> {
@@ -884,9 +924,10 @@ public class ReviewServiceImplementTest {
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
     ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
-        userId);                                                  // NPE 방지를 위한 id 강제 삽입
+        userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 좋아요를 추가할 리뷰 정보
@@ -897,14 +938,15 @@ public class ReviewServiceImplementTest {
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                // NPE 방지를 위한 id 강제 주입
+        reviewId);
     ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.ACTIVE);                                     // status 강제 주입
+        ReviewStatus.ACTIVE);
 
+    // [수정 반영] 서비스 로직의 비관적 락 조회 메서드 호출 대응
     given(reviewRepository.findByIdWithPessimisticLock(reviewId)).willReturn(
-        Optional.of(savedReview));                                // savedReview 반환
+        Optional.of(savedReview));
     given(userRepository.findById(userId)).willReturn(
-        Optional.of(mockUser));                                   // mockUser 반환
+        Optional.of(mockUser));
     given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(
         false);                                             // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
 
@@ -953,9 +995,10 @@ public class ReviewServiceImplementTest {
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
     ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
-        userId);                                                  // NPE 방지를 위한 id 강제 삽입
+        userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 좋아요를 취소할 리뷰 정보
@@ -966,24 +1009,24 @@ public class ReviewServiceImplementTest {
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                  // NPE 방지를 위한 id 강제 주입
+        reviewId);
+    ReflectionTestUtils.setField(savedReview, "status",
+        ReviewStatus.ACTIVE);
 
     // 삭제할 가짜 좋아요 객체
     ReviewLike savedLike = ReviewLike.builder()
         .review(savedReview)
         .user(mockUser)
         .build();
-    ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.ACTIVE);                                       // status 강제 주입
 
     given(reviewRepository.findByIdWithPessimisticLock(reviewId)).willReturn(
-        Optional.of(savedReview));                                  // savedReview 반환
+        Optional.of(savedReview));
     given(userRepository.findById(userId)).willReturn(
-        Optional.of(mockUser));                                     // mockUser 반환
+        Optional.of(mockUser));
     given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(
         true);                                                // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
     given(reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId))
-        .willReturn(Optional.of(savedLike));                        // savedLike 반환
+        .willReturn(Optional.of(savedLike));
 
     // 가짜 좋아요 응답 DTO
     ReviewLikeDto expectedDto = ReviewLikeDto.builder()
@@ -1024,7 +1067,7 @@ public class ReviewServiceImplementTest {
     ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
-        userId);                                                      // NPE 방지를 위한 id 강제 삽입
+        userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 좋아요를 취소할 리뷰 정보
@@ -1035,7 +1078,8 @@ public class ReviewServiceImplementTest {
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                   // NPE 방지를 위한 id 강제 주입
+        reviewId);
+    ReflectionTestUtils.setField(savedReview, "status", ReviewStatus.ACTIVE);
 
     given(reviewRepository.findByIdWithPessimisticLock(reviewId)).willReturn(
         Optional.of(savedReview));
@@ -1079,9 +1123,10 @@ public class ReviewServiceImplementTest {
     Book mockBook = Book.builder().build();
     ReflectionTestUtils.setField(mockBook, "id", bookId);
     ReflectionTestUtils.setField(mockBook, "bookStatus", BookStatus.ACTIVE);
+
     User mockUser = User.builder().build();
     ReflectionTestUtils.setField(mockUser, "id",
-        userId);                                                      // NPE 방지를 위한 id 강제 삽입
+        userId);
     ReflectionTestUtils.setField(mockUser, "status", UserStatus.ACTIVE);
 
     // 좋아요를 추가할 리뷰 정보
@@ -1092,14 +1137,14 @@ public class ReviewServiceImplementTest {
         .rating(3)
         .build();
     ReflectionTestUtils.setField(savedReview, "id",
-        reviewId);                                                     // NPE 방지를 위한 id 강제 주입
+        reviewId);
     ReflectionTestUtils.setField(savedReview, "status",
-        ReviewStatus.ACTIVE);                                          // status 강제 주입
+        ReviewStatus.ACTIVE);
 
     given(reviewRepository.findByIdWithPessimisticLock(reviewId)).willReturn(
-        Optional.of(savedReview));                                    // savedReview 반환
+        Optional.of(savedReview));
     given(userRepository.findById(userId)).willReturn(
-        Optional.of(mockUser));                                       // mockUser 반환
+        Optional.of(mockUser));
     given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(
         false);                                                 // 특정 리뷰에 대한 요청자의 리뷰가 존재하지 않음
 
@@ -1111,13 +1156,10 @@ public class ReviewServiceImplementTest {
 
     given(reviewLikeMapper.toEntity(savedReview, mockUser)).willReturn(createdReviewLike);
 
-    // saveAndFlush 시점에 데이터베이스 제약 위반 예외 발생
-    DataIntegrityViolationException exception = mock(DataIntegrityViolationException.class);
-    Throwable cause = mock(Throwable.class);
+    RuntimeException rootCause = new RuntimeException("violation: uk_review_user_like");
+    DataIntegrityViolationException exception = new DataIntegrityViolationException("Conflict",
+        rootCause);
 
-    given(exception.getMostSpecificCause()).willReturn(cause);
-    given(cause.getMessage()).willReturn(
-        "Unique index or primary key violation: uk_review_user_like");        // 발생한 제약 위반 예외 = 중복 리뷰 예외
     given(reviewLikeRepository.saveAndFlush(any(ReviewLike.class))).willThrow(exception);
 
     // when & then
