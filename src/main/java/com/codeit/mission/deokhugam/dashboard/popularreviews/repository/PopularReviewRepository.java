@@ -19,9 +19,9 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
       select pr
             from PopularReview pr
             where pr.snapshotId = :snapshotId
-            order by pr.score desc, pr.createdAt asc
+            order by pr.score desc, pr.createdAt asc, pr.id asc
       """)
-    // period 에 해당하는 인기 리뷰들을 점수 기준으로 내림차순으로 반환
+    // snapshot 에 해당하는 인기 리뷰들을 점수 기준으로 내림차순으로 반환
   List<PopularReview> findBySnapshotIdDescByScore(
       @Param("snapshotId") UUID snapshotId);
 
