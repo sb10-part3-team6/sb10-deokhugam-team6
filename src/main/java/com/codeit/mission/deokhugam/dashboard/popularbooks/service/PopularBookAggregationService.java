@@ -72,12 +72,7 @@ public class PopularBookAggregationService {
 
   @Transactional
   public void rankPopularBooks(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
-    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
-    Instant periodStart = periods.get(0);
-    Instant periodEnd = periods.get(1);
-
-    List<PopularBook> popularBooks = popularBookRepository.findByPeriodAndSnapshotIdDescByScore(
-        periodType, periodStart, periodEnd, snapshotId);
+    List<PopularBook> popularBooks = popularBookRepository.findBySnapshotIdDescByScore(snapshotId);
 
     long rank = 1L;
     double previousScore = Double.NaN;

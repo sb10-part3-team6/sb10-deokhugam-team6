@@ -63,7 +63,7 @@ class PopularBookRepositoryTest {
 
   @Test
   @DisplayName("기간별 인기 도서를 점수 기준 내림차순으로 조회 (성공)")
-  void findByPeriodAndSnapshotIdDescByScore_returnsRowsOrderedByScore() {
+  void findBySnapshotIdDescByScore_returnsRowsOrderedByScore() {
     Instant periodStart = Instant.parse("2026-04-14T00:00:00Z");
     Instant periodEnd = Instant.parse("2026-04-21T00:00:00Z");
 
@@ -83,14 +83,13 @@ class PopularBookRepositoryTest {
         120.0,
         Instant.parse("2026-04-07T00:00:00Z"),
         Instant.parse("2026-04-13T00:00:00Z"),
-        SNAPSHOT_ID);
+        OTHER_SNAPSHOT_ID);
 
     em.flush();
     em.clear();
 
     List<PopularBook> result =
-        popularBookRepository.findByPeriodAndSnapshotIdDescByScore(
-            PeriodType.WEEKLY, periodStart, periodEnd, SNAPSHOT_ID);
+        popularBookRepository.findBySnapshotIdDescByScore(SNAPSHOT_ID);
 
     assertEquals(2, result.size());
     assertEquals(highScore.getBookId(), result.get(0).getBookId());
