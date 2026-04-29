@@ -60,4 +60,22 @@ public class NotificationSchedulerTest {
 
     verify(jobLauncher, times(1)).run(eq(deleteOldNotificationsJob), any(JobParameters.class));
   }
+
+  @Test
+  @DisplayName("Job이 실패해도 스케줄러가 정상적으로 동작하는지 검증")
+  void runDeleteOldNotificationsJobFailed() throws Exception {
+    // given
+    JobExecution mockExecution = new JobExecution(1L);
+    mockExecution.setStatus(BatchStatus.FAILED);
+
+    given(jobLauncher.run(eq(deleteOldNotificationsJob), any(JobParameters.class)))
+      .willReturn(mockExecution);
+
+    // when
+    assertDoesNotThrow(() -> notificationBatchScheduler.runJob());
+
+    // then
+    // 스케쥴러가 살아있는지 검증
+    verify(jobLauncher, times(1)).run(eq(deleteOldNotificationsJob), any(JobParameters.class));
+  }
 }
