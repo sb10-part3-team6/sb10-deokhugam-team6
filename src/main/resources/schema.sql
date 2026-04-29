@@ -46,7 +46,7 @@ CREATE TABLE "reviews"
     FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
 );
 ALTER TABLE "reviews"
-    ADD CONSTRAINT "uk_book_user_status" UNIQUE ("book_id", "user_id", "deleted_at");
+    ADD CONSTRAINT "uk_book_user_deletedAt" UNIQUE ("book_id", "user_id", "deleted_at");
 
 CREATE TABLE "comments"
 (
