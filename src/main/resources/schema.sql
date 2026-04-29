@@ -47,8 +47,7 @@ CREATE TABLE "reviews"
 );
 
 CREATE UNIQUE INDEX "uk_book_user_active"
-    ON "reviews" ("book_id", "user_id")
-    WHERE "deleted_at" IS NULL;
+    ON "reviews" ("book_id", "user_id", "deleted_at");
 
 CREATE TABLE "comments"
 (
