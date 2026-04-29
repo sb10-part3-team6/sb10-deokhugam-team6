@@ -386,7 +386,7 @@ public class ReviewServiceImplement implements ReviewService {
 
   // 유효성 검증 (중복 검사): 사용자가 이미 특정 도서에 리뷰를 남긴 경우, 예외 발생
   private void validateDuplicateReview(UUID bookId, UUID userId) {
-    if (reviewRepository.existsByBookIdAndUserId(bookId, userId)) {
+    if (reviewRepository.existsByBookIdAndUserIdAndStatus(bookId, userId, ReviewStatus.ACTIVE)) {
       throw new DuplicateReviewException(bookId, userId);
     }
   }
