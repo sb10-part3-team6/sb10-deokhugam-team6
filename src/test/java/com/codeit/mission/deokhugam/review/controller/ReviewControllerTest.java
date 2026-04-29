@@ -1,15 +1,20 @@
 package com.codeit.mission.deokhugam.review.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
+import com.codeit.mission.deokhugam.review.dto.response.CursorPageResponseReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -101,6 +106,61 @@ public class ReviewControllerTest {
   /*
       리뷰 목록 조회
    */
+
+  // [성공]
+  @Test
+  @DisplayName("리뷰 목록 조회 성공")
+  void find_all_review_success() throws Exception {
+    // given
+    UUID userId = UUID.randomUUID();
+
+    // 목록 조회할 리뷰
+    ReviewDto firstReview = ReviewDto.builder()
+        .id(UUID.randomUUID())
+        .content("good")
+        .build();
+
+    ReviewDto secondReview = ReviewDto.builder()
+        .id(UUID.randomUUID())
+        .content("bad")
+        .build();
+
+    CursorPageResponseReviewDto<ReviewDto> response = CursorPageResponseReviewDto.<ReviewDto>builder()
+        .content(List.of(firstReview, secondReview))
+        .nextCursor(String.valueOf(secondReview.id()))
+        .nextAfter(Instant.now())
+        .size(50)
+        .hasNext(true)
+        .build();
+
+    given(reviewService.findAllByKeyword(eq(userId), any(ReviewSearchConditionDto.class)))
+        .willReturn(response);
+
+    // when & then
+    mockMvc.perform(get("/api/reviews")
+            .param("requestUserId", userId.toString())
+            .header("Deokhugam-Request-User-ID", userId.toString()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content[0].content").value("good"));
+  }
+
+  // [실패]
+  @Test
+  @DisplayName("리뷰 목록 조회 실패: 쿼리 파라미터의 유저 ID와 헤더의 유저 ID가 불일치할 경우, 400 Bad Request 반환")
+  void find_all_review_failure_mismatch() throws Exception {
+    // given
+    UUID queryUserId = UUID.randomUUID();
+    UUID headerUserId = UUID.randomUUID();
+
+    // when & then
+    mockMvc.perform(get("/api/reviews")
+            .param("requestUserId", queryUserId.toString())
+            .header("Deokhugam-Request-User-ID", headerUserId.toString()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.exceptionType").value("RequestUserMismatchException"));
+  }
+
 
   /*
       리뷰 등록
