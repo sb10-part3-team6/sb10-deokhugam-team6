@@ -243,7 +243,7 @@ public class ReviewControllerTest {
         5
     );
 
-    given(reviewService.create(any())).willThrow(new DuplicateReviewException(userId, bookId));
+    given(reviewService.create(any())).willThrow(new DuplicateReviewException(bookId, userId));
 
     // when & then
     mockMvc.perform(post("/api/reviews")
@@ -294,6 +294,7 @@ public class ReviewControllerTest {
   void update_review_failure_forbidden() throws Exception {
     // given
     UUID reviewId = UUID.randomUUID();
+    UUID authorId = UUID.randomUUID();
     UUID requestUserId = UUID.randomUUID();
 
     // 수정할 리뷰 정보
@@ -303,7 +304,7 @@ public class ReviewControllerTest {
     );
 
     given(reviewService.update(any(), any(), any())).willThrow(
-        new ReviewAuthorMismatchException(requestUserId, reviewId));
+        new ReviewAuthorMismatchException(authorId, requestUserId));
 
     // when & then
     mockMvc.perform(patch("/api/reviews/{reviewId}", reviewId)
@@ -395,14 +396,15 @@ public class ReviewControllerTest {
   void hardDelete_Forbidden_Failure() throws Exception {
     // given
     UUID reviewId = UUID.randomUUID();
-    UUID userId = UUID.randomUUID();        // 다른 사용자
+    UUID authorId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();        // 다른 사용자
 
-    doThrow(new ReviewAuthorMismatchException(reviewId, userId))
-        .when(reviewService).hardDelete(eq(reviewId), eq(userId));
+    doThrow(new ReviewAuthorMismatchException(authorId, requestUserId))
+        .when(reviewService).hardDelete(eq(authorId), eq(requestUserId));
 
     // when & then
     mockMvc.perform(delete("/api/reviews/{reviewId}/hard", reviewId)
-            .header("Deokhugam-Request-User-ID", userId.toString()))
+            .header("Deokhugam-Request-User-ID", requestUserId.toString()))
         .andExpect(status().isForbidden())
         // 만약 예외 응답에 타입이 찍힌다면 아래 줄 추가!
         .andExpect(jsonPath("$.exceptionType").value("ReviewAuthorMismatchException"));
