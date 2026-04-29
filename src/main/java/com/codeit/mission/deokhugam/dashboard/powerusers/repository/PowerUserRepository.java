@@ -79,15 +79,9 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
       """
           select pu
           from PowerUser pu
-          where pu.periodType = :periodType
-            and pu.periodStart = :periodStart
-            and pu.periodEnd = :periodEnd
-            and pu.snapshotId = :snapshotId
+          where pu.snapshotId = :snapshotId
           order by pu.score desc, pu.createdAt asc
           """)
-  List<PowerUser> findByPeriodDescByScore(
-      @Param("periodType") PeriodType periodType,
-      @Param("periodStart") Instant periodStart,
-      @Param("periodEnd") Instant periodEnd,
+  List<PowerUser> findBySnapshotIdDescByScore(
       @Param("snapshotId") UUID snapshotId);
 }
