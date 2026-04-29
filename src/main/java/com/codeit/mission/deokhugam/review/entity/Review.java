@@ -106,4 +106,8 @@ public class Review extends BaseEntity {
     this.status = ReviewStatus.DELETED;
     this.deletedAt = Instant.now();
   }
+
+  public boolean isActive() {
+    return this.status == ReviewStatus.ACTIVE;
+  }
 }

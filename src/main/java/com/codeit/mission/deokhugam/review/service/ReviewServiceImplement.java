@@ -268,8 +268,6 @@ public class ReviewServiceImplement implements ReviewService {
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
     Book targetBook = getBookEntityOrThrow(targetReview.getBook().getId());
-    boolean isActive = targetReview.getStatus() != ReviewStatus.DELETED;
-
     // 2. User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateUserActive(requestUser);
 
@@ -286,7 +284,7 @@ public class ReviewServiceImplement implements ReviewService {
     reviewRepository.delete(targetReview);
 
     // 6. 도서 리뷰 집계에 반영
-    if(isActive) {
+    if(targetReview.isActive()) {
       bookRepository.decrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
     }
 
