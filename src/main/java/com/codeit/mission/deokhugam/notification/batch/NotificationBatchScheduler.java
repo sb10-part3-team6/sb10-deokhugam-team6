@@ -22,7 +22,7 @@ public class NotificationBatchScheduler {
 
   // 매일 자정에 배치 작업 시작
   @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
-  public void runJob() throws Exception {
+  public void runJob() {
 
     try {
       JobParameters params = new JobParametersBuilder()
