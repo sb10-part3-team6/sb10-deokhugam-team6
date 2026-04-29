@@ -1,15 +1,18 @@
 package com.codeit.mission.deokhugam.user.batch;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,12 +57,16 @@ class UserHardDeleteSchedulerTest {
     when(jobLauncher.run(eq(userHardDeleteJob), any(JobParameters.class)))
         .thenReturn(execution);
 
-    // when - 두 번 실행
+    // when - 두 번 실행 (time 파라미터가 달라지도록 1ms 대기)
     scheduler.runUserHardDeleteJob();
+    Thread.sleep(1);
     scheduler.runUserHardDeleteJob();
 
-    // then - JobLauncher가 2회 호출되어야 함
-    verify(jobLauncher, times(2)).run(eq(userHardDeleteJob), any(JobParameters.class));
+    // then - JobLauncher가 2회 호출되고, 파라미터(time)가 달라야 함
+    ArgumentCaptor<JobParameters> paramsCaptor = ArgumentCaptor.forClass(JobParameters.class);
+    verify(jobLauncher, times(2)).run(eq(userHardDeleteJob), paramsCaptor.capture());
+    List<JobParameters> captured = paramsCaptor.getAllValues();
+    assertNotEquals(captured.get(0).getLong("time"), captured.get(1).getLong("time"));
   }
 
   @Test
