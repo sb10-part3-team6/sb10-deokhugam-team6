@@ -14,7 +14,9 @@ import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewUpdateRequest;
 import com.codeit.mission.deokhugam.review.dto.response.CursorPageResponseReviewDto;
 import com.codeit.mission.deokhugam.review.dto.response.ReviewDto;
+import com.codeit.mission.deokhugam.review.dto.response.ReviewLikeDto;
 import com.codeit.mission.deokhugam.review.exception.DuplicateReviewException;
+import com.codeit.mission.deokhugam.review.exception.DuplicateReviewLikeRequestException;
 import com.codeit.mission.deokhugam.review.exception.ReviewAuthorMismatchException;
 import com.codeit.mission.deokhugam.review.exception.ReviewNotFoundException;
 import com.codeit.mission.deokhugam.review.service.ReviewService;
@@ -410,4 +412,61 @@ public class ReviewControllerTest {
   /*
       리뷰 좋아요 및 취소
    */
+
+  // [성공]
+  @Test
+  @DisplayName("리뷰 좋아요 추가 성공")
+  void toggleLike_success() throws Exception {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    // 추가할 좋아요 정보
+    ReviewLikeDto response = ReviewLikeDto.builder()
+        .reviewId(reviewId)
+        .userId(userId)
+        .liked(true)
+        .build();
+
+    given(reviewService.toggleLike(reviewId, userId)).willReturn(response);
+
+    // when & then
+    mockMvc.perform(post("/api/reviews/{reviewId}/like", reviewId)
+            .header("Deokhugam-Request-User-ID", userId.toString()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.liked").value(true));
+  }
+
+  // [실패]
+  @Test
+  @DisplayName("좋아요 추가 실패: 존재하지 않는 리뷰에 좋아요 추가 요청을 보낸 경우, 404 Not Found 반환")
+  void toggleLike_failure_review_not_found() throws Exception {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    given(reviewService.toggleLike(eq(reviewId), eq(userId)))
+        .willThrow(new ReviewNotFoundException(reviewId));
+
+    // when & then
+    mockMvc.perform(post("/api/reviews/{reviewId}/like", reviewId)
+            .header("Deokhugam-Request-User-ID", userId.toString()))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.exceptionType").value("ReviewNotFoundException"));
+  }
+
+  // [실패]
+  @Test
+  @DisplayName("리뷰 좋아요 추가 실패: 동시성 이슈로 중복 요청 처리 발생한 경우, 409 Conflict 반환")
+  void toggleLike_failure_conflict() throws Exception {
+    UUID reviewId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    given(reviewService.toggleLike(reviewId, userId)).willThrow(
+        new DuplicateReviewLikeRequestException(reviewId, userId));
+
+    mockMvc.perform(post("/api/reviews/{reviewId}/like", reviewId)
+            .header("Deokhugam-Request-User-ID", userId.toString()))
+        .andExpect(status().isConflict());
+  }
 }
