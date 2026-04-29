@@ -208,7 +208,7 @@ public class ReviewServiceImplement implements ReviewService {
     // 1. Review / User / book 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
-    Book targetBook = targetReview.getBook();
+    Book targetBook = getBookEntityOrThrow(targetReview.getBook().getId());
 
     // 2. Review / Book / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
@@ -240,10 +240,10 @@ public class ReviewServiceImplement implements ReviewService {
   @Override
   @Transactional
   public void delete(UUID id, UUID requestUserId) {
-    // 1. Review / User 조회: 존재하지 않을 시, 오류 발생
+    // 1. Review / User/ Book 조회: 존재하지 않을 시, 오류 발생
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
-    Book targetBook = targetReview.getBook();
+    Book targetBook = getBookEntityOrThrow(targetReview.getBook().getId());
 
     // 2. Review / User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateReviewActive(targetReview);
