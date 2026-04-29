@@ -3,6 +3,7 @@ package com.codeit.mission.deokhugam.review.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -336,6 +337,35 @@ public class ReviewControllerTest {
   /*
       리뷰 논리 삭제
    */
+
+  // [성공]
+  @Test
+  @DisplayName("리뷰 논리 삭제 성공")
+  void logical_delete_review_success() throws Exception {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    // when & then
+    mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId)
+            .header("Deokhugam-Request-User-ID", userId.toString()))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  @DisplayName("리뷰 논리 삭제 실패: 삭제한 리뷰를 다시 삭제하고자 하는 경우, 404 Not Found 반환")
+  void logical_delete_review_failure() throws Exception {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    willThrow(new ReviewNotFoundException(reviewId)).given(reviewService).delete(reviewId, userId);
+
+    // when & then
+    mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId)
+            .header("Deokhugam-Request-User-ID", userId.toString()))
+        .andExpect(status().isNotFound());
+  }
 
 
   /*
