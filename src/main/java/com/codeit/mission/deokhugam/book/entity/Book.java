@@ -91,6 +91,12 @@ public class Book extends BaseEntity {
 
   //리뷰 삭제 (물리 삭제 시 활용)
   public void removeReview(int review) {
+    if (this.reviewCount <= 1) {
+      this.reviewCount = 0;
+      this.rating = 0;
+      return;
+    }
+
     this.rating = (this.rating * this.reviewCount - review) / (this.reviewCount - 1);
     this.reviewCount--;
   }
