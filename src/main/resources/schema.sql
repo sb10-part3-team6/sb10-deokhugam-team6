@@ -45,8 +45,9 @@ CREATE TABLE "reviews"
     FOREIGN KEY ("book_id") REFERENCES "books" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
 );
-ALTER TABLE "reviews"
-    ADD CONSTRAINT "uk_book_user" UNIQUE ("book_id", "user_id");
+
+CREATE UNIQUE INDEX "uk_book_user_active"
+    ON "reviews" ("book_id", "user_id", "deleted_at");
 
 CREATE TABLE "comments"
 (
@@ -167,7 +168,9 @@ CREATE TABLE "popular_books"
 );
 
 CREATE INDEX "idx_book_id_period_type_snap_shot_id" ON "popular_books" ("book_id", "period_type", "snapshot_id");
-CREATE INDEX "idx_period_snapshot_window_score" ON "popular_books" ("period_type", "snapshot_id", "period_start", "period_end", "score");
+CREATE INDEX "idx_period_snapshot_window_score" ON "popular_books" ("period_type", "snapshot_id",
+                                                                    "period_start", "period_end",
+                                                                    "score");
 
 
 CREATE TABLE "aggregate_snapshot"
