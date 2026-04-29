@@ -1,7 +1,5 @@
 package com.codeit.mission.deokhugam.dashboard.powerusers.service;
 
-import static java.lang.Double.NaN;
-
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.powerusers.dto.request.PowerUserLikeCount;
@@ -107,21 +105,11 @@ public class PowerUserAggregateService {
 
   @Transactional
   public void rankPowerUsers(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
-    List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
-
-    List<PowerUser> powers =
-        powerUserRepository.findByPeriodDescByScore(periodType, periods.get(0), periods.get(1),
-            snapshotId);
-    long rank = 1L;
-    double previousScore = NaN;
+    List<PowerUser> powers = powerUserRepository.findBySnapshotIdDescByScore(snapshotId);
     long index = 1L;
 
     for (PowerUser powerUser : powers) {
-      if (index == 1L || Double.compare(powerUser.getScore(), previousScore) != 0) {
-        rank = index;
-        previousScore = powerUser.getScore();
-      }
-      powerUser.updateRank(rank);
+      powerUser.updateRank(index);
       index++;
     }
   }
