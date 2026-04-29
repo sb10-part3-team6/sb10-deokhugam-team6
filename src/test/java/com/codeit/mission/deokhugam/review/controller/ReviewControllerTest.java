@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -371,6 +372,39 @@ public class ReviewControllerTest {
   /*
       리뷰 물리 삭제
    */
+
+  // [성공]
+  @Test
+  @DisplayName("리뷰 물리 삭제 성공")
+  void hard_delete_review_success() throws Exception {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    // when & then
+    mockMvc.perform(delete("/api/reviews/{reviewId}/hard", reviewId)
+            .header("Deokhugam-Request-User-ID", userId.toString()))
+        .andExpect(status().isNoContent());
+  }
+
+  // [실패]
+  @Test
+  @DisplayName("리뷰 물리 삭제 실패: 다른 사용자의 리뷰를 삭제하고자 하는 경우, 403 Forbidden 반환")
+  void hardDelete_Forbidden_Failure() throws Exception {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();        // 다른 사용자
+
+    doThrow(new ReviewAuthorMismatchException(reviewId, userId))
+        .when(reviewService).hardDelete(eq(reviewId), eq(userId));
+
+    // when & then
+    mockMvc.perform(delete("/api/reviews/{reviewId}/hard", reviewId)
+            .header("Deokhugam-Request-User-ID", userId.toString()))
+        .andExpect(status().isForbidden())
+        // 만약 예외 응답에 타입이 찍힌다면 아래 줄 추가!
+        .andExpect(jsonPath("$.exceptionType").value("ReviewAuthorMismatchException"));
+  }
 
 
   /*
