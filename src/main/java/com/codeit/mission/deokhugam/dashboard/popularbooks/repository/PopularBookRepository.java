@@ -17,16 +17,10 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
   @Query("""
       select pb
           from PopularBook pb
-              where pb.periodType = :periodType
-              and pb.snapshotId = :snapshotId
-              and pb.periodStart >= :periodStart
-              and pb.periodEnd <= :periodEnd
+              where pb.snapshotId = :snapshotId
           order by pb.score desc, pb.createdAt asc, pb.id asc
       """)
-  List<PopularBook> findByPeriodAndSnapshotIdDescByScore(
-      @Param("periodType") PeriodType periodType,
-      @Param("periodStart") Instant periodStart,
-      @Param("periodEnd") Instant periodEnd,
+  List<PopularBook> findBySnapshotIdDescByScore(
       @Param("snapshotId") UUID snapshotId
   );
 
