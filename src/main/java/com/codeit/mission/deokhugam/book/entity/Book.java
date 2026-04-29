@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.time.Instant;
@@ -81,18 +82,6 @@ public class Book extends BaseEntity {
     this.reviewCount = reviewCount;
     this.rating = rating;
     this.bookStatus = BookStatus.ACTIVE;
-  }
-
-  //리뷰 추가
-  public void addReview(int review) {
-    this.rating = (this.rating * this.reviewCount + review) / (this.reviewCount + 1);
-    this.reviewCount++;
-  }
-
-  //리뷰 삭제 (물리 삭제 시 활용)
-  public void removeReview(int review) {
-    this.rating = (this.rating * this.reviewCount - review) / (this.reviewCount - 1);
-    this.reviewCount--;
   }
 
   //논리 삭제 메서드
