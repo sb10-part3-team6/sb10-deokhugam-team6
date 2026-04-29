@@ -11,7 +11,7 @@ public class BatchTestController {
   private final DashboardBatchScheduler dashboardBatchScheduler;
 
   @PostMapping("/api/dashboard/aggregate")
-  public void ExecuteScheduler(){
+  public void executeScheduler(){
     dashboardBatchScheduler.runDashboardAggregation();
   }
 }
