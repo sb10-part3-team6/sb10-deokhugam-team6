@@ -23,10 +23,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class NotificationService {
 
@@ -36,6 +37,8 @@ public class NotificationService {
 
   private final NotificationMapper notificationMapper;
 
+  // 이벤트 발행자의 트랜잭션이 종료된 후 호출되므로 새로운 트랜잭션을 만들도록 해야함
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void createByLike(UUID senderId, UUID receiverId, UUID reviewId) {
     User sender = getUserOrThrow(senderId);
     User receiver = getUserOrThrow(receiverId);
@@ -47,6 +50,7 @@ public class NotificationService {
     );
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void createByComment(UUID senderId, UUID receiverId, UUID reviewId) {
     User sender = getUserOrThrow(senderId);
     User receiver = getUserOrThrow(receiverId);
@@ -58,6 +62,7 @@ public class NotificationService {
     );
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void createByReviewRanked(UUID userId, UUID reviewId) {
     User user = getUserOrThrow(userId);
     Review review = getReviewOrThrow(reviewId);
@@ -68,7 +73,6 @@ public class NotificationService {
     );
   }
 
-  @Transactional(readOnly = true)
   public CursorPageResponseNotificationDto findByUserId(UUID userId,
       NotificationRequestQuery query) {
 
@@ -108,6 +112,7 @@ public class NotificationService {
 
   }
 
+  @Transactional
   public NotificationDto updateById(UUID notificationId, UUID requestUserId,
       NotificationUpdateRequest requestDto) {
 
@@ -120,12 +125,14 @@ public class NotificationService {
     return notificationMapper.toDto(notification);
   }
 
+  @Transactional
   public void updateByUserId(UUID userId) {
     validateUserExists(userId);
     notificationRepository.updateAllAsConfirmed(userId);
   }
 
   // 현 시점을 기준으로 확인한 알림 중 1주일이 경과된 알림 삭제
+  @Transactional
   public void deleteNotificationsConfirmedBeforeOneWeek() {
     Instant cutoff = Instant.now().minus(1, ChronoUnit.WEEKS);
     notificationRepository.deleteByConfirmedTrueAndUpdatedAtBefore(cutoff);
