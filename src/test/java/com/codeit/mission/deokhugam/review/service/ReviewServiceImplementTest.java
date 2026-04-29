@@ -549,9 +549,9 @@ public class ReviewServiceImplementTest {
 
     given(exception.getMostSpecificCause()).willReturn(cause);
     given(cause.getMessage()).willReturn(
-        "Unique index or primary key violation: uk_book_user");        // 발생한 제약 위반 예외 = 중복 리뷰 예외
+        "Unique index or primary key violation: uk_book_user_active");        // 발생한 제약 위반 예외 = 중복 리뷰 예외
     given(reviewRepository.saveAndFlush(any(Review.class))).willThrow(
-        exception);                                                          // exception 반환
+        exception);                                                                 // exception 반환
 
     // when & then
     assertThrows(DuplicateReviewException.class, () -> {
