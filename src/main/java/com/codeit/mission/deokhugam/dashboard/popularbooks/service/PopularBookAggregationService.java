@@ -17,11 +17,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PopularBookAggregationService {
 
   // 인기 도서 점수에 필요한 가중치
@@ -38,6 +40,8 @@ public class PopularBookAggregationService {
     // 집계 기간 범위
     Instant periodStart = periods.get(0);
     Instant periodEnd = periods.get(1);
+    log.info("[POPULAR_BOOK_STAT_LOAD_START] periodType={}, periodStart={}, periodEnd={}",
+        periodType, periodStart, periodEnd);
 
     // 책 별 리뷰 개수
     Map<UUID, Long> reviewCountPerBook = new HashMap<>();
@@ -67,11 +71,15 @@ public class PopularBookAggregationService {
       statsByBookId.put(bookId, new PopularBookStat(bookId, reviewCount, avgRating));
     }
     // 책 별 지수를 반환한다.
+    log.info("[POPULAR_BOOK_STAT_LOAD_DONE] periodType={}, targetBookCount={}, reviewCountRows={}, avgRatingRows={}",
+        periodType, statsByBookId.size(), reviewCountPerBook.size(), avgRatingPerBook.size());
     return statsByBookId;
   }
 
   @Transactional
   public void rankPopularBooks(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
+    log.info("[POPULAR_BOOK_RANK_START] periodType={}, aggregatedAt={}, snapshotId={}",
+        periodType, aggregatedAt, snapshotId);
     List<PopularBook> popularBooks = popularBookRepository.findBySnapshotIdDescByScore(snapshotId);
 
     long index = 1L;
@@ -80,6 +88,8 @@ public class PopularBookAggregationService {
       popularBook.updateRank(index);
       index++;
     }
+    log.info("[POPULAR_BOOK_RANK_DONE] periodType={}, snapshotId={}, rankedCount={}",
+        periodType, snapshotId, popularBooks.size());
   }
 
   // 정보들을 바탕으로 인기 도서로 가공하는 메서드
