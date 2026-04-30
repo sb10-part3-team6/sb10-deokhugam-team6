@@ -54,6 +54,7 @@ SNAPSHOT_NOT_FOUND(HttpStatus.NOT_FOUND, "Snapshot is not found"),
 SNAPSHOT_ID_NOT_EQUAL(HttpStatus.CONFLICT, "Snapshot Ids are not equal"),
 SNAPSHOT_NOT_STAGE_BUT_PUBLISH(HttpStatus.BAD_REQUEST, "Only staging snapshot can be published"),
 DOMAIN_NOT_EQUAL(HttpStatus.CONFLICT, "Domain Types are not equal"),
+  KEEP_COUNT_INVALID(HttpStatus.BAD_REQUEST, "Keep Count should be greater than or equal to 2"),
 
 // 도서
 WRONG_FILE_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Wrong file type"),

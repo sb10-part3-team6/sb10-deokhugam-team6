@@ -29,7 +29,7 @@ public class CleanupOldSnapshotsTasklet implements Tasklet {
   @Value("#{jobExecutionContext['domainType']}")
   private String domainTypeValue;
 
-  @Value("${dashboard.snapshot.cleanup.keep-count:3}")
+  @Value("${dashboard.snapshot.cleanup.keep-count:2}")
   private int keepCount;
 
   @Override

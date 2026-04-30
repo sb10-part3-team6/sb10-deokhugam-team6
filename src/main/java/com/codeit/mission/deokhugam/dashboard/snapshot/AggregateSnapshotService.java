@@ -4,6 +4,7 @@ import com.codeit.mission.deokhugam.dashboard.DomainType;
 import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.StagingType;
 import com.codeit.mission.deokhugam.dashboard.exceptions.DomainTypeNotEqualException;
+import com.codeit.mission.deokhugam.dashboard.exceptions.InvalidKeepCountException;
 import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotFoundException;
 import com.codeit.mission.deokhugam.dashboard.exceptions.SnapshotNotStagedPublishException;
 import com.codeit.mission.deokhugam.dashboard.popularbooks.repository.PopularBookRepository;
@@ -102,6 +103,9 @@ public class AggregateSnapshotService {
   // 오래된 스냅샷들을 정리한다.
   @Transactional
   public void cleanupOldSnapshots(DomainType domainType, PeriodType periodType, int keepCount) {
+    if(keepCount < 2){
+      throw new InvalidKeepCountException(keepCount);
+    }
     List<AggregateSnapshot> snapshots = snapshotRepository.findByDomainTypeAndPeriodTypeAndStagingTypeInOrderByCreatedAtDesc(
         domainType,
         periodType,
