@@ -400,7 +400,7 @@ public class ReviewControllerTest {
     UUID requestUserId = UUID.randomUUID();        // 다른 사용자
 
     doThrow(new ReviewAuthorMismatchException(authorId, requestUserId))
-        .when(reviewService).hardDelete(eq(authorId), eq(requestUserId));
+        .when(reviewService).hardDelete(eq(reviewId), eq(requestUserId));
 
     // when & then
     mockMvc.perform(delete("/api/reviews/{reviewId}/hard", reviewId)

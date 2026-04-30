@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -74,6 +75,9 @@ public class ReviewServiceImplementTest {
 
   @Mock
   private ReviewLikeMapper reviewLikeMapper;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private ReviewServiceImplement reviewServiceImplement;
@@ -955,6 +959,7 @@ public class ReviewServiceImplementTest {
         .review(savedReview)
         .user(mockUser)
         .build();
+    ReflectionTestUtils.setField(createdReviewLike, "id", UUID.randomUUID());
 
     given(reviewLikeMapper.toEntity(savedReview, mockUser)).willReturn(createdReviewLike);
 
