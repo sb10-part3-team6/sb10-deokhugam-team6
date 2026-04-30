@@ -162,22 +162,27 @@ public class NotificationServiceTest {
       // given
       UUID receiverId = UUID.randomUUID();
       UUID reviewId = UUID.randomUUID();
+      List<UUID> reviewIds = List.of(reviewId);
 
       User receiver = createUser("작성자");
       Review review = createReview(receiver);
-
-      given(userRepository.findById(receiverId)).willReturn(Optional.of(receiver));
-      given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
+      
+      given(reviewRepository.findByIdIn(reviewIds)).willReturn(List.of(review));
 
       // when
-      notificationService.createByReviewRanked(reviewId);
+      notificationService.createByReviewRanked(reviewIds);
 
       // then
-      ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-      verify(notificationRepository).save(captor.capture());
+      ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+      verify(notificationRepository).saveAll(captor.capture());
 
-      Notification saved = captor.getValue();
+      List<Notification> savedList = captor.getValue();
 
+      // 저장된 알림 수 확인
+      assertThat(savedList).hasSize(1);
+
+      // 알림 객체 확인
+      Notification saved = savedList.get(0);
       assertThat(saved.getUser()).isSameAs(receiver);   // 동일 객체인지
       assertThat(saved.getReview()).isSameAs(review);
       assertThat(saved.getReviewContent()).isEqualTo("리뷰 내용");

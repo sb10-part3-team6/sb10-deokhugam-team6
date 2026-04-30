@@ -7,6 +7,7 @@ import com.codeit.mission.deokhugam.notification.event.CommentRegisteredEvent;
 import com.codeit.mission.deokhugam.notification.event.ReviewLikedEvent;
 import com.codeit.mission.deokhugam.notification.event.ReviewRankedEvent;
 import com.codeit.mission.deokhugam.notification.service.NotificationService;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,15 +68,16 @@ public class NotificationEventListenerTest {
   void handleReviewRankedEvent() {
     // given
     UUID reviewId = UUID.randomUUID();
+    List<UUID> reviewIds = List.of(reviewId);
 
     ReviewRankedEvent event =
-      new ReviewRankedEvent(reviewId);
+      new ReviewRankedEvent(reviewIds);
 
     // when
     notificationEventListener.handleReviewRankedEvent(event);
 
     // then
-    verify(notificationService).createByReviewRanked(reviewId);
+    verify(notificationService).createByReviewRanked(reviewIds);
     verifyNoMoreInteractions(notificationService);
   }
 }
