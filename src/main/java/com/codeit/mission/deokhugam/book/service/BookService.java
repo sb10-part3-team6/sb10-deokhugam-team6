@@ -187,8 +187,8 @@ public class BookService {
 
   public String ocrIsbnDetect(MultipartFile image) {
 
-    log.info("OCR 요청 시작 - filename={}, size={}",
-        image != null ? image.getOriginalFilename() : "null",
+    log.info("OCR 요청 시작 - hasImage={}, size={}",
+        image != null,
         image != null ? image.getSize() : 0
     );
 
@@ -248,9 +248,7 @@ public class BookService {
       throw new OcrFailedException();
     }
 
-    log.debug("OCR 추출 텍스트 일부: {}",
-        parsedText.length() > 100 ? parsedText.substring(0, 100) : parsedText
-    );
+    log.debug("OCR 추출 텍스트 길이 - length={}", parsedText.length());
 
     String isbn = extractIsbn(parsedText);
 
@@ -290,8 +288,7 @@ public class BookService {
       lineIndex++;
 
       // 너무 긴 로그 방지
-      String preview = line.length() > 80 ? line.substring(0, 80) : line;
-      log.debug("라인 검사 [{}] - {}", lineIndex, preview);
+      log.debug("라인 검사 - index={}, length={}", lineIndex, line.length());
 
       // 4. 라인 단위 OCR 보정
       String normalizedLine = line
@@ -304,11 +301,11 @@ public class BookService {
       while (matcher.find()) {
         String raw = matcher.group();
 
-        log.debug("정규식 매칭 발견 - raw={}", raw);
+        log.debug("정규식 매칭 발견 - rawLength={}", raw.length());
 
         // 5. 숫자만 남기기
         String isbn = raw.replaceAll("[^0-9X]", "");
-        log.debug("정제된 ISBN 후보 - {}", isbn);
+        log.debug("정제된 ISBN 후보 생성");
 
         // 6. 검증
         if (isbn.length() == 13) {
