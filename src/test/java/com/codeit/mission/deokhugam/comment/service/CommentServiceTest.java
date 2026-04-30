@@ -154,6 +154,26 @@ public class CommentServiceTest {
   }
 
   @Test
+  @DisplayName("댓글 생성 실패 - 유저가 존재하지 않음")
+  void createCommentFailByUserNotFound() {
+    // given
+    CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "test content");
+
+    Review review = mock(Review.class);
+    given(review.getStatus()).willReturn(ReviewStatus.ACTIVE);
+
+    given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
+    given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> commentService.createComment(request))
+            .isInstanceOf(UserNotFoundException.class);
+
+    verify(commentRepository, never()).saveAndFlush(any());
+    verify(reviewRepository, never()).incrementCommentCount(any());
+  }
+
+  @Test
   @DisplayName("댓글 생성 실패 - 유저가 삭제 상태")
   void createCommentFailByDeletedUser() {
     // given
@@ -252,6 +272,50 @@ public class CommentServiceTest {
   }
 
   @Test
+  @DisplayName("댓글 수정 실패 - 요청 유저가 존재하지 않음")
+  void updateCommentFailByUserNotFound() {
+    // given
+    CommentUpdateRequest request = new CommentUpdateRequest("updated content");
+
+    given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> commentService.updateComment(commentId, userId, request))
+            .isInstanceOf(UserNotFoundException.class);
+
+    verify(commentRepository, never()).findById(any());
+    verify(commentRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("댓글 수정 실패 - 댓글이 삭제 상태")
+  void updateCommentFailByDeletedComment() {
+    // given
+    CommentUpdateRequest request = new CommentUpdateRequest("updated content");
+
+    User user = mock(User.class);
+    given(user.getStatus()).willReturn(UserStatus.ACTIVE);
+
+    Comment deletedComment = Comment.builder()
+            .reviewId(reviewId)
+            .userId(userId)
+            .content("deleted content")
+            .status(CommentStatus.DELETED)
+            .build();
+
+    ReflectionTestUtils.setField(deletedComment, "id", commentId);
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(deletedComment));
+
+    // when & then
+    assertThatThrownBy(() -> commentService.updateComment(commentId, userId, request))
+            .isInstanceOf(CommentNotFoundException.class);
+
+    verify(commentRepository, never()).save(any());
+  }
+
+  @Test
   @DisplayName("댓글 상세 조회 성공")
   void findCommentSuccess() {
     // given
@@ -286,6 +350,29 @@ public class CommentServiceTest {
 
     verify(commentRepository).findById(commentId);
     verify(userRepository, never()).findById(any());
+  }
+
+  @Test
+  @DisplayName("댓글 상세 조회 실패 - 댓글이 삭제 상태")
+  void findCommentFailByDeletedComment() {
+    // given
+    Comment deletedComment = Comment.builder()
+            .reviewId(reviewId)
+            .userId(userId)
+            .content("deleted content")
+            .status(CommentStatus.DELETED)
+            .build();
+
+    ReflectionTestUtils.setField(deletedComment, "id", commentId);
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(deletedComment));
+
+    // when & then
+    assertThatThrownBy(() -> commentService.findComment(commentId))
+            .isInstanceOf(CommentNotFoundException.class);
+
+    verify(userRepository, never()).findById(any());
+    verify(commentMapper, never()).toDto(any(), any());
   }
 
   @Test
@@ -509,6 +596,20 @@ public class CommentServiceTest {
   }
 
   @Test
+  @DisplayName("댓글 논리 삭제 실패 - 댓글이 존재하지 않음")
+  void softDeleteFailByCommentNotFound() {
+    // given
+    given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> commentService.softDelete(commentId, userId))
+            .isInstanceOf(CommentNotFoundException.class);
+
+    verify(userRepository, never()).findById(any());
+    verify(reviewRepository, never()).decrementCommentCount(any());
+  }
+
+  @Test
   @DisplayName("댓글 물리 삭제 실패 - 작성자 불일치")
   void hardDeleteCommentFail() {
     // given
@@ -527,6 +628,21 @@ public class CommentServiceTest {
     verify(commentRepository).findById(commentId);
     verify(userRepository).findById(otherUserId);
     verify(commentRepository, never()).deleteById(any(UUID.class));
+    verify(reviewRepository, never()).decrementCommentCount(any());
+  }
+
+  @Test
+  @DisplayName("댓글 물리 삭제 실패 - 댓글이 존재하지 않음")
+  void hardDeleteFailByCommentNotFound() {
+    // given
+    given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> commentService.hardDelete(commentId, userId))
+            .isInstanceOf(CommentNotFoundException.class);
+
+    verify(userRepository, never()).findById(any());
+    verify(commentRepository, never()).deleteById(any());
     verify(reviewRepository, never()).decrementCommentCount(any());
   }
 }

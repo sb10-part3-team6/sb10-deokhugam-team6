@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -131,6 +132,33 @@ public class GlobalExceptionHandler {
         error.message(),
         e.getHeaderName()
     );
+    return ResponseEntity.status(error.status()).body(error);
+  }
+
+  // 필수 헤더 누락 오류 (@RequestHeader)
+  @ExceptionHandler(MissingRequestHeaderException.class)
+  public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(
+          MissingRequestHeaderException e
+  ) {
+    ErrorCode errorCode = ErrorCode.MISSING_REQUEST_HEADER;
+
+    Map<String, Object> details = new HashMap<>();
+    details.put("header", e.getHeaderName());
+
+    ErrorResponse error = ErrorResponse.builder()
+            .timestamp(Instant.now())
+            .code(errorCode.name())
+            .message(errorCode.getMessage())
+            .details(details)
+            .exceptionType(e.getClass().getSimpleName())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .build();
+
+    log.warn("[MISSING_HEADER_EXCEPTION] ERROR_CODE={}, Message={}",
+            error.code(),
+            error.message()
+    );
+
     return ResponseEntity.status(error.status()).body(error);
   }
 
