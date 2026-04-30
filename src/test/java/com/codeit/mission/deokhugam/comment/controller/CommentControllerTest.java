@@ -159,7 +159,9 @@ class CommentControllerTest {
         mockMvc.perform(patch("/api/comments/{commentId}", commentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MISSING_REQUEST_HEADER"))
+                .andExpect(jsonPath("$.details.header").value("Deokhugam-Request-User-ID"));
     }
 
     @Test
@@ -309,7 +311,9 @@ class CommentControllerTest {
 
         // when & then
         mockMvc.perform(delete("/api/comments/{commentId}", commentId))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MISSING_REQUEST_HEADER"))
+                .andExpect(jsonPath("$.details.header").value("Deokhugam-Request-User-ID"));
     }
 
     @Test
@@ -337,6 +341,8 @@ class CommentControllerTest {
 
         // when & then
         mockMvc.perform(delete("/api/comments/{commentId}/hard", commentId))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MISSING_REQUEST_HEADER"))
+                .andExpect(jsonPath("$.details.header").value("Deokhugam-Request-User-ID"));
     }
 }

@@ -8,7 +8,6 @@ import com.codeit.mission.deokhugam.comment.dto.request.CommentFindAllRequest;
 import com.codeit.mission.deokhugam.comment.entity.Comment;
 import com.codeit.mission.deokhugam.comment.entity.CommentStatus;
 import com.codeit.mission.deokhugam.review.entity.Review;
-import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
@@ -203,6 +202,92 @@ class CommentRepositoryTest {
     }
 
     @Test
+    @DisplayName("ASC 커서 조회는 동일 createdAt에서 cursor id보다 큰 댓글만 조회한다")
+    void findAllByCursor_ascSameCreatedAtUsesIdTieBreaker() {
+        // given
+        UUID reviewId = createReview();
+        Instant sameCreatedAt = Instant.parse("2026-01-01T00:00:00Z");
+
+        Comment c1 = commentRepository.save(
+                createCommentWithCreatedAt(reviewId, createUserId(), "댓글1", CommentStatus.ACTIVE, sameCreatedAt)
+        );
+        Comment c2 = commentRepository.save(
+                createCommentWithCreatedAt(reviewId, createUserId(), "댓글2", CommentStatus.ACTIVE, sameCreatedAt)
+        );
+        Comment c3 = commentRepository.save(
+                createCommentWithCreatedAt(reviewId, createUserId(), "댓글3", CommentStatus.ACTIVE, sameCreatedAt)
+        );
+
+        em.flush();
+        em.clear();
+
+        List<Comment> sorted = List.of(c1, c2, c3).stream()
+                .sorted((a, b) -> a.getId().compareTo(b.getId()))
+                .toList();
+
+        UUID cursorId = sorted.get(1).getId();
+        UUID expectedId = sorted.get(2).getId();
+
+        CommentFindAllRequest request = new CommentFindAllRequest(
+                reviewId,
+                "ASC",
+                cursorId.toString(),
+                sameCreatedAt,
+                10
+        );
+
+        // when
+        List<Comment> results = commentRepository.findAllByCursor(request);
+
+        // then
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getId()).isEqualTo(expectedId);
+    }
+
+    @Test
+    @DisplayName("DESC 커서 조회는 동일 createdAt에서 cursor id보다 작은 댓글만 조회한다")
+    void findAllByCursor_descSameCreatedAtUsesIdTieBreaker() {
+        // given
+        UUID reviewId = createReview();
+        Instant sameCreatedAt = Instant.parse("2026-01-01T00:00:00Z");
+
+        Comment c1 = commentRepository.save(
+                createCommentWithCreatedAt(reviewId, createUserId(), "댓글1", CommentStatus.ACTIVE, sameCreatedAt)
+        );
+        Comment c2 = commentRepository.save(
+                createCommentWithCreatedAt(reviewId, createUserId(), "댓글2", CommentStatus.ACTIVE, sameCreatedAt)
+        );
+        Comment c3 = commentRepository.save(
+                createCommentWithCreatedAt(reviewId, createUserId(), "댓글3", CommentStatus.ACTIVE, sameCreatedAt)
+        );
+
+        em.flush();
+        em.clear();
+
+        List<Comment> sorted = List.of(c1, c2, c3).stream()
+                .sorted((a, b) -> a.getId().compareTo(b.getId()))
+                .toList();
+
+        UUID expectedId = sorted.get(0).getId();
+        UUID cursorId = sorted.get(1).getId();
+
+        CommentFindAllRequest request = new CommentFindAllRequest(
+                reviewId,
+                "DESC",
+                cursorId.toString(),
+                sameCreatedAt,
+                10
+        );
+
+        // when
+        List<Comment> results = commentRepository.findAllByCursor(request);
+
+        // then
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getId()).isEqualTo(expectedId);
+    }
+
+    @Test
     @DisplayName("사용자 ID 목록으로 댓글을 일괄 삭제한다")
     void deleteByUserIds_success() {
         // given
@@ -335,5 +420,25 @@ class CommentRepositoryTest {
         ReflectionTestUtils.setField(user, "updatedAt", now);
 
         return userRepository.save(user).getId();
+    }
+
+    private Comment createCommentWithCreatedAt(
+            UUID reviewId,
+            UUID userId,
+            String content,
+            CommentStatus status,
+            Instant createdAt
+    ) {
+        Comment comment = Comment.builder()
+                .reviewId(reviewId)
+                .userId(userId)
+                .content(content)
+                .status(status)
+                .build();
+
+        ReflectionTestUtils.setField(comment, "createdAt", createdAt);
+        ReflectionTestUtils.setField(comment, "updatedAt", createdAt);
+
+        return comment;
     }
 }
