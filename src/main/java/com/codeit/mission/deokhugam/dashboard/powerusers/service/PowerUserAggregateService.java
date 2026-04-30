@@ -21,11 +21,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PowerUserAggregateService {
 
   private static final double REVIEW_SCORE_WEIGHT = 0.5d;
@@ -44,13 +46,17 @@ public class PowerUserAggregateService {
   public Map<UUID, UserStat> loadUserStats(PeriodType periodType, Instant aggregatedAt) {
     // periodType과 aggregatedAt 기준으로 산정할 기간을 측정
     List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
+    Instant periodStart = periods.get(0);
+    Instant periodEnd = periods.get(1);
+    log.info("[POWER_USER_STAT_LOAD_START] periodType={}, periodStart={}, periodEnd={}",
+        periodType, periodStart, periodEnd);
 
     // <유저 ID, 댓글 수> 형태의 Map
     Map<UUID, Long> commentCounts = new HashMap<>();
 
     // commentRepository에서 User별 댓글 수를 뽑아온 다음, 순회
-    for (UserCommentCount commentCount : commentRepository.findUserCommentCounts(periods.get(0),
-        periods.get(1))) {
+    for (UserCommentCount commentCount : commentRepository.findUserCommentCounts(periodStart,
+        periodEnd)) {
       commentCounts.put(commentCount.userId(),
           commentCount.commentCount()); // commentCounts 해쉬맵에 삽입
     }
@@ -60,7 +66,7 @@ public class PowerUserAggregateService {
 
     // reviewRepository에서 User별 리뷰 점수의 합계를 뽑아온 다음 순회함.
     for (UserReviewAggregate reviewAggregate
-        : reviewRepository.findUserReviewAggregates(periods.get(0), periods.get(1),
+        : reviewRepository.findUserReviewAggregates(periodStart, periodEnd,
         ReviewStatus.ACTIVE)) {
       reviewScoreSums.put(reviewAggregate.userId(), reviewAggregate.reviewScoreSum());
     }
@@ -69,8 +75,8 @@ public class PowerUserAggregateService {
     // 추후 리뷰 도메인 쪽에서 좋아요 관련 기능을 보고 더 고도화 할 예정
     Map<UUID, Long> likeCounts = new HashMap<>();
     // reviewLikeRepository에서 User별 누른 좋아요 수를 뽑아온 다음 순회함.
-    for (PowerUserLikeCount likeCount : reviewLikeRepository.findUserLikeCounts(periods.get(0),
-        periods.get(1))) {
+    for (PowerUserLikeCount likeCount : reviewLikeRepository.findUserLikeCounts(periodStart,
+        periodEnd)) {
       likeCounts.put(likeCount.userId(), likeCount.likeCount());
     }
 
@@ -100,11 +106,17 @@ public class PowerUserAggregateService {
               calculateScore(reviewScoreSum, likeCount, commentCount)));
     }
     // 모든 유저 별 스탯 Map을 리턴함.
+    log.info(
+        "[POWER_USER_STAT_LOAD_DONE] periodType={}, targetUserCount={}, commentCountRows={}, reviewScoreRows={}, likeCountRows={}",
+        periodType, statsByUserId.size(), commentCounts.size(), reviewScoreSums.size(),
+        likeCounts.size());
     return statsByUserId;
   }
 
   @Transactional
   public void rankPowerUsers(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
+    log.info("[POWER_USER_RANK_START] periodType={}, aggregatedAt={}, snapshotId={}",
+        periodType, aggregatedAt, snapshotId);
     List<PowerUser> powers = powerUserRepository.findBySnapshotIdDescByScore(snapshotId);
     long index = 1L;
 
@@ -112,6 +124,8 @@ public class PowerUserAggregateService {
       powerUser.updateRank(index);
       index++;
     }
+    log.info("[POWER_USER_RANK_DONE] periodType={}, snapshotId={}, rankedCount={}",
+        periodType, snapshotId, powers.size());
   }
 
   // User에서 PowerUser로 변환하는 메서드

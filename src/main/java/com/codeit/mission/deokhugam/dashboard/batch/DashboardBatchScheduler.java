@@ -6,7 +6,9 @@ import com.codeit.mission.deokhugam.dashboard.exceptions.DashboardBatchJobFailEx
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 // 대시보드 도메인 관련 배치 작업 스케쥴러
 // Job을 총괄하는 역할?
 public class DashboardBatchScheduler {
@@ -29,6 +32,7 @@ public class DashboardBatchScheduler {
   public void runDashboardAggregation() {
     // 집계 시작 시간은 00:00.00.0
     Instant aggregatedAt = Instant.now();
+    log.info("[DASHBOARD_AGGREGATION_START] aggregatedAt={}", aggregatedAt);
 
     // DomainType을 순회
     for (DomainType domainType : List.of(
@@ -47,6 +51,7 @@ public class DashboardBatchScheduler {
         runJob(domainType, periodType, aggregatedAt);
       }
     }
+    log.info("[DASHBOARD_AGGREGATION_DONE] aggregatedAt={}", aggregatedAt);
   }
 
   // Job을 실행하는 실질적인 주체
@@ -68,8 +73,14 @@ public class DashboardBatchScheduler {
 
     try {
       // 해당 Job을 파라미터와 함께 실행한다.
-      jobLauncher.run(job, params);
+      log.info("[DASHBOARD_JOB_START] domainType={}, periodType={}, aggregatedAt={}",
+          domainType, periodType, aggregatedAt);
+      JobExecution execution = jobLauncher.run(job, params);
+      log.info("[DASHBOARD_JOB_DONE] domainType={}, periodType={}, status={}, exitStatus={}",
+          domainType, periodType, execution.getStatus(), execution.getExitStatus().getExitCode());
     } catch (Exception e) {
+      log.error("[DASHBOARD_JOB_FAILED] domainType={}, periodType={}, aggregatedAt={}",
+          domainType, periodType, aggregatedAt, e);
       throw new DashboardBatchJobFailException(domainType, periodType, e);
     }
   }
