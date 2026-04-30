@@ -17,6 +17,8 @@ public enum ErrorCode {
       "Method not allowed"),                        // HTTP 메서드 오류
   MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST,
       "Missing request parameter"),                 // 필수 파라미터 누락
+  MISSING_REQUEST_HEADER(HttpStatus.BAD_REQUEST,
+          "Missing request header"),            // 필수 헤더 누락
   METHOD_ARGUMENT_TYPE_MISMATCH(HttpStatus.BAD_REQUEST,
       "Method argument type mismatch"),         // 파라미터 타입 불일치
   INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,
