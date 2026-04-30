@@ -16,7 +16,11 @@ public class BookDeletedEventListener {
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(BookDeletedEvent event) {
-    log.info("이벤트 발행 완료");
-    bookImageService.deleteFileByUrl(event.thumbnailUrl());
+    try{
+      log.info("이벤트 발행 완료");
+      bookImageService.deleteFileByUrl(event.thumbnailUrl());
+    }catch (Exception e){
+      log.error("도서 썸네일 삭제 실패", e);
+    }
   }
 }
