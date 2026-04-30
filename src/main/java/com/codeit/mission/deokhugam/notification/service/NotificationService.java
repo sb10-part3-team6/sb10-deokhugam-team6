@@ -18,6 +18,7 @@ import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -63,13 +64,18 @@ public class NotificationService {
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void createByReviewRanked(UUID reviewId) {
-    Review review = getReviewOrThrow(reviewId);
+  public void createByReviewRanked(List<UUID> reviewIds) {
+    List<Review> reviews = reviewRepository.findByIdIn(reviewIds);
+    List<Notification> newNotifications = new ArrayList<>();
 
-    notificationRepository.save(
-        // fixme: 인기 리뷰 알림 메시지 예시를 확인할 수 없어서 임시로 작성
-        createNotification(user, review, "나의 리뷰가 인기 리뷰로 등록되었습니다.")
+    // fixme: 인기 리뷰 알림 메시지 예시를 확인할 수 없어서 임시로 작성
+    reviews.forEach(review ->
+      newNotifications.add(
+        createNotification(review.getUser(), review, "나의 리뷰가 인기 리뷰로 등록되었습니다.")
+      )
     );
+
+    notificationRepository.saveAll(newNotifications);
   }
 
   public CursorPageResponseNotificationDto findByUserId(UUID userId,

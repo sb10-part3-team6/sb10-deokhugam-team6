@@ -78,10 +78,13 @@ public class PopularReviewAggregateService {
     for (PopularReview popularReview : popularReviews) {
       popularReview.updateRank(index);
       index++;
-
-      // 인기 리뷰 알림 이벤트 발행
-      eventPublisher.publishEvent(new ReviewRankedEvent(popularReview.getReviewId()));
     }
+
+    // 인기 리뷰 알림 이벤트 발행
+    List<UUID> reviewIds = popularReviews.stream()
+      .map(PopularReview::getReviewId)
+      .toList();
+    eventPublisher.publishEvent(new ReviewRankedEvent(reviewIds));
   }
 
   public PopularReview toPopularReview(
