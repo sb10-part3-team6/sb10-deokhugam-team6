@@ -17,9 +17,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -41,6 +43,8 @@ public class UserService {
     User user = userMapper.toEntity(request);
     User savedUser = userRepository.save(user);
 
+    log.info("[USER_REGISTER] Registered User Id: {}", savedUser.getId());
+
     return userMapper.toDto(savedUser);
   }
 
@@ -51,6 +55,8 @@ public class UserService {
     if (!user.getPassword().equals(request.password())) {
       throw new LoginFailedException();
     }
+
+    log.info("[USER_LOGIN] Logged in User Id: {}", user.getId());
 
     return userMapper.toDto(user);
   }
@@ -64,6 +70,8 @@ public class UserService {
     User user = findUserById(id);
 
     user.updateNickname(request.nickname());
+    log.info("[USER_UPDATE] Updated User Nickname Id: {}", user.getId());
+
     return userMapper.toDto(user);
   }
 
@@ -72,6 +80,7 @@ public class UserService {
     User user = findUserById(id);
 
     userRepository.delete(user);
+    log.info("[USER_LOGICAL_DELETE] Logical Deleted User Id: {}", user.getId());
   }
 
   @Transactional
@@ -99,6 +108,8 @@ public class UserService {
     if (deletedCount != 1) {
       throw new IllegalStateException("삭제 대상 유저가 존재하지 않거나 이미 삭제되었습니다. ID: " + id);
     }
+    
+    log.info("[USER_HARD_DELETE] Hard Deleted User Id: {}", id);
   }
 
   private User findUserById(UUID id) {
