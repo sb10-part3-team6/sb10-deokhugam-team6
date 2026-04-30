@@ -165,13 +165,6 @@ public class NotificationService {
       updatedCount);
   }
 
-  // 현 시점을 기준으로 확인한 알림 중 1주일이 경과된 알림 삭제
-  @Transactional
-  public void deleteNotificationsConfirmedBeforeOneWeek() {
-    Instant cutoff = Instant.now().minus(1, ChronoUnit.WEEKS);
-    notificationRepository.deleteByConfirmedTrueAndUpdatedAtBefore(cutoff);
-  }
-
   private Notification createNotification(
       User receiver,
       Review review,
