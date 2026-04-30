@@ -7,6 +7,7 @@ import com.codeit.mission.deokhugam.notification.event.CommentRegisteredEvent;
 import com.codeit.mission.deokhugam.notification.event.ReviewLikedEvent;
 import com.codeit.mission.deokhugam.notification.event.ReviewRankedEvent;
 import com.codeit.mission.deokhugam.notification.service.NotificationService;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,65 +19,65 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class NotificationEventListenerTest {
 
-    @Mock
-    private NotificationService notificationService;
+  @Mock
+  private NotificationService notificationService;
 
-    @InjectMocks
-    private NotificationEventListener notificationEventListener;
+  @InjectMocks
+  private NotificationEventListener notificationEventListener;
 
-    @Test
-    @DisplayName("댓글 등록 이벤트 발생 시 알림 생성")
-    void handleCommentRegisteredEvent() {
-        // given
-        UUID actorId = UUID.randomUUID();
-        UUID receiverId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
+  @Test
+  @DisplayName("댓글 등록 이벤트 발생 시 알림 생성")
+  void handleCommentRegisteredEvent() {
+    // given
+    UUID actorId = UUID.randomUUID();
+    UUID receiverId = UUID.randomUUID();
+    UUID reviewId = UUID.randomUUID();
 
-        CommentRegisteredEvent event =
-            new CommentRegisteredEvent(actorId, receiverId, reviewId);
+    CommentRegisteredEvent event =
+      new CommentRegisteredEvent(actorId, receiverId, reviewId);
 
-        // when
-        notificationEventListener.handleCommentRegisteredEvent(event);
+    // when
+    notificationEventListener.handleCommentRegisteredEvent(event);
 
-        // then
-        verify(notificationService).createByComment(actorId, receiverId, reviewId);
-        verifyNoMoreInteractions(notificationService);
-    }
+    // then
+    verify(notificationService).createByComment(actorId, receiverId, reviewId);
+    verifyNoMoreInteractions(notificationService);
+  }
 
-    @Test
-    @DisplayName("리뷰 좋아요 이벤트 발생 시 알림 생성")
-    void handleReviewLikedEvent() {
-        // given
-        UUID actorId = UUID.randomUUID();
-        UUID receiverId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
+  @Test
+  @DisplayName("리뷰 좋아요 이벤트 발생 시 알림 생성")
+  void handleReviewLikedEvent() {
+    // given
+    UUID actorId = UUID.randomUUID();
+    UUID receiverId = UUID.randomUUID();
+    UUID reviewId = UUID.randomUUID();
 
-        ReviewLikedEvent event =
-            new ReviewLikedEvent(actorId, receiverId, reviewId);
+    ReviewLikedEvent event =
+      new ReviewLikedEvent(actorId, receiverId, reviewId);
 
-        // when
-        notificationEventListener.handleReviewLikedEvent(event);
+    // when
+    notificationEventListener.handleReviewLikedEvent(event);
 
-        // then
-        verify(notificationService).createByLike(actorId, receiverId, reviewId);
-        verifyNoMoreInteractions(notificationService);
-    }
+    // then
+    verify(notificationService).createByLike(actorId, receiverId, reviewId);
+    verifyNoMoreInteractions(notificationService);
+  }
 
-    @Test
-    @DisplayName("리뷰 랭킹 이벤트 발생 시 알림 생성")
-    void handleReviewRankedEvent() {
-        // given
-        UUID receiverId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
+  @Test
+  @DisplayName("리뷰 랭킹 이벤트 발생 시 알림 생성")
+  void handleReviewRankedEvent() {
+    // given
+    UUID reviewId = UUID.randomUUID();
+    List<UUID> reviewIds = List.of(reviewId);
 
-        ReviewRankedEvent event =
-            new ReviewRankedEvent(receiverId, reviewId);
+    ReviewRankedEvent event =
+      new ReviewRankedEvent(reviewIds);
 
-        // when
-        notificationEventListener.handleReviewRankedEvent(event);
+    // when
+    notificationEventListener.handleReviewRankedEvent(event);
 
-        // then
-        verify(notificationService).createByReviewRanked(receiverId, reviewId);
-        verifyNoMoreInteractions(notificationService);
-    }
+    // then
+    verify(notificationService).createByReviewRanked(reviewIds);
+    verifyNoMoreInteractions(notificationService);
+  }
 }

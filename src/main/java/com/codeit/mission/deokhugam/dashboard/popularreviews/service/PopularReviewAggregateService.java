@@ -8,6 +8,7 @@ import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.request.ReviewS
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.repository.PopularReviewRepository;
 import com.codeit.mission.deokhugam.dashboard.util.Utils;
+import com.codeit.mission.deokhugam.notification.event.ReviewRankedEvent;
 import com.codeit.mission.deokhugam.review.entity.ReviewStatus;
 import com.codeit.mission.deokhugam.review.repository.ReviewRepository;
 import java.time.Instant;
@@ -19,6 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,8 @@ public class PopularReviewAggregateService {
   private final ReviewRepository reviewRepository;
   private final CommentRepository commentRepository;
   private final PopularReviewRepository popularReviewRepository;
+
+  private final ApplicationEventPublisher eventPublisher;
 
   // 일괄적으로 리뷰의 점수를 로드
   @Transactional(readOnly = true)
@@ -89,6 +93,12 @@ public class PopularReviewAggregateService {
     }
     log.info("[POPULAR_REVIEW_RANK_DONE] periodType={}, snapshotId={}, rankedCount={}",
         periodType, snapshotId, popularReviews.size());
+
+    // 인기 리뷰 알림 이벤트 발행
+    List<UUID> reviewIds = popularReviews.stream()
+      .map(PopularReview::getReviewId)
+      .toList();
+    eventPublisher.publishEvent(new ReviewRankedEvent(reviewIds));
   }
 
   public PopularReview toPopularReview(
