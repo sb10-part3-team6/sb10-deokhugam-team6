@@ -119,44 +119,21 @@ public class GlobalExceptionHandler {
       org.springframework.web.bind.MissingRequestHeaderException e) {
     ErrorCode errorCode = ErrorCode.MISSING_REQUEST_HEADER;
 
-    ErrorResponse error = ErrorResponse.builder()
-        .timestamp(Instant.now())
-        .code(errorCode.name())
-        .message(errorCode.getMessage())
-        .exceptionType(e.getClass().getSimpleName())
-        .status(errorCode.getHttpStatus().value())
-        .build();
-
-    log.warn("[MISSING_HEADER_EXCEPTION] ERROR_CODE={}, Message={}, Header={}",
-        error.code(),
-        error.message(),
-        e.getHeaderName()
-    );
-    return ResponseEntity.status(error.status()).body(error);
-  }
-
-  // 필수 헤더 누락 오류 (@RequestHeader)
-  @ExceptionHandler(MissingRequestHeaderException.class)
-  public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(
-          MissingRequestHeaderException e
-  ) {
-    ErrorCode errorCode = ErrorCode.MISSING_REQUEST_HEADER;
-
     Map<String, Object> details = new HashMap<>();
     details.put("header", e.getHeaderName());
 
     ErrorResponse error = ErrorResponse.builder()
-            .timestamp(Instant.now())
-            .code(errorCode.name())
-            .message(errorCode.getMessage())
-            .details(details)
-            .exceptionType(e.getClass().getSimpleName())
-            .status(HttpStatus.BAD_REQUEST.value())
-            .build();
+        .timestamp(Instant.now())
+        .code(errorCode.name())
+        .message(errorCode.getMessage())
+        .details(details)
+        .exceptionType(e.getClass().getSimpleName())
+        .status(errorCode.getHttpStatus().value())
+        .build();
 
     log.warn("[MISSING_HEADER_EXCEPTION] ERROR_CODE={}, Message={}",
-            error.code(),
-            error.message()
+        error.code(),
+        error.message()
     );
 
     return ResponseEntity.status(error.status()).body(error);
