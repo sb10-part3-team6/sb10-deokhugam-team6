@@ -21,12 +21,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PopularBookService {
 
   private static final int MAX_PAGE_SIZE = 100; // 페이지의 최대 사이즈는 100으로 고정
@@ -39,6 +41,8 @@ public class PopularBookService {
   public CursorPageResponsePopularBookDto get(
       PeriodType periodType, DirectionEnum direction, String cursor, String after, int pageSize
   ) {
+    log.info("[POPULAR_BOOK_QUERY_START] periodType={}, direction={}, cursor={}, after={}, pageSize={}",
+        periodType, direction, cursor, after, pageSize);
 
     // 커서와 보조 커서는 항상 같이 제공되어야 합니다.
     if ((cursor == null) != (after == null)) {
@@ -63,6 +67,8 @@ public class PopularBookService {
     // 찾고자하는 기간에 해당하는 스냅샷의 ID를 구합니다.
     Optional<UUID> publishedSnapshotId = getPublishedSnapshotId(periodType);
     if (publishedSnapshotId.isEmpty()) {
+      log.info("[POPULAR_BOOK_QUERY_EMPTY] periodType={}, reason=published_snapshot_not_found",
+          periodType);
       return new CursorPageResponsePopularBookDto(
           Collections.emptyList(),
           null,
@@ -93,6 +99,9 @@ public class PopularBookService {
 
     // 스냅샷에 해당하는 요소들의 총 개수를 센다.
     long totalElements = popularBookRepository.countRankingsBySnapshotId(publishedSnapshotId.get());
+    log.info(
+        "[POPULAR_BOOK_QUERY_DONE] periodType={}, snapshotId={}, contentSize={}, totalElements={}, hasNext={}",
+        periodType, publishedSnapshotId.get(), content.size(), totalElements, hasNext);
 
     return new CursorPageResponsePopularBookDto(
         content,
