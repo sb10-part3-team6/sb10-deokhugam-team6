@@ -1,4 +1,4 @@
-package com.codeit.mission.deokhugam.review.repository;
+package com.codeit.mission.deokhugam.review.repository.custom;
 
 import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
 import com.codeit.mission.deokhugam.review.entity.Review;
