@@ -1,9 +1,9 @@
 package com.codeit.mission.deokhugam.dashboard.popularreviews.repository;
 
-import com.codeit.mission.deokhugam.dashboard.PeriodType;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.dto.response.PopularReviewDto;
 import com.codeit.mission.deokhugam.dashboard.popularreviews.entity.PopularReview;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
@@ -103,5 +103,7 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
           where pr.snapshotId = :snapshotId
           """)
   long countRankingsBySnapshotId(@Param("snapshotId") UUID snapshotId);
+
+  void deleteBySnapshotIdIn(Collection<UUID> snapshotIds);
 
 }
