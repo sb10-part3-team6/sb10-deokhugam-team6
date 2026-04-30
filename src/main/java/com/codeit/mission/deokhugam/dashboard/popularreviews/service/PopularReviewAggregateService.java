@@ -18,11 +18,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PopularReviewAggregateService {
 
   // 인기 리뷰 집계에 필요한 가중치
@@ -37,16 +39,21 @@ public class PopularReviewAggregateService {
   @Transactional(readOnly = true)
   public Map<UUID, ReviewStat> loadReviewStat(PeriodType periodType, Instant aggregatedAt) {
     List<Instant> periods = Utils.calculatePeriod(periodType, aggregatedAt);
+    Instant periodStart = periods.get(0);
+    Instant periodEnd = periods.get(1);
+    log.info(
+        "[POPULAR_REVIEW_STAT_LOAD_START] periodType={}, periodStart={}, periodEnd={}",
+        periodType, periodStart, periodEnd);
 
     Map<UUID, Long> reviewCommentCounts = new HashMap<>();
-    for (ReviewCommentCount item : commentRepository.findReviewCommentCounts(periods.get(0),
-        periods.get(1))) {
+    for (ReviewCommentCount item : commentRepository.findReviewCommentCounts(periodStart,
+        periodEnd)) {
       reviewCommentCounts.put(item.reviewId(), item.commentCount());
     }
 
     Map<UUID, Long> reviewLikeCounts = new HashMap<>();
     for (ReviewLikeCount item
-        : reviewRepository.countReviewLikes(periods.get(0), periods.get(1), ReviewStatus.ACTIVE)) {
+        : reviewRepository.countReviewLikes(periodStart, periodEnd, ReviewStatus.ACTIVE)) {
       reviewLikeCounts.put(item.reviewId(), item.likeCount());
     }
 
@@ -61,12 +68,17 @@ public class PopularReviewAggregateService {
 
       statsByReviewId.put(reviewId, new ReviewStat(reviewId, likeCount, commentCount));
     }
+    log.info(
+        "[POPULAR_REVIEW_STAT_LOAD_DONE] periodType={}, targetReviewCount={}, commentCountRows={}, likeCountRows={}",
+        periodType, statsByReviewId.size(), reviewCommentCounts.size(), reviewLikeCounts.size());
 
     return statsByReviewId;
   }
 
   @Transactional
   public void rankPopularReviews(PeriodType periodType, Instant aggregatedAt, UUID snapshotId) {
+    log.info("[POPULAR_REVIEW_RANK_START] periodType={}, aggregatedAt={}, snapshotId={}",
+        periodType, aggregatedAt, snapshotId);
     List<PopularReview> popularReviews =
         popularReviewRepository.findBySnapshotIdDescByScore(snapshotId);
     long index = 1L;
@@ -75,6 +87,8 @@ public class PopularReviewAggregateService {
       popularReview.updateRank(index);
       index++;
     }
+    log.info("[POPULAR_REVIEW_RANK_DONE] periodType={}, snapshotId={}, rankedCount={}",
+        periodType, snapshotId, popularReviews.size());
   }
 
   public PopularReview toPopularReview(
