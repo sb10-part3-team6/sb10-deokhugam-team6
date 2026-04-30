@@ -1,9 +1,9 @@
 package com.codeit.mission.deokhugam.notification.service;
 
-import com.codeit.mission.deokhugam.notification.dto.response.CursorPageResponseNotificationDto;
-import com.codeit.mission.deokhugam.notification.dto.response.NotificationDto;
 import com.codeit.mission.deokhugam.notification.dto.request.NotificationRequestQuery;
 import com.codeit.mission.deokhugam.notification.dto.request.NotificationUpdateRequest;
+import com.codeit.mission.deokhugam.notification.dto.response.CursorPageResponseNotificationDto;
+import com.codeit.mission.deokhugam.notification.dto.response.NotificationDto;
 import com.codeit.mission.deokhugam.notification.entity.Notification;
 import com.codeit.mission.deokhugam.notification.exception.NotificationNotFoundException;
 import com.codeit.mission.deokhugam.notification.exception.NotificationNotOwnedException;
@@ -16,8 +16,6 @@ import com.codeit.mission.deokhugam.user.entity.User;
 import com.codeit.mission.deokhugam.user.exception.UserNotFoundException;
 import com.codeit.mission.deokhugam.user.repository.UserRepository;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -92,7 +90,7 @@ public class NotificationService {
     notificationRepository.saveAll(newNotifications);
 
     log.info("[NOTIFICATION] notifications created by review ranked: ids={}",
-      newNotifications.stream().map(BaseEntity::getId));
+      newNotifications.stream().map(Notification::getId).toList());
   }
 
   public CursorPageResponseNotificationDto findByUserId(UUID userId,
@@ -166,17 +164,17 @@ public class NotificationService {
   }
 
   private Notification createNotification(
-      User receiver,
-      Review review,
-      String message
+    User receiver,
+    Review review,
+    String message
   ) {
     return Notification.builder()
-        .reviewContent(review.getContent())
-        .message(message)
-        .confirmed(false)
-        .user(receiver)
-        .review(review)
-        .build();
+      .reviewContent(review.getContent())
+      .message(message)
+      .confirmed(false)
+      .user(receiver)
+      .review(review)
+      .build();
   }
 
   // 요청자의 id와 알림을 받은 사람의 id를 대조
@@ -195,16 +193,16 @@ public class NotificationService {
 
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
-        .orElseThrow(() -> new UserNotFoundException(userId));
+      .orElseThrow(() -> new UserNotFoundException(userId));
   }
 
   private Review getReviewOrThrow(UUID reviewId) {
     return reviewRepository.findById(reviewId)
-        .orElseThrow(() -> new ReviewNotFoundException(reviewId));
+      .orElseThrow(() -> new ReviewNotFoundException(reviewId));
   }
 
   private Notification getNotificationOrThrow(UUID notificationId) {
     return notificationRepository.findById(notificationId)
-        .orElseThrow(() -> new NotificationNotFoundException(notificationId));
+      .orElseThrow(() -> new NotificationNotFoundException(notificationId));
   }
 }
