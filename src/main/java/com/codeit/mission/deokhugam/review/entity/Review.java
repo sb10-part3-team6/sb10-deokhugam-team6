@@ -107,6 +107,7 @@ public class Review extends BaseEntity {
     this.deletedAt = Instant.now();
   }
 
+  // 해당 리뷰의 활성 여부 검증
   public boolean isActive() {
     return this.status == ReviewStatus.ACTIVE;
   }
