@@ -38,6 +38,16 @@ spring:
     console:
       enabled: true
 
+  # redis 호스트 및 포트 설정
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # 캐싱은 redis로 설정
+  cache:
+    type: redis
+
 # 로깅 설정
 logging:
   level:
