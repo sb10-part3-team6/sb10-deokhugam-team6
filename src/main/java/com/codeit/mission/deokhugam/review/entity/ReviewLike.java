@@ -56,7 +56,7 @@ public class ReviewLike extends BaseEntity {
   @PrePersist
   void assignLikedAt() {
     if (likedAt == null) {
-      likedAt = Instant.now();q
+      likedAt = Instant.now();
     }
   }
 }
