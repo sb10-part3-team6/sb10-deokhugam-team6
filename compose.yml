@@ -1,0 +1,8 @@
+
+#레디스 설정
+services:
+  redis:
+    image: redis:7.4.2
+    ports:
+    - "6379:6379"
+
