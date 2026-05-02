@@ -5,6 +5,7 @@ import com.codeit.mission.deokhugam.book.entity.BookStatus;
 import com.codeit.mission.deokhugam.book.exception.BookNotFoundException;
 import com.codeit.mission.deokhugam.book.repository.BookRepository;
 import com.codeit.mission.deokhugam.comment.repository.CommentRepository;
+import com.codeit.mission.deokhugam.notification.event.ReviewLikedEvent;
 import com.codeit.mission.deokhugam.notification.repository.NotificationRepository;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewCreateRequest;
 import com.codeit.mission.deokhugam.review.dto.request.ReviewSearchConditionDto;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,6 +63,8 @@ public class ReviewServiceImplement implements ReviewService {
 
   private final ReviewMapper reviewMapper;
   private final ReviewLikeMapper reviewLikeMapper;
+
+  private final ApplicationEventPublisher eventPublisher;
 
   // 리뷰 상세 조회
   @Override
@@ -179,7 +183,7 @@ public class ReviewServiceImplement implements ReviewService {
       // 6. 리뷰 저장 및 즉시 반영하여, try-catch 블록 내에서 제약 조건 위반 예외 포착
       reviewRepository.saveAndFlush(newReview);
 
-      // 7. 도서에 추가된 리뷰 집계
+      // 7. 대상 도서에 리뷰 수 / 평점 반영
       bookRepository.incrementReviewCountAndRating(book.getId(), newReview.getRating());
 
       // 8. 로그 기록
@@ -188,7 +192,7 @@ public class ReviewServiceImplement implements ReviewService {
       // 9. 리뷰 응답 DTO 변환 및 반환
       return reviewMapper.toDto(newReview, false);            // 갓 생성한 리뷰는 좋아요 0
 
-      // 만약 동시에 똑같은 요청이 들어와서, DB 유니크 제약 (uk_book_user)가 발생한다면 커스텀 중복 예외 발생
+      // 만약 동시에 똑같은 요청이 들어와서, DB 유니크 제약 (uk_book_user_active)가 발생한다면 커스텀 중복 예외 발생
     } catch (DataIntegrityViolationException e) {
       // 동시 요청으로 인한 중복 데이터 삽입 시 발생하는 특정 제약 조건 위반인지 확인
       if (!isDuplicateReviewConstraintViolation(e)) {
@@ -223,7 +227,7 @@ public class ReviewServiceImplement implements ReviewService {
         reviewUpdateRequest.rating());
     reviewRepository.save(targetReview);
 
-    // 5. 수정된 리뷰 점수를 도서에 반영
+    // 5. 대상 도서에 리뷰 수 / 평점 반영
     bookRepository.incrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
 
     // 6. 로그 작성
@@ -252,11 +256,13 @@ public class ReviewServiceImplement implements ReviewService {
     // 3. 권한 확인: 본인이 작성한 리뷰에 대해서만 삭제 가능
     validateOwner(targetReview, requestUser);
 
-    // 4. 리뷰 논리 삭제 및 도서에 반영
+    // 4. 리뷰 논리 삭제
     targetReview.delete();
+
+    // 5. 대상 도서에 리뷰 수 / 평점 반영
     bookRepository.decrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
 
-    // 5. 로그 기록
+    // 6. 로그 기록
     log.info("[REVIEW_LOGICAL_DELETE] Logical Delete Review Id: {}", targetReview.getId());
   }
 
@@ -268,6 +274,7 @@ public class ReviewServiceImplement implements ReviewService {
     Review targetReview = getReviewEntityOrThrow(id);
     User requestUser = getUserEntityOrThrow(requestUserId);
     Book targetBook = getBookEntityOrThrow(targetReview.getBook().getId());
+
     // 2. User 논리 삭제 여부 검증: 이미 논리적으로 삭제된 경우, 오류 발생
     validateUserActive(requestUser);
 
@@ -283,8 +290,8 @@ public class ReviewServiceImplement implements ReviewService {
     // 5. 리뷰 물리 삭제
     reviewRepository.delete(targetReview);
 
-    // 6. 도서 리뷰 집계에 반영
-    if(targetReview.isActive()) {
+    // 6. 대상 도서에 리뷰 수 / 평점 반영
+    if (targetReview.isActive()) {                          // 중복 집계 방지를 위해, 활성화 된 리뷰만 반영
       bookRepository.decrementReviewCountAndRating(targetBook.getId(), targetReview.getRating());
     }
 
@@ -307,6 +314,13 @@ public class ReviewServiceImplement implements ReviewService {
 
     // 3. 좋아요 추가 및 취소 (동시성 처리 포함)
     boolean isLiked = executeToggleWithConcurrencyHandle(targetReview, requestUser);
+
+    // 3-1. 좋아요를 추가한 경우 이벤트 발생
+    if (isLiked) {
+      eventPublisher.publishEvent(
+        new ReviewLikedEvent(requestUser.getId(), targetReview.getUser().getId(),
+          targetReview.getId()));
+    }
 
     // 4. 응답 DTO 생성 및 반환
     return reviewLikeMapper.toDto(targetReview, requestUser, isLiked);
