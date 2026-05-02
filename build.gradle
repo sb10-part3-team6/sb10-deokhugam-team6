@@ -57,6 +57,9 @@ dependencies {
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // Docker-compose
+    implementation 'org.springframework.boot:spring-boot-docker-compose'
+
     // aws
     implementation 'software.amazon.awssdk:s3:2.25.20'
 
