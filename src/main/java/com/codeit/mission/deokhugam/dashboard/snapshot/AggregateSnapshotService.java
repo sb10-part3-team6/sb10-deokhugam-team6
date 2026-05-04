@@ -91,32 +91,64 @@ public class AggregateSnapshotService {
   // 오래된 스냅샷들을 정리한다.
   @Transactional
   public void cleanupOldSnapshots(DomainType domainType, PeriodType periodType, int keepCount) {
-    if(keepCount < 2){
+    // keepCount가 2 이하이면 PUBLISHED 스냅샷도 삭제될 수 있기 때문에 검증을 둔다.
+    if (keepCount < 2) {
       throw new InvalidKeepCountException(keepCount);
     }
-    List<AggregateSnapshot> snapshots = snapshotRepository.findByDomainTypeAndPeriodTypeAndStagingTypeInOrderByCreatedAtDesc(
-        domainType,
-        periodType,
-        List.of(StagingType.PUBLISHED, StagingType.ARCHIVED) // 퍼블리시 된 스냅샷과 아카이빙된 스냅샷을 가져옴.
-    );
 
+    // PUBLISHED, ARCHIVED 스냅샷만 createdAt 내림차순으로 가져온다.
+    List<AggregateSnapshot> snapshots =
+        snapshotRepository.findByDomainTypeAndPeriodTypeAndStagingTypeInOrderByCreatedAtDesc(
+            domainType,
+            periodType,
+            List.of(StagingType.PUBLISHED, StagingType.ARCHIVED)
+        );
+
+    // keepCount 만큼 남겨두고 그 뒤의 스냅샷들을 삭제 대상으로 삼는다.
     List<AggregateSnapshot> targets = snapshots.stream().skip(keepCount).toList();
 
-    if(targets.isEmpty()){
+    if (!targets.isEmpty()) {
+      // 삭제 대상 스냅샷들의 id를 추출한다.
+      List<UUID> snapshotIds = targets.stream()
+          .map(AggregateSnapshot::getSnapshotId)
+          .toList();
+
+      // 지정한 스냅샷들의 도메인별 집계 row를 먼저 삭제한다.
+      deleteAggregateRows(domainType, snapshotIds);
+      snapshotRepository.deleteAllInBatch(targets);
+    }
+
+    cleanupFailedSnapshots();
+  }
+
+  // FAILED 스냅샷들을 정리한다.
+  @Transactional
+  public void cleanupFailedSnapshots() {
+    // FAILED 스냅샷들을 모두 가져온다.
+    List<AggregateSnapshot> failedSnapshots = snapshotRepository.findByStagingType(
+        StagingType.FAILED);
+
+    // FAILED 스냅샷이 없으면 리턴
+    if (failedSnapshots.isEmpty()) {
       return;
     }
 
-    // keep Count 만큼 남겨두고 그 뒤의 스냅샷들의 id를 추출함.
-    List<UUID> snapshotIds = targets.stream()
-        .map(AggregateSnapshot::getSnapshotId)
-        .toList();
+    // 각 도메인 별로 스냅샷의 ID를 리스트화한다.
+    for (DomainType domainType : DomainType.values()) {
+      List<UUID> snapshotIds = failedSnapshots.stream()
+          .filter(snapshot -> snapshot.getDomainType() == domainType)
+          .map(AggregateSnapshot::getSnapshotId)
+          .toList();
 
-    // 지정한 스냅샷들을 삭제합니다.
-    deleteAggregateRows(domainType, snapshotIds);
-    snapshotRepository.deleteAllInBatch(targets);
+      if (!snapshotIds.isEmpty()) {
+        // 레포지토리 내의 도메인별 집계 row 삭제
+        deleteAggregateRows(domainType, snapshotIds);
+      }
+    }
+
+    // aggregate_snapshot 테이블의 FAILED snapshot row 자체를 삭제
+    snapshotRepository.deleteAllInBatch(failedSnapshots);
   }
-
-
 
   // 각 도메인 별 레포지토리에서 오래된 스냅샷의 엔티티들을 삭제
   private void deleteAggregateRows(DomainType domainType, List<UUID> snapshotIds) {
@@ -127,5 +159,4 @@ public class AggregateSnapshotService {
     };
     action.run();
   }
-
 }

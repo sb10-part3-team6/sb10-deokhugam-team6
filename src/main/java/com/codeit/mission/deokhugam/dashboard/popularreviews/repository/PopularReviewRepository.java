@@ -111,6 +111,6 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
     delete from PopularReview pr
     where pr.snapshotId in :snapshotIds
   """)
-  void deleteBySnapshotIdIn(Collection<UUID> snapshotIds);
+  void deleteBySnapshotIdIn(@Param("snapshotIds") Collection<UUID> snapshotIds);
 
 }

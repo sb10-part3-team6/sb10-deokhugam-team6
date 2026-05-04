@@ -92,7 +92,7 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
     DELETE FROM PopularBook pb
     WHERE pb.snapshotId IN :snapshotIds
     """)
-  void deleteBySnapshotIdIn(Collection<UUID> snapshotIds);
+  void deleteBySnapshotIdIn(@Param("snapshotIds") Collection<UUID> snapshotIds);
 
 
 }

@@ -90,7 +90,7 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
   @Query(
       """
         delete from PowerUser pu
-        where pu.snapshotId in :snapshots
+        where pu.snapshotId in :snapshotIds
 """)
-  void deleteBySnapshotIdIn(Collection<UUID> snapshots);
+  void deleteBySnapshotIdIn(@Param("snapshotIds") Collection<UUID> snapshotIds);
 }
