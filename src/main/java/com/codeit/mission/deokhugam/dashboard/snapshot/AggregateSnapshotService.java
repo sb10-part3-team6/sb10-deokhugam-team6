@@ -15,6 +15,8 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -60,21 +62,34 @@ public class AggregateSnapshotService {
           "existingDomainType", domainType));
     }
 
-    // 스냅샷의 상태를 확인
+    // 스냅샷의 상태를 확인 (스테이징 상태여야만 publish 가능)
     if (newSnapshot.getStagingType() != StagingType.STAGING) {
       throw new SnapshotNotStagedPublishException(Map.of(
           "snapshotId", newSnapshot.getSnapshotId(),
           "stagingType", newSnapshot.getStagingType()));
     }
 
+    // 이전에 PUBLISHED 스냅샷을 ARCHIVED(보존) 상태로 바꾼다.
     snapshotRepository
         .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
             domainType, newSnapshot.getPeriodType(), StagingType.PUBLISHED)
         .filter(oldSnapshot -> !oldSnapshot.getSnapshotId().equals(snapshotId))
         .ifPresent(AggregateSnapshot::archive);
 
+    // 해당 스냅샷을 PUBLISHED로 바꾼다.
     newSnapshot.publish();
-    evictDashboardCache(domainType);
+
+    // 트랜잭션 내 캐시 무효화 시 일관성 문제 가능성을 해소하기 위해
+    // TransactionSynchronizationManager를 사용하여
+    // 커밋 후 콜백으로 처리
+    TransactionSynchronizationManager.registerSynchronization(
+        new TransactionSynchronization(){
+          @Override
+          public void afterCommit(){
+            evictDashboardCache(domainType);
+          }
+        }
+    );
   }
 
   // 스냅샷을 새로 Publish 하고나서, Redis 캐시에 남아있는 이전의 값들을 정리하는 메서드

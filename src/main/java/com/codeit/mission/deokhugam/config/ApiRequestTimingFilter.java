@@ -6,11 +6,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Slf4j
 @Component
+@Order(Integer.MIN_VALUE) // 체인에서 가장 앞 위치
 public class ApiRequestTimingFilter extends OncePerRequestFilter {
 
   @Override
