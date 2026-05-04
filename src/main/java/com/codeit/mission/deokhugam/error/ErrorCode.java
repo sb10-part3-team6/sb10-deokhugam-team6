@@ -21,6 +21,7 @@ public enum ErrorCode {
       "Method argument type mismatch"),         // 파라미터 타입 불일치
   INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,
       "Internal server error"),               // 서버 내부 오류
+  MISSING_REQUEST_HEADER(HttpStatus.BAD_REQUEST,"Missing request header"), // 필수 헤더 누락
 
   // 유저 (로그인/회원가입)
   LOGIN_INPUT_INVALID(HttpStatus.UNAUTHORIZED, "Invalid email or password"),

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -86,6 +87,11 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
       """)
   long countRankingsBySnapshotId(@Param("snapshotId") UUID snapshotId);
 
+  @Modifying
+  @Query("""
+    DELETE FROM PopularBook pb
+    WHERE pb.snapshotId IN :snapshotIds
+    """)
   void deleteBySnapshotIdIn(Collection<UUID> snapshotIds);
 
 

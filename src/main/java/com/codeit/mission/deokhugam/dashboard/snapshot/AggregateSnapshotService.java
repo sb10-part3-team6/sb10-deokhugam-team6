@@ -88,18 +88,6 @@ public class AggregateSnapshotService {
         .ifPresent(AggregateSnapshot::fail);
   }
 
-  @Transactional(readOnly = true)
-  public UUID getPublishedSnapshotId(
-      DomainType domainType,
-      PeriodType periodType
-  ) {
-    return snapshotRepository
-        .findTopByDomainTypeAndPeriodTypeAndStagingTypeOrderByCreatedAtDesc(
-            domainType, periodType, StagingType.PUBLISHED)
-        .map(AggregateSnapshot::getSnapshotId)
-        .orElseThrow(SnapshotNotFoundException::new);
-  }
-
   // 오래된 스냅샷들을 정리한다.
   @Transactional
   public void cleanupOldSnapshots(DomainType domainType, PeriodType periodType, int keepCount) {
@@ -132,11 +120,12 @@ public class AggregateSnapshotService {
 
   // 각 도메인 별 레포지토리에서 오래된 스냅샷의 엔티티들을 삭제
   private void deleteAggregateRows(DomainType domainType, List<UUID> snapshotIds) {
-    switch (domainType) {
-      case POPULAR_BOOK -> popularBookRepository.deleteBySnapshotIdIn(snapshotIds);
-      case POPULAR_REVIEW -> popularReviewRepository.deleteBySnapshotIdIn(snapshotIds);
-      case POWER_USER -> powerUserRepository.deleteBySnapshotIdIn(snapshotIds);
-    }
+    Runnable action = switch (domainType) {
+      case POPULAR_BOOK -> () -> popularBookRepository.deleteBySnapshotIdIn(snapshotIds);
+      case POPULAR_REVIEW -> () -> popularReviewRepository.deleteBySnapshotIdIn(snapshotIds);
+      case POWER_USER -> () -> powerUserRepository.deleteBySnapshotIdIn(snapshotIds);
+    };
+    action.run();
   }
 
 }
